@@ -1,2 +1,6 @@
 # AheuiChem
-Aheui code edtior like SpaceChem
+Aheui code editor like SpaceChem
+
+Concept art (Draft):
+
+![Concept art](draft.png)
