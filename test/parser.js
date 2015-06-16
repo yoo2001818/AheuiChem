@@ -1,8 +1,8 @@
 var assert = require('assert');
 var parser = require('../src/parser');
-describe('parser', function(){
-  describe('parseSyllable()', function(){
-    it('should return right results', function(){
+describe('parser', function() {
+  describe('parseSyllable()', function() {
+    it('should return right results', function() {
       assert.deepEqual({
         direction: 'right',
         command: 'push-unicode'
@@ -25,6 +25,6 @@ describe('parser', function(){
         command: 'select',
         data: 1
       }, parser.parseSyllable('색'));
-    })
-  })
-})
+    });
+  });
+});
