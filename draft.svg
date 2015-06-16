@@ -29,7 +29,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="271.28684"
+     inkscape:cx="141.64398"
      inkscape:cy="161.19712"
      inkscape:document-units="px"
      inkscape:current-layer="layer3"
@@ -47,7 +47,8 @@
      inkscape:window-height="1019"
      inkscape:window-x="0"
      inkscape:window-y="26"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     showguides="false" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -56,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -545,13 +546,13 @@
          sodipodi:role="line"
          x="250.52521"
          y="243.53896"
-         id="tspan4351"
-         style="text-align:center;text-anchor:middle;fill:#dc0000;fill-opacity:1">ㅎ에</tspan><tspan
+         style="text-align:center;text-anchor:middle;fill:#dc0000;fill-opacity:1"
+         id="tspan4353">글자로</tspan><tspan
          sodipodi:role="line"
          x="250.52521"
-         y="271.1636"
+         y="271.16364"
          style="text-align:center;text-anchor:middle;fill:#dc0000;fill-opacity:1"
-         id="tspan4353">넣기</tspan></text>
+         id="tspan4222">출력</tspan></text>
     <rect
        style="opacity:0.98999999;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect4355"
