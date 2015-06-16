@@ -4,7 +4,7 @@
   "description": "Aheui code editor like SpaceChem",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/yoo2001818/AheuiChem/issues"
   },
-  "homepage": "https://github.com/yoo2001818/AheuiChem#readme"
+  "homepage": "https://github.com/yoo2001818/AheuiChem#readme",
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
 }
