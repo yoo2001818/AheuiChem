@@ -1,0 +1,25 @@
+{
+  "name": "aheuichem",
+  "version": "0.0.0",
+  "description": "Aheui code editor like SpaceChem",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yoo2001818/AheuiChem.git"
+  },
+  "keywords": [
+    "aheui",
+    "esolang",
+    "editor",
+    "code"
+  ],
+  "author": "yoo2001818",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yoo2001818/AheuiChem/issues"
+  },
+  "homepage": "https://github.com/yoo2001818/AheuiChem#readme"
+}
