@@ -98,7 +98,16 @@ Interpreter.prototype.next = function() {
       break;
     }
     // Execute the command
-    var stack = this.state.memory[this.state.stack];
+    var stackId = this.state.stack;
+    var stack = this.state.memory[stackId];
+    var pop = function() {
+      var data;
+      if(stack.length == 0) error = true;
+      if(stackId == 21) data = stack.shift();
+      else data = stack.pop();
+      return data;
+    }
+    var error = false;
     switch(tile.command) {
       case 'end':
         move = 0;
@@ -109,8 +118,13 @@ Interpreter.prototype.next = function() {
       case 'subtract':
       case 'divide':
       case 'mod':
-        var a = stack.pop() || 0;
-        var b = stack.pop() || 0;
+        if(stack.length < 2) {
+          error = true;
+          break;
+        }
+        var a = pop();
+        var b = pop();
+        if(error) break;
         if(tile.command == 'add') stack.push(b + a);
         if(tile.command == 'multiply') stack.push(b * a);
         if(tile.command == 'subtract') stack.push(b - a);
@@ -118,7 +132,8 @@ Interpreter.prototype.next = function() {
         if(tile.command == 'mod') stack.push(b % a);
       break;
       case 'pop':
-        stack.pop();
+        var data = pop();
+        if(error) break;
       break;
       case 'push':
         stack.push(tile.data);
@@ -132,23 +147,29 @@ Interpreter.prototype.next = function() {
         stack.push(123);
       break;
       case 'pop-unicode':
-        var data = stack.pop();
+        var data = pop();
+        if(error) break;
         this.state.output.push(String.fromCharCode(data));
       break;
       case 'pop-number':
-        var data = stack.pop();
+        var data = pop();
+        if(error) break;
         this.state.output = this.state.output.concat(String(data).split(''));
       break;
       case 'copy':
-        var data = stack.pop();
-        if(data == null) break;
+        var data = pop();
+        if(error) break;
         stack.push(data);
         stack.push(data);
       break;
       case 'flip':
-        var a = stack.pop();
-        var b = stack.pop();
-        if(a == null || b == null) break;
+        if(stack.length < 2) {
+          error = true;
+          break;
+        }
+        var a = pop();
+        var b = pop();
+        if(error) break;
         stack.push(a);
         stack.push(b);
       break;
@@ -157,19 +178,28 @@ Interpreter.prototype.next = function() {
       break;
       case 'move':
         var target = this.state.memory[tile.data];
-        target.push(stack.pop());
+        var data = pop();
+        if(error) break;
+        target.push(data);
       break;
       case 'compare':
-        var a = stack.pop();
-        var b = stack.pop();
+        if(stack.length < 2) {
+          error = true;
+          break;
+        }
+        var a = pop();
+        var b = pop();
+        if(error) break;
         stack.push(b >= a ? 1 : 0);
       break;
       case 'condition':
-        var data = stack.pop();
-        if(data == 0) this.state.direction = DirectionFlip[this.state.direction];
+        var data = pop();
+        if(error) break;
+        if(data == 0) error = true;
       break;
     }
   }
+  if(error) this.state.direction = DirectionFlip[this.state.direction];
   // Move to tile
   var direction = Direction[this.state.direction];
   this.state.x += direction.x * move;

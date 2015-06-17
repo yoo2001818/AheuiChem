@@ -17,7 +17,7 @@ function next() {
   console.log(interpreter.state.output.join(''));
   interpreter.next();
   if(interpreter.state.running) {
-    setTimeout(next, 0);
+    setTimeout(next, 5);
   } else {
     console.log(interpreter.shift());
   }
