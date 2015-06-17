@@ -41,8 +41,8 @@ Interpreter.prototype.push = function(data) {
 
 Interpreter.prototype.shift = function() {
   // Return the string and empties it
-  var output = this.output.join('');
-  this.output = [];
+  var output = this.state.output.join('');
+  this.state.output = [];
   return output;
 }
 

@@ -23,8 +23,14 @@ var DirectionMap = {
   // Reverse direction if origin direction is left or right
   'ㅣ': 'vertical',
   // Reverse direction
-  'ㅢ': 'reverse'
+  'ㅢ': 'reverse',
+  'ㅐ': 'none'
 }
+
+var DirectionReverseMap = {};
+Object.keys(DirectionMap).forEach(function(k) {
+  DirectionReverseMap[DirectionMap[k]] = k;
+});
 
 var CommandMap = {
   // ㅇ 묶음
@@ -47,6 +53,11 @@ var CommandMap = {
   'ㅈ': 'compare',
   'ㅊ': 'condition'
 };
+
+var CommandReverseMap = {};
+Object.keys(CommandMap).forEach(function(k) {
+  CommandReverseMap[CommandMap[k]] = k;
+});
 
 var LineMap = {
   ' ': 0,
@@ -76,6 +87,11 @@ var LineMap = {
   'ㅄ': 6,
   'ㅆ': 4
 };
+
+var LineReverseMap = {};
+Object.keys(LineMap).forEach(function(k) {
+  LineReverseMap[LineMap[k]] = k;
+});
 
 function isHangul(code) {
   return 0xAC00 <= code && code <= 0xD7A3;
@@ -118,6 +134,38 @@ function parseSyllable(char) {
   return data;
 }
 
+function encodeSyllable(data) {
+  var initial = CommandReverseMap[data.command];
+  var medial = DirectionReverseMap[data.direction];
+  var final = ' ';
+  // TODO randomize outputs
+  if(data.command == 'push-number') {
+    initial = 'ㅂ';
+    final = 'ㅇ'; 
+  } else if(data.command == 'push-unicode') {
+    initial = 'ㅂ';
+    final = 'ㅎ'; 
+  } else if(data.command == 'push') {
+    final = LineReverseMap[data.data];
+  } else if(data.command == 'pop-number') {
+    initial = 'ㅁ';
+    final = 'ㅇ'; 
+  } else if(data.command == 'pop-unicode') {
+    initial = 'ㅁ';
+    final = 'ㅎ'; 
+  } else if(data.command == 'select' || data.command == 'move') {
+    final = Hangul.final[data.data];
+  }
+  var initialCode = Hangul.initial.indexOf(initial);
+  var medialCode = Hangul.medial.indexOf(medial);
+  var finalCode = Hangul.final.indexOf(final);
+  var code = Hangul.code;
+  code += initialCode * Hangul.medial.length * Hangul.final.length;
+  code += medialCode * Hangul.final.length;
+  code += finalCode;
+  return String.fromCharCode(code);
+}
+
 function parse(data) {
   var lines = data.split('\n');
   var map = new TileMap(0, lines.length);
@@ -133,3 +181,4 @@ function parse(data) {
 
 module.exports.parseSyllable = parseSyllable;
 module.exports.parse = parse;
+module.exports.encodeSyllable = encodeSyllable;
