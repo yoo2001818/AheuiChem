@@ -1,3 +1,5 @@
+var TileMap = require('./tilemap');
+
 var Hangul = {
   initial: 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split(''),
   medial: 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split(''),
@@ -116,4 +118,18 @@ function parseSyllable(char) {
   return data;
 }
 
+function parse(data) {
+  var lines = data.split('\n');
+  var map = new TileMap(0, lines.length);
+  for(var y = 0; y < lines.length; ++y) {
+    var line = lines[y].split('');
+    map.expand(line.length, 0);
+    for(var x = 0; x < line.length; ++x) {
+      map.set(x, y, parseSyllable(line[x]));
+    }
+  }
+  return map;
+}
+
 module.exports.parseSyllable = parseSyllable;
+module.exports.parse = parse;

@@ -27,4 +27,28 @@ describe('parser', function() {
       }, parser.parseSyllable('색'));
     });
   });
+  describe('parse()', function() {
+    it('should return right results', function() {
+      assert.deepEqual({
+        width: 3,
+        height: 1,
+        map: [
+          [
+            {
+              direction: 'right',
+              command: 'push-unicode'
+            },
+            {
+              direction: 'right',
+              command: 'pop-number'
+            },
+            {
+              direction: 'vertical',
+              command: 'end'
+            }
+          ]
+        ]
+      }, parser.parse('밯망히'));
+    });
+  });
 });
