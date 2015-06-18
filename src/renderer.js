@@ -36,10 +36,15 @@ Renderer.prototype.updateNode = function(x, y) {
   var node = this.domMap.get(x, y);
   var tile = this.interpreter.map.get(x, y);
   if(tile) {
+    // text
     var div = document.createElement('div');
     node.appendChild(div);
     div.className = 'text';
     div.appendChild(document.createTextNode(tile.original));
+    // arrow
+    var div = document.createElement('div');
+    node.appendChild(div);
+    div.className = 'arrow '+tile.direction;
   }
   node.directions = {};
 }
