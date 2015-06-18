@@ -1,7 +1,34 @@
 html, body {
   margin: 0;
   padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+}
+
+#source {
+  display: none;
+}
+
+#viewport td.running {
+  background-color: #c99;
+}
+
+#viewport td.called {
+  background-color: #ccc;
+}
+
+#viewport td {
+  display: inline-block;
+  margin: 0;
+  width: 1.7em;
+  height: 1.7em;
+  font-size: 10pt;
+  line-height: 1.7em;
+  text-align: center;
+  border: 1px #999 solid;
+  background-color: #fff;
+}
+
+#viewport {
+  border-collapse: collapse;
+  white-space: nowrap;
+  overflow: auto;
 }
