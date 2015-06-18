@@ -39,22 +39,25 @@ Renderer.prototype.updateNode = function(x, y) {
 }
 
 Renderer.prototype.preNext = function() {
-  var state = this.interpreter.state;
-  var node = this.domMap.get(state.x, state.y);
-  node.className = "called";
 }
 
 Renderer.prototype.postNext = function() {
   var state = this.interpreter.state;
-  var tile = this.interpreter.map.get(state.x, state.y);
   var node = this.domMap.get(state.x, state.y);
   node.className = "running";
+  
+  var tile = this.interpreter.map.get(state.prevX, state.prevY);
+  var prevNode = this.domMap.get(state.prevX, state.prevY);
+  prevNode.className = "called";
+  while(prevNode.firstChild) {
+    prevNode.removeChild(prevNode.firstChild);
+  }
+  if(tile) prevNode.innerHTML = parser.encodeSyllable(tile);
   if(tile && tile.directions) {
-    console.log(tile.directions);
-    for(var i = 0; i < tile.directions.length; ++i) {
+    for(var key in tile.directions) {
       var div = document.createElement('div');
-      node.appendChild(div);
-      div.innerHTML = tile.directions[i];
+      prevNode.appendChild(div);
+      div.className = key;
     }
   }
 }

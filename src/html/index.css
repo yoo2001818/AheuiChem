@@ -20,18 +20,61 @@ html, body {
   margin: 0;
   width: 1.7em;
   height: 1.7em;
-  font-size: 10pt;
+  font-size: 30pt;
   line-height: 1.7em;
   text-align: center;
-  border: 1px #999 solid;
   background-color: #fff;
   position: relative;
 }
 
-#viewport td div{
+#viewport td div {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('img/path.svg');
+  background-size: 400% 400%;
+}
+
+#viewport td div.up-up {
+  background-position: -200% -100%;
+}
+
+#viewport td div.left-left {
+  background-position: -100% -200%;
+}
+
+#viewport td div.right-right {
+  background-position: -300% 0;
+}
+
+#viewport td div.down-down {
+  background-position: -200% -200%;
+}
+
+#viewport td div.left-up {
+  background-position: -100% -100%;
+}
+
+#viewport td div.right-up {
+  background-position: 0 -200%;
+}
+
+#viewport td div.down-left {
+  background-position: -200% 0;
+}
+
+#viewport td div.down-right {
+  background-position: 0 0;
+}
+
+#viewport td div.left-right {
+  background-position: -100% 0;
+}
+
+#viewport td div.down-up {
+  background-position: 0 -100%;
 }
 
 #viewport {

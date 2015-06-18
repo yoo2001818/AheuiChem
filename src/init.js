@@ -15,6 +15,6 @@ window.onload = function() {
     renderer.preNext();
     interpreter.next();
     renderer.postNext();
-  }, 10);
+  }, 100);
   window.interpreter = interpreter;
 }
