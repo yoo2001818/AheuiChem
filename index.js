@@ -9,7 +9,7 @@ console.log(interpreter);
 function next() {
   var tile = interpreter.map.get(interpreter.state.x, interpreter.state.y);
   console.log('--', interpreter.state.x, interpreter.state.y, interpreter.state.direction);
-  console.log('Stack', interpreter.state.stack, interpreter.state.memory[interpreter.state.stack].join(','));
+  console.log(interpreter.state.memory[interpreter.state.selected].constructor.name, interpreter.state.selected);
   if(tile) {
     console.log(tile.direction, tile.command, tile.data || '');
     console.log(parser.encodeSyllable(tile));
@@ -17,7 +17,7 @@ function next() {
   console.log(interpreter.state.output.join(''));
   interpreter.next();
   if(interpreter.state.running) {
-    setTimeout(next, 50);
+    setTimeout(next, 10);
   } else {
     console.log(interpreter.shift());
   }

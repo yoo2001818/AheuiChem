@@ -1,4 +1,5 @@
 var parser = require('./parser');
+var memory = require('./memory');
 
 var Direction = {
   'up': {
@@ -52,7 +53,7 @@ Interpreter.prototype.reset = function() {
     y: 0,
     direction: 'down',
     memory: {},
-    stack: 0,
+    selected: 0,
     input: [],
     output: [],
     running: true,
@@ -61,7 +62,18 @@ Interpreter.prototype.reset = function() {
   }
   // Initialize memory
   for(var i = 0; i < 28; ++i) {
-    this.state.memory[i] = [];
+    switch(i) {
+      case 21:
+        this.state.memory[i] = new memory.Queue();
+      break;
+      case 28:
+        // Extension memory, defaults to stack
+        this.state.memory[i] = new memory.Stack();
+      break;
+      default:
+        this.state.memory[i] = new memory.Stack();
+      break;
+    }
   }
 }
 
@@ -103,16 +115,10 @@ Interpreter.prototype.next = function() {
       break;
     }
     // Execute the command
-    var stackId = this.state.stack;
-    var stack = this.state.memory[stackId];
-    var pop = function() {
-      var data;
-      if(stack.length == 0) error = true;
-      if(stackId == 21) data = stack.shift();
-      else data = stack.pop();
-      return data;
-    }
+    var selected = this.state.selected;
+    var memory = this.state.memory[selected];
     var error = false;
+    // TODO move memory pull checks to somewhere else
     switch(tile.command) {
       case 'end':
         move = 0;
@@ -123,83 +129,89 @@ Interpreter.prototype.next = function() {
       case 'subtract':
       case 'divide':
       case 'mod':
-        if(stack.length < 2) {
+        if(!memory.canPull(2)) {
           error = true;
           break;
         }
-        var a = pop();
-        var b = pop();
-        if(error) break;
-        if(tile.command == 'add') stack.push(b + a);
-        if(tile.command == 'multiply') stack.push(b * a);
-        if(tile.command == 'subtract') stack.push(b - a);
-        if(tile.command == 'divide') stack.push(b / a | 0);
-        if(tile.command == 'mod') stack.push(b % a);
+        var a = memory.pull();
+        var b = memory.pull();
+        if(tile.command == 'add') memory.push(b + a);
+        if(tile.command == 'multiply') memory.push(b * a);
+        if(tile.command == 'subtract') memory.push(b - a);
+        if(tile.command == 'divide') memory.push(b / a | 0);
+        if(tile.command == 'mod') memory.push(b % a);
       break;
       case 'pop':
-        var data = pop();
-        if(error) break;
+        error = memory.pull() == null;
       break;
       case 'push':
-        stack.push(tile.data);
+        memory.push(tile.data);
       break;
       case 'push-unicode':
         // TODO
-        stack.push(0xAC00);
+        memory.push(0xAC00);
       break;
       case 'push-number':
         // TODO
-        stack.push(123);
+        memory.push(123);
       break;
       case 'pop-unicode':
-        var data = pop();
-        if(error) break;
+        if(!memory.canPull(1)) {
+          error = true;
+          break;
+        }
+        var data = memory.pull();
         this.state.output.push(String.fromCharCode(data));
       break;
       case 'pop-number':
-        var data = pop();
-        if(error) break;
+        if(!memory.canPull(1)) {
+          error = true;
+          break;
+        }
+        var data = memory.pull();
         this.state.output = this.state.output.concat(String(data).split(''));
       break;
       case 'copy':
-        var data = pop();
-        if(error) break;
-        stack.push(data);
-        stack.push(data);
-      break;
-      case 'flip':
-        if(stack.length < 2) {
+        if(!memory.canPull(1)) {
           error = true;
           break;
         }
-        var a = pop();
-        var b = pop();
-        if(error) break;
-        stack.push(a);
-        stack.push(b);
+        memory.copy();
+      break;
+      case 'flip':
+        if(!memory.canPull(2)) {
+          error = true;
+          break;
+        }
+        memory.flip();
       break;
       case 'select':
-        this.state.stack = tile.data;
+        this.state.selected = tile.data;
       break;
       case 'move':
         var target = this.state.memory[tile.data];
-        var data = pop();
-        if(error) break;
-        target.push(data);
-      break;
-      case 'compare':
-        if(stack.length < 2) {
+        if(!memory.canPull(1)) {
           error = true;
           break;
         }
-        var a = pop();
-        var b = pop();
-        if(error) break;
-        stack.push(b >= a ? 1 : 0);
+        var data = memory.pull();
+        target.push(data);
+      break;
+      case 'compare':
+        if(!memory.canPull(2)) {
+          error = true;
+          break;
+        }
+        var a = memory.pull();
+        var b = memory.pull();
+        memory.push(b >= a ? 1 : 0);
       break;
       case 'condition':
-        var data = pop();
-        if(error) break;
+        if(!memory.canPull(1)) {
+          error = true;
+          break;
+        }
+        var data = memory.pull();
         if(data == 0) error = true;
       break;
     }
@@ -223,6 +235,7 @@ function writeDirection(tile, preDirection, direction) {
   if(tile.directions == null) {
     tile.directions = {};
   }
+  // TODO sanitize code
   var directionCode = [DirectionFlip[preDirection], direction];
   directionCode.sort();
   directionCode = directionCode.join('-');
