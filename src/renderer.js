@@ -35,7 +35,13 @@ Renderer.prototype.createNodes = function() {
 Renderer.prototype.updateNode = function(x, y) {
   var node = this.domMap.get(x, y);
   var tile = this.interpreter.map.get(x, y);
-  if(tile) node.innerHTML = parser.encodeSyllable(tile);
+  if(tile) {
+    var div = document.createElement('div');
+    node.appendChild(div);
+    div.className = 'text';
+    div.appendChild(document.createTextNode(tile.original));
+  }
+  node.directions = {};
 }
 
 Renderer.prototype.preNext = function() {
@@ -49,15 +55,13 @@ Renderer.prototype.postNext = function() {
   var tile = this.interpreter.map.get(state.prevX, state.prevY);
   var prevNode = this.domMap.get(state.prevX, state.prevY);
   prevNode.className = "called";
-  while(prevNode.firstChild) {
-    prevNode.removeChild(prevNode.firstChild);
-  }
-  if(tile) prevNode.innerHTML = parser.encodeSyllable(tile);
   if(tile && tile.directions) {
     for(var key in tile.directions) {
+      if(node.directions[key]) continue;
+      node.directions[key] = true;
       var div = document.createElement('div');
       prevNode.appendChild(div);
-      div.className = key;
+      div.className = 'path '+key;
     }
   }
 }

@@ -1,18 +1,11 @@
 html, body {
   margin: 0;
   padding: 0;
+  background: #000;
 }
 
 #source {
   display: none;
-}
-
-#viewport td.running {
-  background-color: #c99;
-}
-
-#viewport td.called {
-  background-color: #ccc;
 }
 
 #viewport td {
@@ -23,11 +16,32 @@ html, body {
   font-size: 30pt;
   line-height: 1.7em;
   text-align: center;
-  background-color: #fff;
   position: relative;
+  background: #000;
 }
 
-#viewport td div {
+#viewport td div.text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  margin: 1pt;
+  background: #222;
+  color: #aaa;
+  border-radius: 3pt;
+}
+
+#viewport td.called div.text {
+  background: #333;
+}
+
+#viewport td.running div.text {
+  background: #666;
+}
+
+#viewport td div.path {
   position: absolute;
   top: 0;
   left: 0;
@@ -37,43 +51,43 @@ html, body {
   background-size: 400% 400%;
 }
 
-#viewport td div.up-up {
+#viewport td div.path.up-up {
   background-position: -200% -100%;
 }
 
-#viewport td div.left-left {
+#viewport td div.path.left-left {
   background-position: -100% -200%;
 }
 
-#viewport td div.right-right {
+#viewport td div.path.right-right {
   background-position: -300% 0;
 }
 
-#viewport td div.down-down {
+#viewport td div.path.down-down {
   background-position: -200% -200%;
 }
 
-#viewport td div.left-up {
+#viewport td div.path.left-up {
   background-position: -100% -100%;
 }
 
-#viewport td div.right-up {
+#viewport td div.path.right-up {
   background-position: 0 -200%;
 }
 
-#viewport td div.down-left {
+#viewport td div.path.down-left {
   background-position: -200% 0;
 }
 
-#viewport td div.down-right {
+#viewport td div.path.down-right {
   background-position: 0 0;
 }
 
-#viewport td div.left-right {
+#viewport td div.path.left-right {
   background-position: -100% 0;
 }
 
-#viewport td div.down-up {
+#viewport td div.path.down-up {
   background-position: 0 -100%;
 }
 
@@ -81,4 +95,5 @@ html, body {
   border-collapse: collapse;
   white-space: nowrap;
   overflow: auto;
+  margin: 8pt;
 }
