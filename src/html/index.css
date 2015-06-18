@@ -25,6 +25,13 @@ html, body {
   text-align: center;
   border: 1px #999 solid;
   background-color: #fff;
+  position: relative;
+}
+
+#viewport td div{
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 #viewport {

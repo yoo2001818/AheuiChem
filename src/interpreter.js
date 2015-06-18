@@ -66,6 +66,7 @@ Interpreter.prototype.reset = function() {
 Interpreter.prototype.next = function() {
   // TODO: should implement queue
   if(!this.state.running) return false;
+  var preDirection = this.state.direction;
   var tile = this.map.get(this.state.x, this.state.y);
   // Sets how much Interpreter will move
   var move = 1;
@@ -209,6 +210,17 @@ Interpreter.prototype.next = function() {
   if(this.state.x >= this.map.width) this.state.x = 0;
   if(this.state.y < 0) this.state.y = this.map.height - 1;
   if(this.state.y >= this.map.height) this.state.y = 0;
+  if(tile) {
+    if(tile.directions == null) {
+      tile.directions = [];
+    }
+    var directionCode = [DirectionFlip[preDirection],this.state.direction];
+    directionCode.sort();
+    directionCode = directionCode.join('-');
+    if(tile.directions.indexOf(directionCode) == -1) {
+      tile.directions.push(directionCode);
+    }
+  }
   return this.state.running;
 }
 

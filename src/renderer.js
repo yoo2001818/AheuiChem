@@ -46,8 +46,17 @@ Renderer.prototype.preNext = function() {
 
 Renderer.prototype.postNext = function() {
   var state = this.interpreter.state;
+  var tile = this.interpreter.map.get(state.x, state.y);
   var node = this.domMap.get(state.x, state.y);
   node.className = "running";
+  if(tile && tile.directions) {
+    console.log(tile.directions);
+    for(var i = 0; i < tile.directions.length; ++i) {
+      var div = document.createElement('div');
+      node.appendChild(div);
+      div.innerHTML = tile.directions[i];
+    }
+  }
 }
 
 module.exports = Renderer;
