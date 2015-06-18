@@ -100,7 +100,8 @@ function isHangul(code) {
 function parseSyllable(char) {
   var data = {
     direction: 'none',
-    command: 'none'
+    command: 'none',
+    original: char
   };
   var code = char.charCodeAt();
   // Validate input, Making sure it's a Hangul character
