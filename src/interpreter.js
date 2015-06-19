@@ -57,8 +57,7 @@ Interpreter.prototype.reset = function() {
     input: [],
     output: [],
     running: true,
-    prevX: 0,
-    prevY: 0
+    updated: []
   }
   // Initialize memory
   for(var i = 0; i < 28; ++i) {
@@ -80,8 +79,6 @@ Interpreter.prototype.reset = function() {
 Interpreter.prototype.next = function() {
   // TODO: should implement queue
   if(!this.state.running) return false;
-  this.state.prevX = this.state.x;
-  this.state.prevY = this.state.y;
   var preDirection = this.state.direction;
   var tile = this.map.get(this.state.x, this.state.y);
   // Sets how much Interpreter will move
@@ -219,6 +216,22 @@ Interpreter.prototype.next = function() {
   if(error) this.state.direction = DirectionFlip[this.state.direction];
   // Move to tile
   var direction = Direction[this.state.direction];
+  for(var i = 0; i < move; ++i) {
+    var tileX = this.state.x + direction.x * i;
+    var tileY = this.state.y + direction.y * i;
+    this.state.updated.push({
+      x: tileX,
+      y: tileY
+    });
+    if(i == 0) continue;
+    var skipTile = this.map.get(tileX, tileY);
+    if(direction.y == 0) {
+      writeDirectionString(skipTile, 'skip-horizontal');
+    } else {
+      writeDirectionString(skipTile, 'skip-vertical');
+    }
+  }
+  writeDirection(tile, preDirection, this.state.direction);
   this.state.x += direction.x * move;
   this.state.y += direction.y * move;
   // Wrap the map
@@ -226,23 +239,27 @@ Interpreter.prototype.next = function() {
   if(this.state.x >= this.map.width) this.state.x = 0;
   if(this.state.y < 0) this.state.y = this.map.height - 1;
   if(this.state.y >= this.map.height) this.state.y = 0;
-  writeDirection(tile, preDirection, this.state.direction);
   return this.state.running;
 }
 
 function writeDirection(tile, preDirection, direction) {
-  if(tile == null) return;
-  if(tile.directions == null) {
-    tile.directions = {};
-  }
   // TODO sanitize code
   var directionCode = [DirectionFlip[preDirection], direction];
   directionCode.sort();
   directionCode = directionCode.join('-');
-  if(tile.directions[directionCode] == null) {
-    tile.directions[directionCode] = 0;
-  }
-  tile.directions[directionCode] ++;
+  writeDirectionString(tile, directionCode);
 }
+
+function writeDirectionString(tile, direction) {
+  if(tile == null) return;
+  if(tile.directions == null) {
+    tile.directions = {};
+  }
+  if(tile.directions[direction] == null) {
+    tile.directions[direction] = 0;
+  }
+  tile.directions[direction] ++;
+}
+
 
 module.exports = Interpreter;

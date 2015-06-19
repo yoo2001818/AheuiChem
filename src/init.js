@@ -13,8 +13,9 @@ window.onload = function() {
   renderer = new Renderer(document.getElementById('viewport'), interpreter);
   setInterval(function() {
     renderer.preNext();
+    for(var i = 0; i < 2; ++i)
     interpreter.next();
     renderer.postNext();
-  }, 1);
+  }, 20);
   window.interpreter = interpreter;
 }

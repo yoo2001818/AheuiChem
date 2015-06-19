@@ -54,21 +54,24 @@ Renderer.prototype.preNext = function() {
 
 Renderer.prototype.postNext = function() {
   var state = this.interpreter.state;
-  var node = this.domMap.get(state.x, state.y);
-  node.className = "running";
-  
-  var tile = this.interpreter.map.get(state.prevX, state.prevY);
-  var prevNode = this.domMap.get(state.prevX, state.prevY);
-  prevNode.className = "called";
-  if(tile && tile.directions) {
-    for(var key in tile.directions) {
-      if(node.directions[key]) continue;
-      node.directions[key] = true;
-      var div = document.createElement('div');
-      prevNode.appendChild(div);
-      div.className = 'path '+key;
+  while(state.updated.length > 0) {
+    var pos = state.updated.shift();
+    console.log(pos);
+    var tile = this.interpreter.map.get(pos.x, pos.y);
+    var prevNode = this.domMap.get(pos.x, pos.y);
+    prevNode.className = "called";
+    if(tile && tile.directions) {
+      for(var key in tile.directions) {
+        if(prevNode.directions[key]) continue;
+        prevNode.directions[key] = true;
+        var div = document.createElement('div');
+        prevNode.appendChild(div);
+        div.className = 'path '+key;
+      }
     }
   }
+  var node = this.domMap.get(state.x, state.y);
+  node.className = "running";
 }
 
 module.exports = Renderer;

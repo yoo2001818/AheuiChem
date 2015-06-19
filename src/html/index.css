@@ -92,6 +92,14 @@ html, body {
   background-position: 0 -100%;
 }
 
+#viewport td div.path.skip-horizontal {
+  background-position: -300% -100%;
+}
+
+#viewport td div.path.skip-vertical {
+  background-position: -300% -200%;
+}
+
 #viewport td div.arrow {
   position: absolute;
   top: 0;
