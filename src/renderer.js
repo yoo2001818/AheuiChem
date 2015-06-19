@@ -56,7 +56,6 @@ Renderer.prototype.postNext = function() {
   var state = this.interpreter.state;
   while(state.updated.length > 0) {
     var pos = state.updated.shift();
-    console.log(pos);
     var tile = this.interpreter.map.get(pos.x, pos.y);
     var prevNode = this.domMap.get(pos.x, pos.y);
     prevNode.className = "called";

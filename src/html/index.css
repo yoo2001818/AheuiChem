@@ -127,6 +127,22 @@ html, body {
   background-position: -300% -100%;
 }
 
+#viewport td div.arrow.skip-up {
+  background-position: -200% -200%;
+}
+
+#viewport td div.arrow.skip-left {
+  background-position: -200% -300%;
+}
+
+#viewport td div.arrow.skip-right {
+  background-position: -300% -200%;
+}
+
+#viewport td div.arrow.skip-down {
+  background-position: -300% -300%;
+}
+
 #viewport td div.arrow.none {
   background-position: 0 0;
 }
@@ -142,6 +158,7 @@ html, body {
 #viewport td div.arrow.reverse {
   background-position: 0 -100%;
 }
+
 #viewport {
   border-collapse: collapse;
   white-space: nowrap;
