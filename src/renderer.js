@@ -1,4 +1,5 @@
 var TileMap = require('./tilemap');
+var CanvasLayer = require('./canvaslayer');
 var parser = require('./parser');
 
 // TODO is Array good method to do this?
@@ -61,10 +62,12 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 }
 
 var Renderer = function(viewport, interpreter, width) {
-  this.viewport = viewport;
-  this.ctx = viewport.getContext('2d');
   this.interpreter = interpreter;
   this.width = width || 48;
+  
+  this.canvases = new CanvasLayer(viewport,
+    ['background', 'highlight', 'text', 'path', 'arrow'],
+    this.width * interpreter.map.width, this.width * interpreter.map.height);
   
   // TODO hold sprite sheets somewhere else and refactor code
   var loadCount = 2;
@@ -86,16 +89,23 @@ var Renderer = function(viewport, interpreter, width) {
 }
 
 Renderer.prototype.reset = function() {
-  this.viewport.width = this.width * this.interpreter.map.width;
-  this.viewport.height = this.width * this.interpreter.map.height;
-  this.ctx.font = (this.width*0.6)+"px sans-serif";
-  this.ctx.textAlign = "center";
-  this.ctx.textBaseline = "middle";
-  this.ctx.fillStyle = "#000";
-  this.ctx.fillRect(0, 0, this.viewport.width, this.viewport.height);
+  this.cacheMap = new TileMap(this.interpreter.map.width,
+    this.interpreter.map.height);
+  this.canvases.setSize(this.width * this.interpreter.map.width, 
+    this.width * this.interpreter.map.height);
+  this.canvases.forEach(function(ctx) {
+    ctx.font = (this.width*0.6)+"px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#000";
+  }, this);
+  this.canvases.get('background').fillRect(0, 0, 
+    this.canvases.width, this.canvases.height);
+  this.canvases.get('text').fillStyle = "#aaa";
   // Redraw all tiles
   for(var y = 0; y < this.interpreter.map.height; ++y) {
     for(var x = 0; x < this.interpreter.map.width; ++x) {
+      this.cacheMap.set(x, y, {});
       this.updateTile(x, y);
     }
   }
@@ -104,38 +114,55 @@ Renderer.prototype.reset = function() {
 Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
+  var cacheTile = this.cacheMap.get(x, y);
   if(tile) {
-    this.ctx.save();
-    this.ctx.translate(x * this.width, y * this.width);
-    // clear rect
-    this.ctx.fillStyle = "#000";
-    this.ctx.fillRect(0, 0, this.width, this.width);
-    // background
+    this.canvases.forEach(function(ctx) {
+      ctx.save();
+      ctx.translate(x * this.width, y * this.width);
+    }, this);
+    
+    var highlightCtx = this.canvases.get('highlight');
+    highlightCtx.clearRect(0, 0, this.width, this.width);
     if(state.x == x && state.y == y) {
-      this.ctx.fillStyle = "#666";
+      highlightCtx.fillStyle = "#666";
     } else if(tile.called) {
-      this.ctx.fillStyle = "#333";
+      highlightCtx.fillStyle = "#333";
     } else {
-      this.ctx.fillStyle = "#222";
+      highlightCtx.fillStyle = "#222";
     }
-    roundRect(this.ctx, 1, 1, this.width-2, this.width-2, 4, true);
-    // TODO seperate canvases, as text rendering is expensive
-    // text
-    this.ctx.fillStyle = "#aaa";
-    this.ctx.fillText(tile.original, this.width/2, this.width/2);
-    // path
-    for(var key in tile.directions) {
-      var pathPos = pathMap[key];
-      this.ctx.drawImage(this.pathImage,
-        pathPos[0] * 100, pathPos[1] * 100,
+    roundRect(highlightCtx, 1, 1, this.width-2, this.width-2, 4, true);
+    
+    if(cacheTile.text != tile.original) {
+      cacheTile.text = tile.original;
+      var textCtx = this.canvases.get('text');
+      textCtx.clearRect(0, 0, this.width, this.width);
+      textCtx.fillText(tile.original, this.width/2, this.width/2);
+    }
+    
+    // TODO should not use hard coding for image sizes
+    if(tile.directions && cacheTile.directions != Object.keys(tile.directions).length) {
+      cacheTile.directions = Object.keys(tile.directions).length;
+      this.canvases.get('path').clearRect(0, 0, this.width, this.width);
+      for(var key in tile.directions) {
+        var pathPos = pathMap[key];
+        this.canvases.get('path').drawImage(this.pathImage,
+          pathPos[0] * 100, pathPos[1] * 100,
+          100, 100, 0, 0, this.width, this.width);
+      }
+    }
+    
+    if(cacheTile.direction != tile.direction) {
+      cacheTile.direction = tile.direction;
+      this.canvases.get('arrow').clearRect(0, 0, this.width, this.width);
+      var arrowPos = arrowMap[tile.direction];
+      this.canvases.get('arrow').drawImage(this.arrowImage,
+        arrowPos[0] * 100, arrowPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
     }
-    // arrow
-    var arrowPos = arrowMap[tile.direction];
-    this.ctx.drawImage(this.arrowImage,
-      arrowPos[0] * 100, arrowPos[1] * 100,
-      100, 100, 0, 0, this.width, this.width);
-    this.ctx.restore();
+    
+    this.canvases.forEach(function(ctx) {
+      ctx.restore();
+    }, this);
   }
 }
 
