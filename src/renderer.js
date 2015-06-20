@@ -20,16 +20,16 @@ var arrowMap = {
 
 // TODO it's really messy, should change it soon.
 var pathMap = {
-  'up-up': [2, 1],
-  'left-left': [1, 2],
-  'right-right': [3, 0],
-  'down-down': [2, 2],
-  'left-up': [1, 1],
-  'right-up': [0, 2],
+  'up': [2, 1],
+  'left': [1, 2],
+  'right': [3, 0],
+  'down': [2, 2],
+  'up-left': [1, 1],
+  'up-right': [0, 2],
   'down-left': [2, 0],
   'down-right': [0, 0],
-  'left-right': [1, 0],
-  'down-up': [0, 1],
+  'horizontal': [1, 0],
+  'vertical': [0, 1],
   'skip-horizontal': [3, 1],
   'skip-vertical': [3, 2]
 };
