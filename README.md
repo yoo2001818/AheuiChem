@@ -4,6 +4,25 @@
 
 Aheui code editor like SpaceChem
 
-Concept art (Draft):
+Screenshot:
 
-![Concept art](draft.png)
+![Screenshot](draft.png)
+
+# Building
+
+You need Grunt to build the project.
+First, install the dependencies with
+
+```
+npm install
+npm install grunt-cli -g
+```
+
+Then, you can build the project with
+
+```
+grunt
+```
+
+After that, you'll be able to find `build/index.html`. Simply run that file on
+your browser.
