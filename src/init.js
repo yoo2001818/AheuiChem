@@ -3,13 +3,18 @@
 var parser = require('./parser');
 var Renderer = require('./renderer');
 var Interpreter = require('./interpreter');
+var Predictor = require('./predictor');
 
 var interpreter;
 var renderer;
 
 window.onload = function() {
   var code = document.getElementById('source').innerHTML;
-  interpreter = new Interpreter(code);
+  if(window.location.hash == '#predict') {
+    interpreter = new Predictor(code);
+  } else {
+    interpreter = new Interpreter(code);
+  }
   renderer = new Renderer(document.getElementById('viewport'), interpreter);
   setInterval(function() {
     renderer.preNext();

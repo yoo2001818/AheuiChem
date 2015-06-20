@@ -2,7 +2,11 @@ var parser = require('./parser');
 // Predicts the path of the code
 // TODO this requires some serious refactoring... really.
 
-var Direction = {
+
+// 1000 : keep direction
+// -1000 : reverse direction
+
+var DirectionMap = {
   'up': {
     x: 0,
     y: -1
@@ -18,20 +22,68 @@ var Direction = {
   'down': {
     x: 0,
     y: 1
+  },
+  'skip-up': {
+    x: 0,
+    y: -2
+  },
+  'skip-left': {
+    x: -2,
+    y: 0
+  },
+  'skip-right': {
+    x: 2,
+    y: 0
+  },
+  'skip-down': {
+    x: 0,
+    y: 2
+  },
+  'horizontal': {
+    x: 1000,
+    y: -1000
+  },
+  'vertical': {
+    x: -1000,
+    y: 1000
+  },
+  'reverse': {
+    x: -1000,
+    y: -1000
+  },
+  'none': {
+    x: 1000,
+    y: 1000
   }
 };
 
-var DirectionFlip = {
-  'up': 'down',
-  'left': 'right',
-  'right': 'left',
-  'down': 'up'
-}
+var UP = 1;
+var DOWN = 2;
+var LEFT = 4;
+var RIGHT = 8;
+
+var DirectionBitMap = {
+  'up': UP,
+  'down': DOWN,
+  'left': LEFT,
+  'right': RIGHT,
+  'horizontal': LEFT|RIGHT,
+  'vertical': UP|DOWN,
+  'up-left': UP|LEFT,
+  'down-left': DOWN|LEFT,
+  'up-right': UP|RIGHT,
+  'down-right': DOWN|RIGHT
+};
+
+var DirectionBitRevMap = {};
+Object.keys(DirectionBitMap).forEach(function(k) {
+  DirectionBitRevMap[DirectionBitMap[k]] = k;
+});
 
 var ReversibleMap = {
-  'condition': true
-  /*
-  'add': true,
+  'condition': true,
+  'pop': true
+  /*'add': true,
   'multiply': true,
   'subtract': true,
   'divide': true,
@@ -42,8 +94,7 @@ var ReversibleMap = {
   'copy': true,
   'flip': true,
   'move': true,
-  'compare': true
-  */
+  'compare': true*/
 };
 
 function Predictor(code) {
@@ -57,7 +108,10 @@ function Predictor(code) {
     segment: 0,
     x: 0,
     y: 0,
-    direction: 'down'
+    direction: {
+      x: 0,
+      y: 1
+    }
   }];
   this.updated = [];
 }
@@ -66,123 +120,121 @@ Predictor.prototype.next = function() {
   if(this.stack.length == 0) return false;
   var state = this.stack[this.stack.length-1];
   var segment = this.segments[state.segment];
-  var preDirection = state.direction;
-  var removal = false;
+  var direction = state.direction;
+  direction.x = sign(direction.x);
+  direction.y = sign(direction.y);
+  var preDir = convertDir(-direction.x, -direction.y);
   var tile = this.map.get(state.x, state.y);
+  var removal = false;
   segment.push(tile);
-  // Sets how much Interpreter will move
-  var move = 1;
   if(tile != null) {
     if(!tile.segments) {
       tile.segments = {};
     }
     // Set the direction
-    switch(tile.direction) {
-      case 'up':
-      case 'left':
-      case 'right':
-      case 'down':
-        state.direction = tile.direction;
-      break;
-      case 'skip-up':
-      case 'skip-left':
-      case 'skip-right':
-      case 'skip-down':
-        move = 2;
-        state.direction = tile.direction.slice(5);
-      break;
-      case 'horizontal':
-        if(state.direction == 'up' || state.direction == 'down')
-          state.direction = DirectionFlip[state.direction];
-      break;
-      case 'vertical':
-        if(state.direction == 'left' || state.direction == 'right')
-          state.direction = DirectionFlip[state.direction];
-      break;
-      case 'reverse':
-        state.direction = DirectionFlip[state.direction];
-      break;
-    }
-    if(ReversibleMap[tile.command]) {
-      this.segments.push([]);
-      var flipDir = DirectionFlip[state.direction];
-      var flipVec = Direction[flipDir];
-      // TODO this doesn't wrap the map
-      for(var i = 0; i < move; ++i) {
-        var tileX = state.x + flipVec.x * i;
-        var tileY = state.y + flipVec.y * i;
-        this.updated.push({
-          x: tileX,
-          y: tileY
-        });
-        if(i == 0) continue;
-        var skipTile = this.map.get(tileX, tileY);
-        if(flipVec.y == 0) {
-          writeDirectionString(skipTile, 'skip-horizontal');
-        } else {
-          writeDirectionString(skipTile, 'skip-vertical');
-        }
-      }
-      writeDirection(tile, preDirection, flipDir);
-      this.stack.push({
-        segment: this.segments.length - 1,
-        x: state.x + flipVec.x * move,
-        y: state.y + flipVec.y * move,
-        direction: flipDir,
-      });
-    }
-    if(tile.segments[move+'_'+state.direction]) {
+    var tileDir = DirectionMap[tile.direction];
+    direction.x = calculateDir(direction.x, tileDir.x);
+    direction.y = calculateDir(direction.y, tileDir.y);
+    if(tile.command == 'end') removal = true;
+    if(tile.segments[convertDir(direction.x, direction.y)]) {
       removal = true;
     } else {
-      tile.segments[move+'_'+state.direction] = {
+      tile.segments[convertDir(direction.x, direction.y)] = {
         segment: state.segment,
         position: segment.length - 1
       }
     }
-  }
-  // Move to tile
-  var direction = Direction[state.direction];
-  // TODO this doesn't wrap the map
-  for(var i = 0; i < move; ++i) {
-    var tileX = state.x + direction.x * i;
-    var tileY = state.y + direction.y * i;
-    this.updated.push({
-      x: tileX,
-      y: tileY
-    });
-    if(i == 0) continue;
-    var skipTile = this.map.get(tileX, tileY);
-    if(direction.y == 0) {
-      writeDirectionString(skipTile, 'skip-horizontal');
-    } else {
-      writeDirectionString(skipTile, 'skip-vertical');
+    if(ReversibleMap[tile.command]) {
+      this.segments.push([]);
+      var flipDir = {
+        x: -direction.x,
+        y: -direction.y
+      };
+      var flipState = {
+        segment: this.segments.length - 1,
+        x: movePos(state.x, flipDir.x, this.map.width),
+        y: movePos(state.y, flipDir.y, this.map.height),
+        direction: flipDir,
+      };
+      var flipTile = this.map.get(flipState.x, flipState.y);
+      if(!flipTile || !flipTile.segments || !flipTile.segments[convertDir(flipDir.x, flipDir.y)]) {
+        processDir(state, this.map, flipDir, preDir, this.updated);
+        this.stack.push({
+          segment: this.segments.length - 1,
+          x: movePos(state.x, flipDir.x, this.map.width),
+          y: movePos(state.y, flipDir.y, this.map.height),
+          direction: flipDir,
+        });
+      }
     }
   }
-  writeDirection(tile, preDirection, state.direction);
-  state.x += direction.x * move;
-  state.y += direction.y * move;
-  
-  // Wrap the map
-  if(state.x < 0) state.x = this.map.width - 1;
-  if(state.x >= this.map.width) state.x = 0;
-  if(state.y < 0) state.y = this.map.height - 1;
-  if(state.y >= this.map.height) state.y = 0;
-  
+  processDir(state, this.map, direction, preDir, this.updated);
+  state.x = movePos(state.x, direction.x, this.map.width);
+  state.y = movePos(state.y, direction.y, this.map.height);
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
   }
 }
 
-function writeDirection(tile, preDirection, direction) {
-  // TODO sanitize code
-  // TODO write segment
-  var directionCode = [DirectionFlip[preDirection], direction];
-  directionCode.sort();
-  directionCode = directionCode.join('-');
-  writeDirectionString(tile, directionCode);
+function processDir(state, map, direction, preDir, updated) {
+  var tile = map.get(state.x, state.y);
+  // Add 'skip' direction to skipping tile
+  if(isSkipping(direction.x, direction.y)) {
+    var skipX = movePos(state.x, sign(direction.x), map.width);
+    var skipY = movePos(state.y, sign(direction.y), map.height);
+    var skipTile = map.get(skipX, skipY);
+    updated.push({
+      x: skipX,
+      y: skipY
+    });
+    if(direction.x) {
+      writeDir(skipTile, 'skip-horizontal');
+    } else {
+      writeDir(skipTile, 'skip-vertical');
+    }
+  }
+  // Move to tile
+  updated.push({
+    x: state.x,
+    y: state.y
+  });
+  var bitDir = preDir | convertDir(direction.x, direction.y);
+  writeDir(tile, DirectionBitRevMap[bitDir]);
 }
 
-function writeDirectionString(tile, direction) {
+function calculateDir(current, target) {
+  if(target == 1000) return current;
+  else if(target == -1000) return -current;
+  return target;
+}
+
+function isSkipping(x, y) {
+  return Math.abs(x) >= 2 || Math.abs(y) >= 2;
+}
+
+function convertDir(x, y) {
+  var val = 0;
+  if(y <= -1) val |= UP;
+  if(y >= 1) val |= DOWN;
+  if(x <= -1) val |= LEFT;
+  if(x >= 1) val |= RIGHT;
+  return val;
+}
+
+function movePos(pos, dir, size) {
+  pos += dir;
+  if(pos < 0) pos = size + pos;
+  if(pos >= size) pos = pos - size;
+  return pos;
+}
+
+function sign(a) {
+  if(a>0) return 1;
+  else if(a<0) return -1;
+  else return 0;
+}
+
+function writeDir(tile, direction) {
   if(tile == null) return;
   if(tile.directions == null) {
     tile.directions = {};

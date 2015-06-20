@@ -123,7 +123,7 @@ Renderer.prototype.updateTile = function(x, y) {
     
     var highlightCtx = this.canvases.get('highlight');
     highlightCtx.clearRect(0, 0, this.width, this.width);
-    if(state.x == x && state.y == y) {
+    if(state && state.x == x && state.y == y) {
       highlightCtx.fillStyle = "#666";
     } else if(tile.called) {
       highlightCtx.fillStyle = "#333";
@@ -171,11 +171,11 @@ Renderer.prototype.preNext = function() {
 
 Renderer.prototype.postNext = function() {
   var state = this.interpreter.state;
-  while(state.updated.length > 0) {
-    var pos = state.updated.shift();
+  while(this.interpreter.updated.length > 0) {
+    var pos = this.interpreter.updated.shift();
     this.updateTile(pos.x, pos.y);
   }
-  this.updateTile(state.x, state.y);
+  if(state) this.updateTile(state.x, state.y);
 }
 
 module.exports = Renderer;

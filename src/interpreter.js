@@ -110,9 +110,9 @@ Interpreter.prototype.reset = function() {
     selected: 0,
     input: [],
     output: [],
-    running: true,
-    updated: []
+    running: true
   }
+  this.updated = [];
   // Initialize memory
   for(var i = 0; i < 28; ++i) {
     switch(i) {
@@ -137,8 +137,6 @@ Interpreter.prototype.next = function() {
   direction.y = sign(direction.y);
   var preDir = convertDir(-direction.x, -direction.y);
   var tile = this.map.get(this.state.x, this.state.y);
-  // Sets how much Interpreter will move
-  var move = 1;
   if(tile != null) {
     // Set the direction
     var tileDir = DirectionMap[tile.direction];
@@ -255,7 +253,7 @@ Interpreter.prototype.next = function() {
     var skipX = movePos(this.state.x, sign(direction.x), this.map.width);
     var skipY = movePos(this.state.y, sign(direction.y), this.map.height);
     var skipTile = this.map.get(skipX, skipY);
-    this.state.updated.push({
+    this.updated.push({
       x: skipX,
       y: skipY
     });
@@ -266,7 +264,7 @@ Interpreter.prototype.next = function() {
     }
   }
   // Move to tile
-  this.state.updated.push({
+  this.updated.push({
     x: this.state.x,
     y: this.state.y
   });
