@@ -126,7 +126,7 @@ Predictor.prototype.next = function() {
   var preDir = convertDir(-direction.x, -direction.y);
   var tile = this.map.get(state.x, state.y);
   var removal = false;
-  segment.push(tile);
+  if(segment) segment.push(tile);
   if(tile != null) {
     if(!tile.segments) {
       tile.segments = {};
@@ -174,7 +174,7 @@ Predictor.prototype.next = function() {
   state.y = movePos(state.y, direction.y, this.map.height);
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
-    if(segment.length <= 1) {
+    if(segment && segment.length <= 1) {
       this.segments.splice(state.segment, 1);
     }
   }

@@ -23,7 +23,7 @@ window.onload = function() {
     renderer.preNext();
     interpreter.next();
     // Predict
-    
+    /*
     predictor.stack = [{
       segment: predictor.segments.length,
       x: interpreter.state.x,
@@ -38,7 +38,7 @@ window.onload = function() {
       if(!predictor.next()) break;
     }
     interpreter.updated = interpreter.updated.concat(predictor.updated);
-    predictor.updated = [];
+    predictor.updated = [];*/
     renderer.postNext();
   }, 20);
   window.interpreter = interpreter;
