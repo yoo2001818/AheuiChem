@@ -43,4 +43,7 @@ window.onload = function() {
   }, 20);
   window.interpreter = interpreter;
   window.predictor = predictor;
+  document.getElementById('captureBtn').onclick = function() {
+    renderer.canvases.dump(document.getElementById('capture'));
+  }
 }

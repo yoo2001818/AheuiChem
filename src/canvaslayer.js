@@ -50,4 +50,13 @@ CanvasLayer.prototype.canvasForEach = function(callback, thisObj) {
   this.layers.forEach(callback, thisObj);
 }
 
+CanvasLayer.prototype.dump = function(targetCanvas) {
+  var ctx = targetCanvas.getContext('2d');
+  targetCanvas.width = this.width;
+  targetCanvas.height = this.height;
+  this.canvasForEach(function(canvas) {
+    ctx.drawImage(canvas, 0, 0);
+  });
+}
+
 module.exports = CanvasLayer;
