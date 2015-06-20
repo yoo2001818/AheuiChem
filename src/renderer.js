@@ -34,6 +34,13 @@ var pathMap = {
   'skip-vertical': [3, 2]
 };
 
+var segmentMap = [
+  [0, 0],
+  [1, 0],
+  [0, 1],
+  [1, 1]
+];
+
 // http://stackoverflow.com/a/3368118/3317669
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
   if (typeof stroke == "undefined" ) {
@@ -144,9 +151,10 @@ Renderer.prototype.updateTile = function(x, y) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for(var key in tile.directions) {
+        var segment = segmentMap[tile.directions[key]%4];
         var pathPos = pathMap[key];
         this.canvases.get('path').drawImage(this.pathImage,
-          pathPos[0] * 100, pathPos[1] * 100,
+          (segment[0]*4+pathPos[0]) * 100, (segment[1]*3+pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);
       }
     }

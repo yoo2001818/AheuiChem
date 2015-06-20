@@ -145,7 +145,6 @@ Predictor.prototype.next = function() {
       }
     }
     if(ReversibleMap[tile.command]) {
-      this.segments.push([]);
       var flipDir = {
         x: -direction.x,
         y: -direction.y
@@ -158,7 +157,9 @@ Predictor.prototype.next = function() {
       };
       var flipTile = this.map.get(flipState.x, flipState.y);
       if(!flipTile || !flipTile.segments || !flipTile.segments[convertDir(flipDir.x, flipDir.y)]) {
-        processDir(state, this.map, flipDir, preDir, this.updated);
+        this.segments.push([]);
+        processDir(state, this.map, flipDir, preDir, this.updated, 
+          this.segments.length - 1);
         this.stack.push({
           segment: this.segments.length - 1,
           x: movePos(state.x, flipDir.x, this.map.width),
@@ -168,16 +169,19 @@ Predictor.prototype.next = function() {
       }
     }
   }
-  processDir(state, this.map, direction, preDir, this.updated);
+  processDir(state, this.map, direction, preDir, this.updated, state.segment);
   state.x = movePos(state.x, direction.x, this.map.width);
   state.y = movePos(state.y, direction.y, this.map.height);
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
+    if(segment.length <= 1) {
+      this.segments.splice(state.segment, 1);
+    }
   }
   return this.stack.length > 0;
 }
 
-function processDir(state, map, direction, preDir, updated) {
+function processDir(state, map, direction, preDir, updated, segment) {
   var tile = map.get(state.x, state.y);
   // Add 'skip' direction to skipping tile
   if(isSkipping(direction.x, direction.y)) {
@@ -189,9 +193,9 @@ function processDir(state, map, direction, preDir, updated) {
       y: skipY
     });
     if(direction.x) {
-      writeDir(skipTile, 'skip-horizontal');
+      writeDir(skipTile, 'skip-horizontal', segment);
     } else {
-      writeDir(skipTile, 'skip-vertical');
+      writeDir(skipTile, 'skip-vertical', segment);
     }
   }
   // Move to tile
@@ -200,7 +204,7 @@ function processDir(state, map, direction, preDir, updated) {
     y: state.y
   });
   var bitDir = preDir | convertDir(direction.x, direction.y);
-  writeDir(tile, DirectionBitRevMap[bitDir]);
+  writeDir(tile, DirectionBitRevMap[bitDir], segment);
 }
 
 function calculateDir(current, target) {
@@ -235,15 +239,14 @@ function sign(a) {
   else return 0;
 }
 
-function writeDir(tile, direction) {
+function writeDir(tile, direction, segment) {
   if(tile == null) return;
   if(tile.directions == null) {
     tile.directions = {};
   }
   if(tile.directions[direction] == null) {
-    tile.directions[direction] = 0;
+    tile.directions[direction] = segment;
   }
-  tile.directions[direction] ++;
 }
 
 

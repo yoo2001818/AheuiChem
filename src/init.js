@@ -40,6 +40,7 @@ window.onload = function() {
     interpreter.updated = interpreter.updated.concat(predictor.updated);
     predictor.updated = [];
     renderer.postNext();
-  }, 1000);
+  }, 20);
   window.interpreter = interpreter;
+  window.predictor = predictor;
 }

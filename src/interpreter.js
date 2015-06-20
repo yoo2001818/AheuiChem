@@ -311,7 +311,7 @@ function writeDir(tile, direction) {
   if(tile.directions[direction] == null) {
     tile.directions[direction] = 0;
   }
-  tile.directions[direction] ++;
+  //tile.directions[direction] ++;
 }
 
 module.exports = Interpreter;
