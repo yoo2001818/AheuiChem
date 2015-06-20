@@ -10,10 +10,12 @@ var renderer;
 
 window.onload = function() {
   var code = document.getElementById('source').innerHTML;
-  if(window.location.hash == '#predict') {
-    interpreter = new Predictor(code);
-  } else {
-    interpreter = new Interpreter(code);
+  interpreter = new Interpreter(code);
+  var predictQuota = interpreter.map.width * interpreter.map.height * 2;
+  var predictor = new Predictor(interpreter.map);
+  for(var i = 0; i < predictQuota; ++i) {
+    if(!predictor.next()) break;
+    predictor.updated = [];
   }
   renderer = new Renderer(document.getElementById('viewport'), interpreter);
   setInterval(function() {

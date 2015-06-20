@@ -174,6 +174,7 @@ Predictor.prototype.next = function() {
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
   }
+  return this.stack.length > 0;
 }
 
 function processDir(state, map, direction, preDir, updated) {
