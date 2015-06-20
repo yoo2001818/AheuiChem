@@ -216,6 +216,7 @@ Interpreter.prototype.next = function() {
   if(error) this.state.direction = DirectionFlip[this.state.direction];
   // Move to tile
   var direction = Direction[this.state.direction];
+  // TODO this doesn't wrap the map
   for(var i = 0; i < move; ++i) {
     var tileX = this.state.x + direction.x * i;
     var tileY = this.state.y + direction.y * i;
