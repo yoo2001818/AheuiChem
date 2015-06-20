@@ -9,6 +9,7 @@ function CanvasLayer(viewport, layerNames, width, height) {
   viewport.style.position = 'relative';
   viewport.style.width = width+'px';
   viewport.style.height = height+'px';
+  while(viewport.firstChild) viewport.removeChild(viewport.firstChild);
   for(var i = 0; i < layerNames.length; ++i) {
     var layerName = layerNames[i];
     var canvas = document.createElement('canvas');

@@ -1,5 +1,12 @@
 // Entry point of the application
 
+var Hangul = {
+  initial: 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split(''),
+  medial: 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split(''),
+  final: ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ'.split(''),
+  code: 0xAC00
+};
+
 var parser = require('./parser');
 var Renderer = require('./renderer');
 var Interpreter = require('./interpreter');
@@ -10,16 +17,24 @@ var renderer;
 var predictor;
 
 window.onload = function() {
-  var code = document.getElementById('source').innerHTML;
-  interpreter = new Interpreter(code);
-  var predictQuota = interpreter.map.width * interpreter.map.height * 2;
-  predictor = new Predictor(interpreter.map);
-  for(var i = 0; i < predictQuota; ++i) {
-    if(!predictor.next()) break;
+  document.getElementById('codeForm').onsubmit = function() {
+    var code = document.getElementById('codeForm-code').value;
+    interpreter = new Interpreter(code);
+    var predictQuota = interpreter.map.width * interpreter.map.height * 2;
+    predictor = new Predictor(interpreter.map);
+    for(var i = 0; i < predictQuota; ++i) {
+      if(!predictor.next()) break;
+    }
+    predictor.updated = [];
+    renderer = new Renderer(document.getElementById('viewport'), interpreter);
+    window.interpreter = interpreter;
+    window.predictor = predictor;
+    document.getElementById('codeForm-output').value = '';
+    // TODO implement input
+    return false;
   }
-  predictor.updated = [];
-  renderer = new Renderer(document.getElementById('viewport'), interpreter);
   setInterval(function() {
+    if(!interpreter || !renderer) return;
     renderer.preNext();
     interpreter.next();
     // Predict
@@ -40,9 +55,29 @@ window.onload = function() {
     interpreter.updated = interpreter.updated.concat(predictor.updated);
     predictor.updated = [];*/
     renderer.postNext();
+    document.getElementById('codeForm-output').value += interpreter.shift();
+    // update debug status
+    document.getElementById('codeForm-debug').value = (function() {
+      var str = '';
+      var state = interpreter.state;
+      if(state.running) {
+        var direction = state.direction;
+        str += '실행 중 (위치 '+state.x+', '+state.y+') ';
+        str += '(방향 '+direction.x+', '+direction.y+')\n';
+      } else {
+        str += '실행 끝\n';
+      }
+      for(var i = 0; i < 28; ++i) {
+        if(state.selected == i) {
+          str += '>> ';
+        }
+        str += Hangul.final[i]+': ';
+        str += state.memory[i].data.join(' ');
+        str += '\n';
+      }
+      return str;
+    })();
   }, 20);
-  window.interpreter = interpreter;
-  window.predictor = predictor;
   document.getElementById('captureBtn').onclick = function() {
     renderer.canvases.dump(document.getElementById('capture'));
   }

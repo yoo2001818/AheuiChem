@@ -1,6 +1,6 @@
 html, body {
   margin: 0;
-  padding: 0;
+  padding: 8pt;
   background: #fff;
 }
 
@@ -11,4 +11,20 @@ html, body {
 #viewport {
   position: relative;
   
+}
+
+.block {
+  float: left;
+}
+
+.clear {
+  display: block;
+  font-size: 0;
+  clear: both;
+}
+
+.block .title {
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
 }
