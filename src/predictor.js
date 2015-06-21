@@ -119,14 +119,18 @@ function Predictor(code) {
   } else {
     this.map = code;
   }
-  this.segments = [[]];
+  this.segments = [];
   this.stack = [{
-    segment: 0,
     x: 0,
     y: 0,
     direction: {
       x: 0,
       y: 1
+    },
+    register: {
+      x: 0,
+      y: 0,
+      preDir: 0
     }
   }];
   this.updated = [];
@@ -135,6 +139,20 @@ function Predictor(code) {
 Predictor.prototype.next = function() {
   if(this.stack.length == 0) return false;
   var state = this.stack[this.stack.length-1];
+  if(state.register) {
+    // Assign segment
+    this.segments.push([]);
+    state.segment = this.segments.length - 1;
+    // Update the tile
+    if(state.register.preDir) {
+      processDir({
+          x: state.register.x,
+          y: state.register.y
+        }, this.map, state.direction, state.register.preDir,
+        this.updated, state.segment, state.unlikely);
+    }
+    delete state.register;
+  }
   var segment = this.segments[state.segment];
   var direction = state.direction;
   direction.x = sign(direction.x);
@@ -166,11 +184,15 @@ Predictor.prototype.next = function() {
         y: -direction.y
       };
       var flipState = {
-        segment: this.segments.length - 1,
         x: movePos(state.x, flipDir.x, this.map.width),
         y: movePos(state.y, flipDir.y, this.map.height),
         direction: flipDir,
-        unlikely: state.unlikely
+        unlikely: state.unlikely,
+        register: {
+          x: state.x,
+          y: state.y,
+          preDir: preDir
+        }
       };
       var flipTile = this.map.get(flipState.x, flipState.y);
       var skip = false;
@@ -183,9 +205,6 @@ Predictor.prototype.next = function() {
       }
       if(!skip && (!flipTile || !flipTile.segments || 
         !flipTile.segments[convertDir(flipDir.x, flipDir.y)])) {
-        this.segments.push([]);
-        processDir(state, this.map, flipDir, preDir, this.updated, 
-          flipState.segment, UnlikelyMap[tile.command]);
         if(UnlikelyMap[tile.command]) {
           flipState.unlikely = true;
           this.stack.unshift(flipState);
