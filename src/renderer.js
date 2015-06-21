@@ -103,7 +103,7 @@ var Renderer = function(viewport, interpreter, width) {
   this.width = width || 48;
   
   this.canvases = new CanvasLayer(viewport,
-    ['background', 'highlight', 'text', 'path', 'arrow'],
+    ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
     this.width * interpreter.map.width, this.width * interpreter.map.height);
   
   // TODO hold sprite sheets somewhere else and refactor code
@@ -182,6 +182,7 @@ Renderer.prototype.updateTile = function(x, y) {
     }
     
     // TODO should not use hard coding for image sizes
+    
     if(tile.directions && cacheTile.directions != Object.keys(tile.directions).length) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
@@ -196,28 +197,31 @@ Renderer.prototype.updateTile = function(x, y) {
       }
     }
     
-    if(cacheTile.direction != tile.direction 
-      || cacheTile.command != tile.command) {
+    if(cacheTile.direction != tile.direction) {
       cacheTile.direction = tile.direction;
-      cacheTile.command = tile.command;
       var arrowCtx = this.canvases.get('arrow');
       arrowCtx.clearRect(0, 0, this.width, this.width);
       var arrowPos = arrowMap[tile.direction];
       arrowCtx.drawImage(this.arrowImage,
         arrowPos[0] * 100, arrowPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
+    }
+    
+    if(cacheTile.command != tile.command) {
+      cacheTile.command = tile.command;
+      var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
-      arrowCtx.drawImage(this.commandImage,
+      commandCtx.drawImage(this.commandImage,
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
       if(tile.data) {
         var text = tile.data;
         if(tile.command != 'push') text = Hangul.final[tile.data];
-        arrowCtx.font = (this.width*0.3)+"px sans-serif";
-        arrowCtx.textAlign = "right";
-        arrowCtx.textBaseline = "bottom";
-        arrowCtx.fillStyle = "#fff";
-        arrowCtx.fillText(text, this.width - 3, this.width - 3);
+        commandCtx.font = (this.width*0.3)+"px sans-serif";
+        commandCtx.textAlign = "right";
+        commandCtx.textBaseline = "bottom";
+        commandCtx.fillStyle = "#fff";
+        commandCtx.fillText(text, this.width - 3, this.width - 3);
       }
     }
     
