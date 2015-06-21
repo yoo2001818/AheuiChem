@@ -82,8 +82,8 @@ Object.keys(DirectionBitMap).forEach(function(k) {
 
 var ReversibleMap = {
   'condition': true,
-  'pop': true
-  /*'add': true,
+  'pop': true,
+  'add': true,
   'multiply': true,
   'subtract': true,
   'divide': true,
@@ -94,8 +94,24 @@ var ReversibleMap = {
   'copy': true,
   'flip': true,
   'move': true,
-  'compare': true*/
+  'compare': true
 };
+
+var UnlikelyMap = {
+  'add': true,
+  'multiply': true,
+  'subtract': true,
+  'divide': true,
+  'mod': true,
+  'pop': true,
+  'pop-unicode': true,
+  'pop-number': true,
+  'copy': true,
+  'flip': true,
+  'move': true,
+  'compare': true
+};
+
 
 function Predictor(code) {
   if(typeof code == 'string') {
@@ -141,7 +157,7 @@ Predictor.prototype.next = function() {
     } else {
       tile.segments[convertDir(direction.x, direction.y)] = {
         segment: state.segment,
-        position: segment.length - 1
+        position: segment? segment.length - 1 : 0
       }
     }
     if(ReversibleMap[tile.command]) {
@@ -154,22 +170,33 @@ Predictor.prototype.next = function() {
         x: movePos(state.x, flipDir.x, this.map.width),
         y: movePos(state.y, flipDir.y, this.map.height),
         direction: flipDir,
+        unlikely: state.unlikely
       };
       var flipTile = this.map.get(flipState.x, flipState.y);
-      if(!flipTile || !flipTile.segments || !flipTile.segments[convertDir(flipDir.x, flipDir.y)]) {
+      var skip = false;
+      if(flipTile) {
+        var flipTileDir = DirectionMap[flipTile.direction];
+        if(flipTileDir.x == direction.x && flipTileDir.y == direction.y) {
+          // It's useless; skipping
+          skip = true;
+        }
+      }
+      if(!skip && (!flipTile || !flipTile.segments || 
+        !flipTile.segments[convertDir(flipDir.x, flipDir.y)])) {
         this.segments.push([]);
         processDir(state, this.map, flipDir, preDir, this.updated, 
-          this.segments.length - 1);
-        this.stack.push({
-          segment: this.segments.length - 1,
-          x: movePos(state.x, flipDir.x, this.map.width),
-          y: movePos(state.y, flipDir.y, this.map.height),
-          direction: flipDir,
-        });
+          flipState.segment, UnlikelyMap[tile.command]);
+        if(UnlikelyMap[tile.command]) {
+          flipState.unlikely = true;
+          this.stack.unshift(flipState);
+        } else {
+          this.stack.push(flipState);
+        }
       }
     }
   }
-  processDir(state, this.map, direction, preDir, this.updated, state.segment);
+  processDir(state, this.map, direction, preDir, this.updated, state.segment,
+    state.unlikely);
   state.x = movePos(state.x, direction.x, this.map.width);
   state.y = movePos(state.y, direction.y, this.map.height);
   if(removal) {
@@ -181,7 +208,7 @@ Predictor.prototype.next = function() {
   return this.stack.length > 0;
 }
 
-function processDir(state, map, direction, preDir, updated, segment) {
+function processDir(state, map, direction, preDir, updated, segment, unlikely) {
   var tile = map.get(state.x, state.y);
   // Add 'skip' direction to skipping tile
   if(isSkipping(direction.x, direction.y)) {
@@ -193,9 +220,9 @@ function processDir(state, map, direction, preDir, updated, segment) {
       y: skipY
     });
     if(direction.x) {
-      writeDir(skipTile, 'skip-horizontal', segment);
+      writeDir(skipTile, 'skip-horizontal', segment, unlikely);
     } else {
-      writeDir(skipTile, 'skip-vertical', segment);
+      writeDir(skipTile, 'skip-vertical', segment, unlikely);
     }
   }
   // Move to tile
@@ -204,7 +231,7 @@ function processDir(state, map, direction, preDir, updated, segment) {
     y: state.y
   });
   var bitDir = preDir | convertDir(direction.x, direction.y);
-  writeDir(tile, DirectionBitRevMap[bitDir], segment);
+  writeDir(tile, DirectionBitRevMap[bitDir], segment, unlikely);
 }
 
 function calculateDir(current, target) {
@@ -239,13 +266,16 @@ function sign(a) {
   else return 0;
 }
 
-function writeDir(tile, direction, segment) {
+function writeDir(tile, direction, segment, unlikely) {
   if(tile == null) return;
   if(tile.directions == null) {
     tile.directions = {};
   }
   if(tile.directions[direction] == null) {
-    tile.directions[direction] = segment;
+    tile.directions[direction] = {
+      segment: segment,
+      unlikely: unlikely
+    };
   }
 }
 

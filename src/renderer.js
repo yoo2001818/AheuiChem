@@ -151,8 +151,10 @@ Renderer.prototype.updateTile = function(x, y) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for(var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key]%4];
+        var segment = segmentMap[tile.directions[key].segment%4];
         var pathPos = pathMap[key];
+        this.canvases.get('path').globalAlpha = tile.directions[key].unlikely ?
+          0.3 : 1;
         this.canvases.get('path').drawImage(this.pathImage,
           (segment[0]*4+pathPos[0]) * 100, (segment[1]*3+pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);

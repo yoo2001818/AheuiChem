@@ -309,7 +309,9 @@ function writeDir(tile, direction) {
     tile.directions = {};
   }
   if(tile.directions[direction] == null) {
-    tile.directions[direction] = 0;
+    tile.directions[direction] = {
+      segment: 0
+    };
   }
   //tile.directions[direction] ++;
 }
