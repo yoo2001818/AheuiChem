@@ -212,7 +212,7 @@ Renderer.prototype.updateTile = function(x, y) {
       commandCtx.drawImage(this.commandImage,
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
-      if(tile.data) {
+      if(tile.data != null) {
         var text = tile.data;
         if(tile.command != 'push') text = Hangul.final[tile.data];
         commandCtx.font = (this.width*0.3)+"px sans-serif";
