@@ -56,13 +56,11 @@ var commandMap = {
   'divide': [3, 1],
   'mod': [1, 1],
   'push': [0, 1],
-  // TODO should add icons for pop, push to/from stdio
-  'push-unicode': [0, 1],
-  'push-number': [0, 1],
+  'push-unicode': [4, 1],
+  'push-number': [4, 0],
   'pop': [0, 2],
-  // TODO should add icons for pop, push to/from stdio
-  'pop-unicode': [0, 2],
-  'pop-number': [0, 2],
+  'pop-unicode': [4, 3],
+  'pop-number': [4, 2],
   'copy': [1, 2],
   'flip': [2, 2],
   'select': [3, 2],
