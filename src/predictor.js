@@ -119,7 +119,8 @@ function Predictor(code) {
   } else {
     this.map = code;
   }
-  this.segments = [];
+  this.segmentId = 0;
+  this.segments = {};
   this.stack = [{
     x: 0,
     y: 0,
@@ -141,8 +142,8 @@ Predictor.prototype.next = function() {
   var state = this.stack[this.stack.length-1];
   if(state.register) {
     // Assign segment
-    this.segments.push([]);
-    state.segment = this.segments.length - 1;
+    state.segment = this.segmentId++;
+    this.segments[state.segment] = [];
     // Update the tile
     if(state.register.preDir) {
       processDir({
@@ -221,7 +222,7 @@ Predictor.prototype.next = function() {
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
     if(segment && segment.length <= 1) {
-      this.segments.splice(state.segment, 1);
+      delete this.segments[state.segment];
     }
   }
   return this.stack.length > 0;
