@@ -55,6 +55,122 @@ var DirectionMap = {
   }
 };
 
+var CommandMap = {
+  'end': {
+    data: 0,
+    exec: function(tile, state, memory) {
+      state.running = false;
+    }
+  },
+  'add': buildCalcCommand(function(a, b) {
+    return b + a;
+  }),
+  'multiply': buildCalcCommand(function(a, b) {
+    return b * a;
+  }),
+  'subtract': buildCalcCommand(function(a, b) {
+    return b - a;
+  }),
+  'divide': buildCalcCommand(function(a, b) {
+    return b / a | 0;
+  }),
+  'mod': buildCalcCommand(function(a, b) {
+    return b % a;
+  }),
+  'pop': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      memory.pull();
+    }
+  },
+  'pop-unicode': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      var data = memory.pull();
+      state.output.push(String.fromCharCode(data));
+    }
+  },
+  'pop-number': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      var data = memory.pull();
+      state.output = state.output.concat(String(data).split(''));
+    }
+  },
+  'push': {
+    data: 0,
+    exec: function(tile, state, memory) {
+      memory.push(tile.data);
+    }
+  },
+  'push-unicode': {
+    data: 0,
+    exec: function(tile, state, memory) {
+      // TODO
+      memory.push(0xAC00);
+    }
+  },
+  'push-number': {
+    data: 0,
+    exec: function(tile, state, memory) {
+      // TODO
+      memory.push(123);
+    }
+  },
+  'copy': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      memory.copy();
+    }
+  },
+  'flip': {
+    data: 2,
+    exec: function(tile, state, memory) {
+      memory.flip();
+    }
+  },
+  'select': {
+    data: 0,
+    exec: function(tile, state, memory) {
+      state.selected = tile.data;
+    }
+  },
+  'move': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      var target = state.memory[tile.data];
+      var data = memory.pull();
+      target.push(data);
+    }
+  },
+  'compare': {
+    data: 2,
+    exec: function(tile, state, memory) {
+      var a = memory.pull();
+      var b = memory.pull();
+      memory.push(b >= a ? 1 : 0);
+    }
+  },
+  'condition': {
+    data: 1,
+    exec: function(tile, state, memory) {
+      var data = memory.pull();
+      if(data == 0) return true;
+    }
+  }
+};
+
+function buildCalcCommand(callback) {
+  return {
+    data: 2,
+    exec: function(tile, state, memory) {
+      var a = memory.pull();
+      var b = memory.pull();
+      memory.push(callback(a, b));
+    }
+  };
+}
+
 var UP = 1;
 var DOWN = 2;
 var LEFT = 4;
@@ -146,102 +262,13 @@ Interpreter.prototype.next = function() {
     var selected = this.state.selected;
     var memory = this.state.memory[selected];
     var error = false;
-    // TODO move memory pull checks to somewhere else
-    switch(tile.command) {
-      case 'end':
-        move = 0;
-        this.state.running = false;
-      break;
-      case 'add':
-      case 'multiply':
-      case 'subtract':
-      case 'divide':
-      case 'mod':
-        if(!memory.canPull(2)) {
-          error = true;
-          break;
-        }
-        var a = memory.pull();
-        var b = memory.pull();
-        if(tile.command == 'add') memory.push(b + a);
-        if(tile.command == 'multiply') memory.push(b * a);
-        if(tile.command == 'subtract') memory.push(b - a);
-        if(tile.command == 'divide') memory.push(b / a | 0);
-        if(tile.command == 'mod') memory.push(b % a);
-      break;
-      case 'pop':
-        error = memory.pull() == null;
-      break;
-      case 'push':
-        memory.push(tile.data);
-      break;
-      case 'push-unicode':
-        // TODO
-        memory.push(0xAC00);
-      break;
-      case 'push-number':
-        // TODO
-        memory.push(123);
-      break;
-      case 'pop-unicode':
-        if(!memory.canPull(1)) {
-          error = true;
-          break;
-        }
-        var data = memory.pull();
-        this.state.output.push(String.fromCharCode(data));
-      break;
-      case 'pop-number':
-        if(!memory.canPull(1)) {
-          error = true;
-          break;
-        }
-        var data = memory.pull();
-        this.state.output = this.state.output.concat(String(data).split(''));
-      break;
-      case 'copy':
-        if(!memory.canPull(1)) {
-          error = true;
-          break;
-        }
-        memory.copy();
-      break;
-      case 'flip':
-        if(!memory.canPull(2)) {
-          error = true;
-          break;
-        }
-        memory.flip();
-      break;
-      case 'select':
-        this.state.selected = tile.data;
-      break;
-      case 'move':
-        var target = this.state.memory[tile.data];
-        if(!memory.canPull(1)) {
-          error = true;
-          break;
-        }
-        var data = memory.pull();
-        target.push(data);
-      break;
-      case 'compare':
-        if(!memory.canPull(2)) {
-          error = true;
-          break;
-        }
-        var a = memory.pull();
-        var b = memory.pull();
-        memory.push(b >= a ? 1 : 0);
-      break;
-      case 'condition':
-        if(!memory.canPull(1)) {
-          error = true;
-          break;
-        }
-        var data = memory.pull();
-        if(data == 0) error = true;
-      break;
+    var command = CommandMap[tile.command];
+    if(command) {
+      if(memory.canPull(command.data)) {
+        error = !!command.exec(tile, this.state, memory);
+      } else {
+        error = true;
+      }
     }
   }
   if(error) {
