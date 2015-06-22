@@ -271,6 +271,8 @@ Interpreter.prototype.next = function() {
       }
     }
   }
+  // Just stop
+  if(!this.state.running) return false;
   if(error) {
     direction.x *= -1;
     direction.y *= -1;
