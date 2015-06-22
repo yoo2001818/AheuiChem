@@ -1,13 +1,6 @@
 var TileMap = require('./tilemap');
 var CanvasLayer = require('./canvaslayer');
-var parser = require('./parser');
-
-var Hangul = {
-  initial: 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split(''),
-  medial: 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split(''),
-  final: ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ'.split(''),
-  code: 0xAC00
-};
+var Hangul = require('./hangul');
 
 // TODO is Array good method to do this?
 var arrowMap = {

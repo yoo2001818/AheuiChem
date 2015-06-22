@@ -1,16 +1,10 @@
 // Entry point of the application
 
-var Hangul = {
-  initial: 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split(''),
-  medial: 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split(''),
-  final: ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ'.split(''),
-  code: 0xAC00
-};
-
 var parser = require('./parser');
 var Renderer = require('./renderer');
 var Interpreter = require('./interpreter');
 var Predictor = require('./predictor');
+var Hangul = require('./hangul');
 
 var interpreter;
 var renderer;
