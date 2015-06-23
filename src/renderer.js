@@ -168,16 +168,18 @@ Renderer.prototype.updateTile = function(x, y, redraw) {
       ctx.translate(x * this.width, y * this.width);
     }, this);
     
-    var highlightCtx = this.canvases.get('highlight');
-    highlightCtx.clearRect(0, 0, this.width, this.width);
-    if(state && state.x == x && state.y == y) {
-      highlightCtx.fillStyle = "#666";
-    } else if(tile.called) {
-      highlightCtx.fillStyle = "#333";
-    } else {
-      highlightCtx.fillStyle = "#222";
+    var highlighted = state && state.x == x && state.y == y;
+    if(cacheTile.highlighted != highlighted) {
+      cacheTile.highlighted = highlighted;
+      var highlightCtx = this.canvases.get('highlight');
+      highlightCtx.clearRect(0, 0, this.width, this.width);
+      if(highlighted) {
+        highlightCtx.fillStyle = "#666";
+      } else {
+        highlightCtx.fillStyle = "#222";
+      }
+      roundRect(highlightCtx, 1, 1, this.width-2, this.width-2, 4, true);
     }
-    roundRect(highlightCtx, 1, 1, this.width-2, this.width-2, 4, true);
     
     if(cacheTile.text != tile.original) {
       cacheTile.text = tile.original;

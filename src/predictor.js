@@ -163,10 +163,6 @@ Predictor.prototype.next = function() {
   var removal = false;
   if(segment) segment.push(tile);
   if(tile != null) {
-    if(!tile.heat) {
-      tile.heat = 0;
-    }
-    tile.heat ++;
     if(!tile.segments) {
       tile.segments = {};
     }
