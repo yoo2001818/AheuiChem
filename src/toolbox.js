@@ -1,3 +1,5 @@
+var parser = require('./parser');
+
 var Directions = [
   'up',
   'left',
@@ -40,6 +42,7 @@ function ToolBox(renderer) {
     type: 'arrow',
     name: 'none'
   }
+  this.renderer = renderer;
   this.hookEvents();
 }
 
@@ -64,6 +67,35 @@ ToolBox.prototype.hookEvents = function() {
       }
     }
   });
+  // TODO requires refactoring.
+  this.renderer.canvases.viewport.onclick = function(e) {
+    // http://stackoverflow.com/a/5932203
+    var totalOffsetX = 0;
+    var totalOffsetY = 0;
+    var canvasX = 0;
+    var canvasY = 0;
+    var currentElement = self.renderer.canvases.viewport;
+    do {
+        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+    } while(currentElement = currentElement.offsetParent);
+    canvasX = event.pageX - totalOffsetX - document.body.scrollLeft; 
+    canvasY = event.pageY - totalOffsetY - document.body.scrollTop; 
+    e.preventDefault();
+    var tileX = canvasX / self.renderer.width | 0;
+    var tileY = canvasY / self.renderer.width | 0;
+    console.log(tileX, tileY);
+    var tile = self.renderer.interpreter.map.get(tileX, tileY) || {
+      direction: 'none',
+      command: 'none',
+      original: ' '
+    };
+    if(self.selected.type == 'arrow') tile.direction = self.selected.name;
+      else tile.command = self.selected.name;
+    tile.original = parser.encodeSyllable(tile);
+    self.renderer.interpreter.map.set(tileX, tileY, tile);
+    self.renderer.updateTile(tileX, tileY);
+  }
 }
 
 ToolBox.prototype.changeSelected = function(type, name) {
