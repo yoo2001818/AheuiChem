@@ -38,20 +38,15 @@ function reset(initial) {
     }
     var predictQuota = interpreter.map.width * interpreter.map.height * 2;
     predictor = new Predictor(interpreter.map);
-    var ctx = renderer.canvases.get('path');
-    ctx.clearRect(0, 0, renderer.canvases.width, renderer.canvases.height);
     var key = setInterval(function() {
-      for(var i = 0; i < 20; ++i) {
+      for(var i = 0; i < 1000; ++i) {
         if(!predictor.next() || predictQuota-- < 0) {
+          renderer.redraw();
           clearInterval(key);
           break;
         }
       }
-      while(predictor.updated.length > 0) {
-        var pos = predictor.updated.shift();
-        renderer.updateTile(pos.x, pos.y);
-      }
-    }, 100);
+    }, 20);
   });
   document.getElementById('codeForm-output').value = '';
   running = false;

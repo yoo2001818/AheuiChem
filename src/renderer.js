@@ -148,7 +148,7 @@ Renderer.prototype.redraw = function() {
   // Redraw all tiles
   for(var y = 0; y < this.interpreter.map.height; ++y) {
     for(var x = 0; x < this.interpreter.map.width; ++x) {
-      this.updateTile(x, y, true);
+      this.updateTile(x, y);
     }
   }
 }
