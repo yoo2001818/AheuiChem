@@ -163,6 +163,10 @@ Predictor.prototype.next = function() {
   var removal = false;
   if(segment) segment.push(tile);
   if(tile != null) {
+    if(!tile.heat) {
+      tile.heat = 0;
+    }
+    tile.heat ++;
     if(!tile.segments) {
       tile.segments = {};
     }
@@ -179,7 +183,7 @@ Predictor.prototype.next = function() {
         position: segment? segment.length - 1 : 0
       }
     }
-    if(ReversibleMap[tile.command]) {
+    if(!removal && ReversibleMap[tile.command]) {
       var flipDir = {
         x: -direction.x,
         y: -direction.y
