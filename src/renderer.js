@@ -98,7 +98,7 @@ var Renderer = function(viewport, interpreter, width) {
     this.width * interpreter.map.width, this.width * interpreter.map.height);
   
   // TODO hold sprite sheets somewhere else and refactor code
-  var loadCount = 3;
+  var loadCount = 4;
   var self = this;
   function handleLoad() {
     loadCount --;
@@ -109,6 +109,11 @@ var Renderer = function(viewport, interpreter, width) {
   pathImage.src = 'img/path.svg';
   pathImage.onload = handleLoad;
   this.pathImage = pathImage;
+  
+  var pathTransparentImage = new Image();
+  pathTransparentImage.src = 'img/path_transparent.svg';
+  pathTransparentImage.onload = handleLoad;
+  this.pathTransparentImage = pathTransparentImage;
   
   var arrowImage = new Image();
   arrowImage.src = 'img/arrow.svg';
@@ -189,9 +194,10 @@ Renderer.prototype.updateTile = function(x, y, redraw) {
       for(var key in tile.directions) {
         var segment = segmentMap[tile.directions[key].segment%4];
         var pathPos = pathMap[key];
-        this.canvases.get('path').globalAlpha = tile.directions[key].unlikely ?
-          0.2 : 1;
-        this.canvases.get('path').drawImage(this.pathImage,
+        // globalAlpha is evil for Firefox
+        var pathImg = this.pathImage;
+        if(tile.directions[key].unlikely) pathImg = this.pathTransparentImage;
+        this.canvases.get('path').drawImage(pathImg,
           (segment[0]*4+pathPos[0]) * 100, (segment[1]*3+pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);
       }
