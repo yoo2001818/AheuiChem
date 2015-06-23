@@ -67,7 +67,11 @@ ToolBox.prototype.hookEvents = function() {
       }
     }
   });
+}
+
+ToolBox.prototype.hookCanvas = function(check, callback) {
   // TODO requires refactoring.
+  var self = this;
   this.renderer.canvases.viewport.onclick = function(e) {
     // http://stackoverflow.com/a/5932203
     var totalOffsetX = 0;
@@ -79,12 +83,12 @@ ToolBox.prototype.hookEvents = function() {
         totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
         totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
     } while(currentElement = currentElement.offsetParent);
-    canvasX = event.pageX - totalOffsetX - document.body.scrollLeft; 
-    canvasY = event.pageY - totalOffsetY - document.body.scrollTop; 
+    canvasX = e.pageX - totalOffsetX - document.body.scrollLeft; 
+    canvasY = e.pageY - totalOffsetY - document.body.scrollTop; 
     e.preventDefault();
     var tileX = canvasX / self.renderer.width | 0;
     var tileY = canvasY / self.renderer.width | 0;
-    console.log(tileX, tileY);
+    if(!check(tileX, tileY)) return;
     var tile = self.renderer.interpreter.map.get(tileX, tileY) || {
       direction: 'none',
       command: 'none',
@@ -95,6 +99,7 @@ ToolBox.prototype.hookEvents = function() {
     tile.original = parser.encodeSyllable(tile);
     self.renderer.interpreter.map.set(tileX, tileY, tile);
     self.renderer.updateTile(tileX, tileY);
+    callback(tileX, tileY, tile);
   }
 }
 

@@ -14,6 +14,49 @@ var monitor;
 var toolbox;
 var running = false;
 
+function reset(initial) {
+  if(!initial) {
+    interpreter.reset();
+    renderer.reset();
+  } else {
+    toolbox.hookEvents();
+  }
+  toolbox.hookCanvas(function() {
+    return !running;
+  }, function() {
+    // Clear all paths and reset
+    for(var y = 0; y < interpreter.map.height; ++y) {
+      for(var x = 0; x < interpreter.map.width; ++x) {
+        var tile = interpreter.map.get(x, y);
+        var cacheTile = renderer.cacheMap.get(x, y);
+        if(tile) {
+          tile.directions = {};
+          tile.segments = {};
+          cacheTile.directions = {};
+        }
+      }
+    }
+    var predictQuota = interpreter.map.width * interpreter.map.height * 2;
+    predictor = new Predictor(interpreter.map);
+    var ctx = renderer.canvases.get('path');
+    ctx.clearRect(0, 0, renderer.canvases.width, renderer.canvases.height);
+    var key = setInterval(function() {
+      for(var i = 0; i < 20; ++i) {
+        if(!predictor.next() || predictQuota-- < 0) {
+          clearInterval(key);
+          break;
+        }
+      }
+      while(predictor.updated.length > 0) {
+        var pos = predictor.updated.shift();
+        renderer.updateTile(pos.x, pos.y);
+      }
+    }, 100);
+  });
+  document.getElementById('codeForm-output').value = '';
+  running = false;
+}
+
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
@@ -29,20 +72,27 @@ window.onload = function() {
     toolbox = new ToolBox(renderer);
     window.interpreter = interpreter;
     window.predictor = predictor;
-    document.getElementById('codeForm-output').value = '';
+    reset(true);
     // TODO implement input
     return false;
   }
   document.getElementById('codeForm-reset').onclick = function() {
-    interpreter.reset();
-    renderer.reset();
-    document.getElementById('codeForm-output').value = '';
+    reset();
   }
   document.getElementById('codeForm-resume').onclick = function() {
     running = true;
   }
   document.getElementById('codeForm-pause').onclick = function() {
     running = false;
+  }
+  document.getElementById('codeForm-step').onclick = function() {
+    if(!interpreter || !renderer) return;
+    renderer.preNext();
+    interpreter.next();
+    renderer.postNext();
+    document.getElementById('codeForm-output').value += interpreter.shift();
+    // update debug status
+    document.getElementById('codeForm-debug').value = monitor.getStatus();
   }
   setInterval(function() {
     if(!running || !interpreter || !renderer) return;

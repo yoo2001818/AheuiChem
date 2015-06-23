@@ -144,7 +144,16 @@ Renderer.prototype.reset = function() {
   }
 }
 
-Renderer.prototype.updateTile = function(x, y) {
+Renderer.prototype.redraw = function() {
+  // Redraw all tiles
+  for(var y = 0; y < this.interpreter.map.height; ++y) {
+    for(var x = 0; x < this.interpreter.map.width; ++x) {
+      this.updateTile(x, y, true);
+    }
+  }
+}
+
+Renderer.prototype.updateTile = function(x, y, redraw) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
   var cacheTile = this.cacheMap.get(x, y);
@@ -174,7 +183,7 @@ Renderer.prototype.updateTile = function(x, y) {
     
     // TODO should not use hard coding for image sizes
     
-    if(tile.directions && cacheTile.directions != Object.keys(tile.directions).length) {
+    if(tile.directions && (cacheTile.directions != Object.keys(tile.directions).length || redraw)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for(var key in tile.directions) {
