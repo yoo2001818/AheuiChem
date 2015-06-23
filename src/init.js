@@ -18,8 +18,6 @@ function reset(initial) {
   if(!initial) {
     interpreter.reset();
     renderer.reset();
-  } else {
-    toolbox.hookEvents();
   }
   toolbox.hookCanvas(function() {
     return !running;
@@ -64,7 +62,8 @@ window.onload = function() {
     }
     predictor.updated = [];
     renderer = new Renderer(document.getElementById('viewport'), interpreter);
-    toolbox = new ToolBox(renderer);
+    if(toolbox) toolbox.renderer = renderer;
+    else toolbox = new ToolBox(renderer);
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);
@@ -93,26 +92,8 @@ window.onload = function() {
     if(!running || !interpreter || !renderer) return;
     renderer.preNext();
     interpreter.next();
-    // Predict
-    /*
-    predictor.stack = [{
-      segment: predictor.segments.length,
-      x: interpreter.state.x,
-      y: interpreter.state.y,
-      direction: {
-        x: interpreter.state.direction.x,
-        y: interpreter.state.direction.y
-      }
-    }];
-    predictor.segments.push([]);
-    for(var i = 0; i < predictQuota; ++i) {
-      if(!predictor.next()) break;
-    }
-    interpreter.updated = interpreter.updated.concat(predictor.updated);
-    predictor.updated = [];*/
     renderer.postNext();
     document.getElementById('codeForm-output').value += interpreter.shift();
-    // update debug status
     document.getElementById('codeForm-debug').value = monitor.getStatus();
   }, 20);
   document.getElementById('captureBtn').onclick = function() {
