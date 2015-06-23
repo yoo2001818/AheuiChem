@@ -49,6 +49,10 @@ html, body {
   border: #000 solid 1px;
 }
 
+#toolbox td:hover {
+  background-color: #333 !important;
+}
+
 #toolbox .arrow {
   background: url('img/arrow.svg') #222;
   background-size: 400% 400%;
@@ -123,7 +127,7 @@ html, body {
   background-position: 0 0;
 }
 
-#toolbox .command#command-stop {
+#toolbox .command#command-end {
   background-position: -100% 0;
 }
 

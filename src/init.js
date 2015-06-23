@@ -5,11 +5,13 @@ var Renderer = require('./renderer');
 var Interpreter = require('./interpreter');
 var Predictor = require('./predictor');
 var Monitor = require('./monitor');
+var ToolBox = require('./toolbox');
 
 var interpreter;
 var renderer;
 var predictor;
 var monitor;
+var toolbox;
 
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
@@ -23,6 +25,7 @@ window.onload = function() {
     }
     predictor.updated = [];
     renderer = new Renderer(document.getElementById('viewport'), interpreter);
+    toolbox = new ToolBox(renderer);
     window.interpreter = interpreter;
     window.predictor = predictor;
     document.getElementById('codeForm-output').value = '';
