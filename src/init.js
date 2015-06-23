@@ -4,16 +4,18 @@ var parser = require('./parser');
 var Renderer = require('./renderer');
 var Interpreter = require('./interpreter');
 var Predictor = require('./predictor');
-var Hangul = require('./hangul');
+var Monitor = require('./monitor');
 
 var interpreter;
 var renderer;
 var predictor;
+var monitor;
 
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
     interpreter = new Interpreter(code);
+    monitor = new Monitor(interpreter);
     var predictQuota = interpreter.map.width * interpreter.map.height * 2;
     predictor = new Predictor(interpreter.map);
     for(var i = 0; i < predictQuota; ++i) {
@@ -51,26 +53,7 @@ window.onload = function() {
     renderer.postNext();
     document.getElementById('codeForm-output').value += interpreter.shift();
     // update debug status
-    document.getElementById('codeForm-debug').value = (function() {
-      var str = '';
-      var state = interpreter.state;
-      if(state.running) {
-        var direction = state.direction;
-        str += '실행 중 (위치 '+state.x+', '+state.y+') ';
-        str += '(방향 '+direction.x+', '+direction.y+')\n';
-      } else {
-        str += '실행 끝\n';
-      }
-      for(var i = 0; i < 28; ++i) {
-        if(state.selected == i) {
-          str += '>> ';
-        }
-        str += Hangul.final[i]+': ';
-        str += state.memory[i].data.join(' ');
-        str += '\n';
-      }
-      return str;
-    })();
+    document.getElementById('codeForm-debug').value = monitor.getStatus();
   }, 20);
   document.getElementById('captureBtn').onclick = function() {
     renderer.canvases.dump(document.getElementById('capture'));
