@@ -202,6 +202,7 @@ Renderer.prototype.updateTile = function(x, y) {
       cacheTile.command = tile.command;
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
+      commandCtx.clearRect(0, 0, this.width, this.width);
       commandCtx.drawImage(this.commandImage,
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);

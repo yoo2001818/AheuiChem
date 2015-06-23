@@ -12,6 +12,7 @@ var renderer;
 var predictor;
 var monitor;
 var toolbox;
+var running = false;
 
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
@@ -32,8 +33,19 @@ window.onload = function() {
     // TODO implement input
     return false;
   }
+  document.getElementById('codeForm-reset').onclick = function() {
+    interpreter.reset();
+    renderer.reset();
+    document.getElementById('codeForm-output').value = '';
+  }
+  document.getElementById('codeForm-resume').onclick = function() {
+    running = true;
+  }
+  document.getElementById('codeForm-pause').onclick = function() {
+    running = false;
+  }
   setInterval(function() {
-    if(!interpreter || !renderer) return;
+    if(!running || !interpreter || !renderer) return;
     renderer.preNext();
     interpreter.next();
     // Predict
