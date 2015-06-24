@@ -100,8 +100,8 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
   });
   var bitDir = preDir | convertToBits(direction.x, direction.y);
   write(tile, DirectionBitRevMap[bitDir], segment, unlikely);
-  pos.x = move(pos.x, direction.x, this.map.width);
-  pos.y = move(pos.y, direction.y, this.map.height);
+  pos.x = move(pos.x, direction.x, map.width);
+  pos.y = move(pos.y, direction.y, map.height);
 }
 
 function sign(a) {
