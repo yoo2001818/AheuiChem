@@ -158,7 +158,7 @@ Renderer.prototype.redraw = function() {
   }
 }
 
-Renderer.prototype.updateTile = function(x, y, redraw) {
+Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
   var cacheTile = this.cacheMap.get(x, y);
@@ -190,7 +190,7 @@ Renderer.prototype.updateTile = function(x, y, redraw) {
     
     // TODO should not use hard coding for image sizes
     
-    if(tile.directions && (cacheTile.directions != Object.keys(tile.directions).length || redraw)) {
+    if(tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for(var key in tile.directions) {
@@ -240,10 +240,7 @@ Renderer.prototype.updateTile = function(x, y, redraw) {
   }
 }
 
-Renderer.prototype.preNext = function() {
-}
-
-Renderer.prototype.postNext = function() {
+Renderer.prototype.render = function() {
   var state = this.interpreter.state;
   while(this.interpreter.updated.length > 0) {
     var pos = this.interpreter.updated.shift();

@@ -1,59 +1,6 @@
 var parser = require('./parser');
 var memory = require('./memory');
-
-// 1000 : keep direction
-// -1000 : reverse direction
-
-var DirectionMap = {
-  'up': {
-    x: 0,
-    y: -1
-  },
-  'left': {
-    x: -1,
-    y: 0
-  },
-  'right': {
-    x: 1,
-    y: 0
-  },
-  'down': {
-    x: 0,
-    y: 1
-  },
-  'skip-up': {
-    x: 0,
-    y: -2
-  },
-  'skip-left': {
-    x: -2,
-    y: 0
-  },
-  'skip-right': {
-    x: 2,
-    y: 0
-  },
-  'skip-down': {
-    x: 0,
-    y: 2
-  },
-  'horizontal': {
-    x: 1000,
-    y: -1000
-  },
-  'vertical': {
-    x: -1000,
-    y: 1000
-  },
-  'reverse': {
-    x: -1000,
-    y: -1000
-  },
-  'none': {
-    x: 1000,
-    y: 1000
-  }
-};
+var Direction = require('./direction');
 
 var CommandMap = {
   'end': {
@@ -171,29 +118,6 @@ function buildCalcCommand(callback) {
   };
 }
 
-var UP = 1;
-var DOWN = 2;
-var LEFT = 4;
-var RIGHT = 8;
-
-var DirectionBitMap = {
-  'up': UP,
-  'down': DOWN,
-  'left': LEFT,
-  'right': RIGHT,
-  'horizontal': LEFT|RIGHT,
-  'vertical': UP|DOWN,
-  'up-left': UP|LEFT,
-  'down-left': DOWN|LEFT,
-  'up-right': UP|RIGHT,
-  'down-right': DOWN|RIGHT
-};
-
-var DirectionBitRevMap = {};
-Object.keys(DirectionBitMap).forEach(function(k) {
-  DirectionBitRevMap[DirectionBitMap[k]] = k;
-});
-
 function Interpreter(code) {
   if(typeof code == 'string') {
     this.map = parser.parse(code);
@@ -249,15 +173,13 @@ Interpreter.prototype.reset = function() {
 Interpreter.prototype.next = function() {
   if(!this.state.running) return false;
   var direction = this.state.direction;
-  direction.x = sign(direction.x);
-  direction.y = sign(direction.y);
-  var preDir = convertDir(-direction.x, -direction.y);
+  var preDir = Direction.convertToBits(-direction.x, -direction.y);
   var tile = this.map.get(this.state.x, this.state.y);
   if(tile != null) {
     // Set the direction
-    var tileDir = DirectionMap[tile.direction];
-    direction.x = calculateDir(direction.x, tileDir.x);
-    direction.y = calculateDir(direction.y, tileDir.y);
+    var tileDir = Direction.map[tile.direction];
+    direction.x = Direction.calculate(direction.x, tileDir.x);
+    direction.y = Direction.calculate(direction.y, tileDir.y);
     // Execute the command
     var selected = this.state.selected;
     var memory = this.state.memory[selected];
@@ -277,72 +199,9 @@ Interpreter.prototype.next = function() {
     direction.x *= -1;
     direction.y *= -1;
   }
-  // Add 'skip' direction to skipping tile
-  if(Math.abs(direction.x) >= 2 || Math.abs(direction.y) >= 2) {
-    var skipX = movePos(this.state.x, sign(direction.x), this.map.width);
-    var skipY = movePos(this.state.y, sign(direction.y), this.map.height);
-    var skipTile = this.map.get(skipX, skipY);
-    this.updated.push({
-      x: skipX,
-      y: skipY
-    });
-    if(direction.x) {
-      writeDir(skipTile, 'skip-horizontal');
-    } else {
-      writeDir(skipTile, 'skip-vertical');
-    }
-  }
-  // Move to tile
-  this.updated.push({
-    x: this.state.x,
-    y: this.state.y
-  });
-  var bitDir = preDir | convertDir(direction.x, direction.y);
-  writeDir(tile, DirectionBitRevMap[bitDir]);
-  this.state.x = movePos(this.state.x, direction.x, this.map.width);
-  this.state.y = movePos(this.state.y, direction.y, this.map.height);
+  Direction.process(this.state, this.map, direction, preDir, this.updated, 
+    0);
   return this.state.running;
-}
-
-function calculateDir(current, target) {
-  if(target == 1000) return current;
-  else if(target == -1000) return -current;
-  return target;
-}
-
-function convertDir(x, y) {
-  var val = 0;
-  if(y <= -1) val |= UP;
-  if(y >= 1) val |= DOWN;
-  if(x <= -1) val |= LEFT;
-  if(x >= 1) val |= RIGHT;
-  return val;
-}
-
-function movePos(pos, dir, size) {
-  pos += dir;
-  if(pos < 0) pos = size + pos;
-  if(pos >= size) pos = pos - size;
-  return pos;
-}
-
-function sign(a) {
-  if(a>0) return 1;
-  else if(a<0) return -1;
-  else return 0;
-}
-
-function writeDir(tile, direction) {
-  if(tile == null) return;
-  if(tile.directions == null) {
-    tile.directions = {};
-  }
-  if(tile.directions[direction] == null) {
-    tile.directions[direction] = {
-      segment: 0
-    };
-  }
-  //tile.directions[direction] ++;
 }
 
 module.exports = Interpreter;
