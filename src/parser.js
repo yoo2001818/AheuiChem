@@ -141,7 +141,7 @@ function encodeSyllable(data) {
     initial = 'ㅂ';
     final = 'ㅎ'; 
   } else if(data.command == 'push') {
-    final = LineReverseMap[data.data];
+    final = LineReverseMap[data.data || 0];
   } else if(data.command == 'pop-number') {
     initial = 'ㅁ';
     final = 'ㅇ'; 
@@ -149,7 +149,7 @@ function encodeSyllable(data) {
     initial = 'ㅁ';
     final = 'ㅎ'; 
   } else if(data.command == 'select' || data.command == 'move') {
-    final = Hangul.final[data.data];
+    final = Hangul.final[data.data || 0];
   }
   var initialCode = Hangul.initial.indexOf(initial);
   var medialCode = Hangul.medial.indexOf(medial);
