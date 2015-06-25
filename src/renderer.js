@@ -106,22 +106,22 @@ var Renderer = function(viewport, interpreter, width) {
   }
   
   var pathImage = new Image();
-  pathImage.src = 'img/path.svg';
+  pathImage.src = 'img/path.png';
   pathImage.onload = handleLoad;
   this.pathImage = pathImage;
   
   var pathTransparentImage = new Image();
-  pathTransparentImage.src = 'img/path_transparent.svg';
+  pathTransparentImage.src = 'img/path_transparent.png';
   pathTransparentImage.onload = handleLoad;
   this.pathTransparentImage = pathTransparentImage;
   
   var arrowImage = new Image();
-  arrowImage.src = 'img/arrow.svg';
+  arrowImage.src = 'img/arrow.png';
   arrowImage.onload = handleLoad;
   this.arrowImage = arrowImage;
   
   var commandImage = new Image();
-  commandImage.src = 'img/command.svg';
+  commandImage.src = 'img/command.png';
   commandImage.onload = handleLoad;
   this.commandImage = commandImage;
 }
