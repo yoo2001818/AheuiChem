@@ -15,7 +15,7 @@ html, body {
 }
 
 #viewport {
-  overflow: scroll;
+  overflow: hidden;
   width: 640px;
   height: 480px;
   background: #000;

@@ -42,11 +42,6 @@ function reset(initial) {
     interpreter.reset();
     renderer.reset();
   }
-  toolbox.hookCanvas(function() {
-    return !running;
-  }, function() {
-    repredict();
-  });
   document.getElementById('codeForm-output').value = '';
   running = false;
 }
@@ -66,7 +61,14 @@ window.onload = function() {
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
     if(toolbox) toolbox.renderer = renderer;
-    else toolbox = new ToolBox(renderer);
+    else {
+      toolbox = new ToolBox(renderer);
+      toolbox.hookCanvas(function() {
+        return !running;
+      }, function() {
+        repredict();
+      });
+    }
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);
