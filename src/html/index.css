@@ -10,8 +10,8 @@ html, body {
 
 #canvas {
   position: relative;
-  padding-right: 96px;
-  padding-bottom: 96px;
+  padding-right: 100px;
+  padding-bottom: 100px;
 }
 
 #viewport {
@@ -50,8 +50,8 @@ html, body {
 
 #toolbox td {
   display: inline-block;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   box-sizing: border-box;
   border-radius: 3pt;
   border: #000 solid 1px;
@@ -62,7 +62,7 @@ html, body {
 }
 
 #toolbox .arrow {
-  background: url('img/arrow.svg') #222;
+  background: url('img/arrow.png') #222;
   background-size: 400% 400%;
 }
 
@@ -121,7 +121,7 @@ html, body {
 }
 
 #toolbox .command {
-  background: url('img/command.svg') #222;
+  background: url('img/command.png') #222;
   background-size: 500% 400%;
 }
 

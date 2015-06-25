@@ -91,7 +91,7 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 
 var Renderer = function(viewport, interpreter, width) {
   this.interpreter = interpreter;
-  this.width = width || 48;
+  this.width = width || 50;
   
   this.canvases = new CanvasLayer(viewport,
     ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
