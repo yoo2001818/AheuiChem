@@ -64,7 +64,7 @@ window.onload = function() {
     interpreter = new Interpreter(code);
     monitor = new Monitor(interpreter);
     repredict(true);
-    renderer = new Renderer(document.getElementById('viewport'), interpreter);
+    renderer = new Renderer(document.getElementById('canvas'), interpreter);
     if(toolbox) toolbox.renderer = renderer;
     else toolbox = new ToolBox(renderer);
     window.interpreter = interpreter;

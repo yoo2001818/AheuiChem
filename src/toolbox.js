@@ -78,10 +78,13 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
     var totalOffsetY = 0;
     var canvasX = 0;
     var canvasY = 0;
-    var currentElement = self.renderer.canvases.viewport;
+    var currentElement = self.renderer.canvases.viewport.parentElement;
     do {
-        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+      console.log(currentElement, currentElement.offsetLeft,
+        currentElement.offsetTop, currentElement.scrollLeft,
+        currentElement.scrollTop);
+      totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+      totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
     } while(currentElement = currentElement.offsetParent);
     canvasX = e.pageX - totalOffsetX - document.body.scrollLeft; 
     canvasY = e.pageY - totalOffsetY - document.body.scrollTop; 
