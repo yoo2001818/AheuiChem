@@ -75,6 +75,10 @@ window.onload = function() {
     // TODO implement input
     return false;
   }
+  document.getElementById('codeForm-export').onclick = function() {
+    document.getElementById('codeForm-code').value = parser.encode(
+      interpreter.map);
+  }
   document.getElementById('codeForm-reset').onclick = function() {
     reset();
   }

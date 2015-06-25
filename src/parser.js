@@ -161,6 +161,19 @@ function encodeSyllable(data) {
   return String.fromCharCode(code);
 }
 
+function encode(map) {
+  var code = "";
+  for(var y = 0; y < map.height; ++y) {
+    for(var x = 0; x < map.width; ++x) {
+      var tile = map.get(x, y);
+      if(tile) code += tile.original;
+      else code += 'ㅇ';
+    }
+    code += '\n';
+  }
+  return code.slice(0, -1);
+}
+
 function parse(data) {
   var lines = data.split('\n');
   var map = new TileMap(0, lines.length);
@@ -177,3 +190,4 @@ function parse(data) {
 module.exports.parseSyllable = parseSyllable;
 module.exports.parse = parse;
 module.exports.encodeSyllable = encodeSyllable;
+module.exports.encode = encode;
