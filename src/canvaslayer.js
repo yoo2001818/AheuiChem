@@ -26,8 +26,10 @@ function CanvasLayer(viewport, layerNames, width, height) {
 }
 
 CanvasLayer.prototype.setSize = function(width, height) {
-  this.viewport.style.width = this.width+'px';
-  this.viewport.style.height = this.height+'px';
+  this.viewport.style.width = width+'px';
+  this.viewport.style.height = height+'px';
+  this.width = width;
+  this.height = height;
   for(var i = 0; i < this.layers.length; ++i) {
     var layer = this.layers[i];
     layer.width = width;

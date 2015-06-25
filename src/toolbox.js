@@ -92,6 +92,12 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
     var tileX = canvasX / self.renderer.width | 0;
     var tileY = canvasY / self.renderer.width | 0;
     if(!check(tileX, tileY)) return;
+    // Expand the map if required
+    self.renderer.interpreter.map.expand(tileX+1, tileY+1);
+    if(tileX+1 >= self.renderer.interpreter.map.width ||
+      tileY+1 >= self.renderer.interpreter.map.height) {
+      self.renderer.reset();
+    }
     var tile = self.renderer.interpreter.map.get(tileX, tileY) || {
       direction: 'none',
       command: 'none',

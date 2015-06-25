@@ -10,6 +10,8 @@ html, body {
 
 #canvas {
   position: relative;
+  padding-right: 96px;
+  padding-bottom: 96px;
 }
 
 #viewport {
