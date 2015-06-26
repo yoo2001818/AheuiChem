@@ -125,7 +125,8 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
     }
     return true;
   }
-  this.renderer.canvases.viewport.addEventListener('mousedown', function(e) {
+  this.renderer.canvases.viewport.parentElement.addEventListener('mousedown', 
+    function(e) {
     prevX = e.pageX, prevY = e.pageY;
     moveX = 0, moveY = 0;
     document.addEventListener('mouseup', handleMouseUp);
