@@ -102,7 +102,7 @@ var CommandMap = {
     data: 1,
     exec: function(tile, state, memory) {
       var data = memory.pull();
-      if(data == 0) return true;
+      if(data === 0) return true;
     }
   }
 };
@@ -128,15 +128,15 @@ function Interpreter(code) {
 }
 
 Interpreter.prototype.push = function(data) {
-  
-}
+
+};
 
 Interpreter.prototype.shift = function() {
   // Return the string and empties it
   var output = this.state.output.join('');
   this.state.output = [];
   return output;
-}
+};
 
 Interpreter.prototype.reset = function() {
   this.state = {
@@ -151,7 +151,7 @@ Interpreter.prototype.reset = function() {
     input: [],
     output: [],
     running: true
-  }
+  };
   this.updated = [];
   // Initialize memory
   for(var i = 0; i < 28; ++i) {
@@ -168,14 +168,15 @@ Interpreter.prototype.reset = function() {
       break;
     }
   }
-}
+};
 
 Interpreter.prototype.next = function() {
   if(!this.state.running) return false;
   var direction = this.state.direction;
   var preDir = Direction.convertToBits(-direction.x, -direction.y);
   var tile = this.map.get(this.state.x, this.state.y);
-  if(tile != null) {
+  var error = false;
+  if(tile !== null) {
     // Set the direction
     var tileDir = Direction.map[tile.direction];
     direction.x = Direction.calculate(direction.x, tileDir.x);
@@ -183,7 +184,6 @@ Interpreter.prototype.next = function() {
     // Execute the command
     var selected = this.state.selected;
     var memory = this.state.memory[selected];
-    var error = false;
     var command = CommandMap[tile.command];
     if(command) {
       if(memory.canPull(command.data)) {
@@ -199,9 +199,9 @@ Interpreter.prototype.next = function() {
     direction.x *= -1;
     direction.y *= -1;
   }
-  Direction.process(this.state, this.map, direction, preDir, this.updated, 
+  Direction.process(this.state, this.map, direction, preDir, this.updated,
     0);
   return this.state.running;
-}
+};
 
 module.exports = Interpreter;

@@ -35,23 +35,23 @@ CanvasLayer.prototype.setSize = function(width, height) {
     layer.width = width;
     layer.height = height;
   }
-}
+};
 
 CanvasLayer.prototype.get = function(layerName) {
   return this.layerContextsByName[layerName];
-}
+};
 
 CanvasLayer.prototype.getCanvas = function(layerName) {
   return this.layersByName[layerName];
-}
+};
 
 CanvasLayer.prototype.forEach = function(callback, thisObj) {
   this.layerContexts.forEach(callback, thisObj);
-}
+};
 
 CanvasLayer.prototype.canvasForEach = function(callback, thisObj) {
   this.layers.forEach(callback, thisObj);
-}
+};
 
 CanvasLayer.prototype.dump = function(targetCanvas) {
   var ctx = targetCanvas.getContext('2d');
@@ -60,6 +60,6 @@ CanvasLayer.prototype.dump = function(targetCanvas) {
   this.canvasForEach(function(canvas) {
     ctx.drawImage(canvas, 0, 0);
   });
-}
+};
 
 module.exports = CanvasLayer;

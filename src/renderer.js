@@ -86,50 +86,50 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
   }
   if (fill) {
     ctx.fill();
-  }        
+  }
 }
 
 var Renderer = function(viewport, interpreter, width) {
   this.interpreter = interpreter;
   this.width = width || 50;
-  
+
   this.canvases = new CanvasLayer(viewport,
     ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
     this.width * interpreter.map.width, this.width * interpreter.map.height);
-  
+
   // TODO hold sprite sheets somewhere else and refactor code
   var loadCount = 4;
   var self = this;
   function handleLoad() {
     loadCount --;
-    if(loadCount == 0) self.reset();
+    if(loadCount === 0) self.reset();
   }
-  
+
   var pathImage = new Image();
   pathImage.src = 'img/path.png';
   pathImage.onload = handleLoad;
   this.pathImage = pathImage;
-  
+
   var pathTransparentImage = new Image();
   pathTransparentImage.src = 'img/path_transparent.png';
   pathTransparentImage.onload = handleLoad;
   this.pathTransparentImage = pathTransparentImage;
-  
+
   var arrowImage = new Image();
   arrowImage.src = 'img/arrow.png';
   arrowImage.onload = handleLoad;
   this.arrowImage = arrowImage;
-  
+
   var commandImage = new Image();
   commandImage.src = 'img/command.png';
   commandImage.onload = handleLoad;
   this.commandImage = commandImage;
-}
+};
 
 Renderer.prototype.reset = function() {
   this.cacheMap = new TileMap(this.interpreter.map.width,
     this.interpreter.map.height);
-  this.canvases.setSize(this.width * this.interpreter.map.width, 
+  this.canvases.setSize(this.width * this.interpreter.map.width,
     this.width * this.interpreter.map.height);
   this.canvases.forEach(function(ctx) {
     ctx.font = (this.width*0.6)+"px sans-serif";
@@ -137,7 +137,7 @@ Renderer.prototype.reset = function() {
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#000";
   }, this);
-  this.canvases.get('background').fillRect(0, 0, 
+  this.canvases.get('background').fillRect(0, 0,
     this.canvases.width, this.canvases.height);
   this.canvases.get('text').fillStyle = "#555";
   // Redraw all tiles
@@ -147,7 +147,7 @@ Renderer.prototype.reset = function() {
       this.updateTile(x, y);
     }
   }
-}
+};
 
 Renderer.prototype.redraw = function() {
   // Redraw all tiles
@@ -156,7 +156,7 @@ Renderer.prototype.redraw = function() {
       this.updateTile(x, y);
     }
   }
-}
+};
 
 Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
@@ -167,7 +167,7 @@ Renderer.prototype.updateTile = function(x, y) {
       ctx.save();
       ctx.translate(x * this.width, y * this.width);
     }, this);
-    
+
     var highlighted = state && state.x == x && state.y == y;
     if(cacheTile.highlighted != highlighted) {
       cacheTile.highlighted = highlighted;
@@ -180,16 +180,16 @@ Renderer.prototype.updateTile = function(x, y) {
       }
       roundRect(highlightCtx, 1, 1, this.width-2, this.width-2, 4, true);
     }
-    
+
     if(cacheTile.text != tile.original) {
       cacheTile.text = tile.original;
       var textCtx = this.canvases.get('text');
       textCtx.clearRect(0, 0, this.width, this.width);
       textCtx.fillText(tile.original, this.width/2, this.width/2);
     }
-    
+
     // TODO should not use hard coding for image sizes
-    
+
     if(tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
@@ -204,7 +204,7 @@ Renderer.prototype.updateTile = function(x, y) {
           100, 100, 0, 0, this.width, this.width);
       }
     }
-    
+
     if(cacheTile.direction != tile.direction) {
       cacheTile.direction = tile.direction;
       var arrowCtx = this.canvases.get('arrow');
@@ -214,7 +214,7 @@ Renderer.prototype.updateTile = function(x, y) {
         arrowPos[0] * 100, arrowPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
     }
-    
+
     if(cacheTile.command != tile.command) {
       cacheTile.command = tile.command;
       var commandCtx = this.canvases.get('command');
@@ -223,7 +223,7 @@ Renderer.prototype.updateTile = function(x, y) {
       commandCtx.drawImage(this.commandImage,
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
-      if(tile.data != null) {
+      if(tile.data !== null) {
         var text = tile.data;
         if(tile.command != 'push') text = Hangul.final[tile.data];
         commandCtx.font = (this.width*0.3)+"px sans-serif";
@@ -233,12 +233,12 @@ Renderer.prototype.updateTile = function(x, y) {
         commandCtx.fillText(text, this.width - 3, this.width - 3);
       }
     }
-    
+
     this.canvases.forEach(function(ctx) {
       ctx.restore();
     }, this);
   }
-}
+};
 
 Renderer.prototype.render = function() {
   var state = this.interpreter.state;
@@ -247,6 +247,6 @@ Renderer.prototype.render = function() {
     this.updateTile(pos.x, pos.y);
   }
   if(state) this.updateTile(state.x, state.y);
-}
+};
 
 module.exports = Renderer;

@@ -136,18 +136,18 @@ function encodeSyllable(data) {
   // TODO randomize outputs
   if(data.command == 'push-number') {
     initial = 'ㅂ';
-    final = 'ㅇ'; 
+    final = 'ㅇ';
   } else if(data.command == 'push-unicode') {
     initial = 'ㅂ';
-    final = 'ㅎ'; 
+    final = 'ㅎ';
   } else if(data.command == 'push') {
     final = LineReverseMap[data.data || 0];
   } else if(data.command == 'pop-number') {
     initial = 'ㅁ';
-    final = 'ㅇ'; 
+    final = 'ㅇ';
   } else if(data.command == 'pop-unicode') {
     initial = 'ㅁ';
-    final = 'ㅎ'; 
+    final = 'ㅎ';
   } else if(data.command == 'select' || data.command == 'move') {
     final = Hangul.final[data.data || 0];
   }

@@ -74,30 +74,30 @@ window.onload = function() {
     reset(true);
     // TODO implement input
     return false;
-  }
+  };
   document.getElementById('codeForm-export').onclick = function() {
     document.getElementById('codeForm-code').value = parser.encode(
       interpreter.map);
-  }
+  };
   document.getElementById('codeForm-reset').onclick = function() {
     reset();
-  }
+  };
   document.getElementById('codeForm-resume').onclick = function() {
     running = true;
-  }
+  };
   document.getElementById('codeForm-pause').onclick = function() {
     running = false;
-  }
+  };
   document.getElementById('codeForm-step').onclick = function() {
     if(!interpreter || !renderer) return;
     step();
     running = false;
-  }
+  };
   setInterval(function() {
     if(!running || !interpreter || !renderer) return;
     step();
   }, 20);
   document.getElementById('captureBtn').onclick = function() {
     renderer.canvases.dump(document.getElementById('capture'));
-  }
-}
+  };
+};

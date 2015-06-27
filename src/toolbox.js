@@ -41,7 +41,7 @@ function ToolBox(renderer) {
   this.selected = {
     type: 'arrow',
     name: 'none'
-  }
+  };
   this.renderer = renderer;
   this.hookEvents();
 }
@@ -55,7 +55,7 @@ ToolBox.prototype.hookEvents = function() {
     if(btn) {
       btn.onclick = function() {
         self.changeSelected('arrow', name);
-      }
+      };
     }
   });
   Commands.forEach(function(name) {
@@ -64,10 +64,10 @@ ToolBox.prototype.hookEvents = function() {
     if(btn) {
       btn.onclick = function() {
         self.changeSelected('command', name);
-      }
+      };
     }
   });
-}
+};
 
 ToolBox.prototype.hookCanvas = function(check, callback) {
   // TODO requires refactoring.
@@ -80,7 +80,8 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
     self.renderer.canvases.viewport.parentElement.scrollLeft -= diffX;
     moveX -= diffX;
     moveY -= diffY;
-    prevX = e.pageX, prevY = e.pageY;
+    prevX = e.pageX;
+    prevY = e.pageY;
   }
   function handleMouseUp(e) {
     document.removeEventListener('mouseup', handleMouseUp);
@@ -93,14 +94,12 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
       var canvasY = 0;
       var currentElement = self.renderer.canvases.viewport.parentElement;
       do {
-        console.log(currentElement, currentElement.offsetLeft,
-          currentElement.offsetTop, currentElement.scrollLeft,
-          currentElement.scrollTop);
         totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
         totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-      } while(currentElement = currentElement.offsetParent);
-      canvasX = e.pageX - totalOffsetX - document.body.scrollLeft; 
-      canvasY = e.pageY - totalOffsetY - document.body.scrollTop; 
+        currentElement = currentElement.offsetParent;
+      } while(currentElement);
+      canvasX = e.pageX - totalOffsetX - document.body.scrollLeft;
+      canvasY = e.pageY - totalOffsetY - document.body.scrollTop;
       e.preventDefault();
       var tileX = canvasX / self.renderer.width | 0;
       var tileY = canvasY / self.renderer.width | 0;
@@ -125,15 +124,17 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
     }
     return true;
   }
-  this.renderer.canvases.viewport.parentElement.addEventListener('mousedown', 
+  this.renderer.canvases.viewport.parentElement.addEventListener('mousedown',
     function(e) {
-    prevX = e.pageX, prevY = e.pageY;
-    moveX = 0, moveY = 0;
+    prevX = e.pageX;
+    prevY = e.pageY;
+    moveX = 0;
+    moveY = 0;
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('mousemove', handleMouseMove);
     return true;
   });
-}
+};
 
 ToolBox.prototype.changeSelected = function(type, name) {
   // Invalidate old object
@@ -145,6 +146,6 @@ ToolBox.prototype.changeSelected = function(type, name) {
   this.selected.name = name;
   var btn = document.getElementById(type+'-'+name);
   btn.className = type+' selected';
-}
+};
 
 module.exports = ToolBox;

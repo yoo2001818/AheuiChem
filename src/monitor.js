@@ -22,6 +22,6 @@ Monitor.prototype.getStatus = function() {
     str += '\n';
   }
   return str;
-}
+};
 
 module.exports = Monitor;

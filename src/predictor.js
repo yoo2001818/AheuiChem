@@ -61,7 +61,7 @@ function Predictor(code) {
 }
 
 Predictor.prototype.next = function() {
-  if(this.stack.length == 0) return false;
+  if(this.stack.length === 0) return false;
   var state = this.stack[this.stack.length-1];
   if(state.register) {
     // Assign segment
@@ -69,7 +69,7 @@ Predictor.prototype.next = function() {
     this.segments[state.segment] = [];
     // Update the tile
     if(state.register.preDir) {
-      Direction.process(state.register, this.map, state.direction, 
+      Direction.process(state.register, this.map, state.direction,
         state.register.preDir, this.updated, state.segment, state.unlikely);
     }
     delete state.register;
@@ -80,7 +80,7 @@ Predictor.prototype.next = function() {
   var tile = this.map.get(state.x, state.y);
   var removal = false;
   if(segment) segment.push(tile);
-  if(tile != null) {
+  if(tile !== null) {
     if(!tile.segments) {
       tile.segments = {};
     }
@@ -95,7 +95,7 @@ Predictor.prototype.next = function() {
       tile.segments[Direction.convertToBits(direction.x, direction.y)] = {
         segment: state.segment,
         position: segment? segment.length - 1 : 0
-      }
+      };
     }
     if(!removal && ReversibleMap[tile.command]) {
       var flipDir = {
@@ -122,7 +122,7 @@ Predictor.prototype.next = function() {
           skip = true;
         }
       }
-      if(!skip && (!flipTile || !flipTile.segments || 
+      if(!skip && (!flipTile || !flipTile.segments ||
         !flipTile.segments[Direction.convertToBits(flipDir.x, flipDir.y)])) {
         if(UnlikelyMap[tile.command]) {
           flipState.unlikely = true;
@@ -133,7 +133,7 @@ Predictor.prototype.next = function() {
       }
     }
   }
-  Direction.process(state, this.map, direction, preDir, this.updated, 
+  Direction.process(state, this.map, direction, preDir, this.updated,
     state.segment, state.unlikely);
   if(removal) {
     this.stack.splice(this.stack.indexOf(state), 1);
@@ -142,6 +142,6 @@ Predictor.prototype.next = function() {
     }
   }
   return this.stack.length > 0;
-}
+};
 
 module.exports = Predictor;
