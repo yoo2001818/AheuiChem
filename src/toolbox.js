@@ -108,7 +108,7 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
       e.preventDefault();
       var tileX = canvasX / self.renderer.width | 0;
       var tileY = canvasY / self.renderer.width | 0;
-      if (!check(tileX, tileY)) return;
+      if (!check(tileX, tileY)) return false;
       // Expand the map if required
       self.renderer.interpreter.map.expand(tileX + 1, tileY + 1);
       if (tileX + 1 >= self.renderer.interpreter.map.width ||
@@ -127,18 +127,29 @@ ToolBox.prototype.hookCanvas = function(check, callback) {
       self.renderer.updateTile(tileX, tileY);
       callback(tileX, tileY, tile);
     }
-    return true;
+    return false;
   }
   this.renderer.canvases.viewport.parentElement.addEventListener('mousedown',
     function(e) {
-      prevX = e.pageX;
-      prevY = e.pageY;
-      moveX = 0;
-      moveY = 0;
-      document.addEventListener('mouseup', handleMouseUp);
-      document.addEventListener('mousemove', handleMouseMove);
-      return true;
-    });
+    if (e.button != 0) return;
+    prevX = e.pageX;
+    prevY = e.pageY;
+    moveX = 0;
+    moveY = 0;
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    e.preventDefault();
+    return false;
+  });
+  this.renderer.canvases.viewport.parentElement.addEventListener(
+    'contextmenu', function(e) {
+    var contextMenu = document.getElementById('contextMenu');
+    contextMenu.style.display = "block";
+    contextMenu.style.top = e.pageY + "px";
+    contextMenu.style.left = e.pageX + "px";
+    e.preventDefault();
+    return false;
+  });
 };
 
 ToolBox.prototype.changeSelected = function(type, name) {

@@ -40,6 +40,15 @@ html, body {
   padding-bottom: 100px;
   padding-right: 100px;
 }
+#contextMenu {
+  display: none; /** Hidden by default **/
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80pt;
+  height: 200pt;
+  background-color: #aaa;
+}
 .title {
   width: 100%;
   text-align: center;
