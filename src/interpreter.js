@@ -102,7 +102,7 @@ var CommandMap = {
     data: 1,
     exec: function(tile, state, memory) {
       var data = memory.pull();
-      if(data === 0) return true;
+      if (data === 0) return true;
     }
   }
 };
@@ -119,7 +119,7 @@ function buildCalcCommand(callback) {
 }
 
 function Interpreter(code) {
-  if(typeof code == 'string') {
+  if (typeof code == 'string') {
     this.map = parser.parse(code);
   } else {
     this.map = code;
@@ -154,29 +154,29 @@ Interpreter.prototype.reset = function() {
   };
   this.updated = [];
   // Initialize memory
-  for(var i = 0; i < 28; ++i) {
-    switch(i) {
+  for (var i = 0; i < 28; ++i) {
+    switch (i) {
       case 21:
         this.state.memory[i] = new memory.Queue();
-      break;
+        break;
       case 28:
         // Extension memory, defaults to stack
         this.state.memory[i] = new memory.Stack();
-      break;
+        break;
       default:
         this.state.memory[i] = new memory.Stack();
-      break;
+        break;
     }
   }
 };
 
 Interpreter.prototype.next = function() {
-  if(!this.state.running) return false;
+  if (!this.state.running) return false;
   var direction = this.state.direction;
   var preDir = Direction.convertToBits(-direction.x, -direction.y);
   var tile = this.map.get(this.state.x, this.state.y);
   var error = false;
-  if(tile !== null) {
+  if (tile !== null) {
     // Set the direction
     var tileDir = Direction.map[tile.direction];
     direction.x = Direction.calculate(direction.x, tileDir.x);
@@ -185,8 +185,8 @@ Interpreter.prototype.next = function() {
     var selected = this.state.selected;
     var memory = this.state.memory[selected];
     var command = CommandMap[tile.command];
-    if(command) {
-      if(memory.canPull(command.data)) {
+    if (command) {
+      if (memory.canPull(command.data)) {
         error = !!command.exec(tile, this.state, memory);
       } else {
         error = true;
@@ -194,8 +194,8 @@ Interpreter.prototype.next = function() {
     }
   }
   // Just stop
-  if(!this.state.running) return false;
-  if(error) {
+  if (!this.state.running) return false;
+  if (error) {
     direction.x *= -1;
     direction.y *= -1;
   }

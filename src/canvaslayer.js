@@ -7,10 +7,10 @@ function CanvasLayer(viewport, layerNames, width, height) {
   this.height = height;
   this.viewport = viewport;
   viewport.style.position = 'relative';
-  viewport.style.width = width+'px';
-  viewport.style.height = height+'px';
-  while(viewport.firstChild) viewport.removeChild(viewport.firstChild);
-  for(var i = 0; i < layerNames.length; ++i) {
+  viewport.style.width = width + 'px';
+  viewport.style.height = height + 'px';
+  while (viewport.firstChild) viewport.removeChild(viewport.firstChild);
+  for (var i = 0; i < layerNames.length; ++i) {
     var layerName = layerNames[i];
     var canvas = document.createElement('canvas');
     canvas.width = width;
@@ -26,11 +26,11 @@ function CanvasLayer(viewport, layerNames, width, height) {
 }
 
 CanvasLayer.prototype.setSize = function(width, height) {
-  this.viewport.style.width = width+'px';
-  this.viewport.style.height = height+'px';
+  this.viewport.style.width = width + 'px';
+  this.viewport.style.height = height + 'px';
   this.width = width;
   this.height = height;
-  for(var i = 0; i < this.layers.length; ++i) {
+  for (var i = 0; i < this.layers.length; ++i) {
     var layer = this.layers[i];
     layer.width = width;
     layer.height = height;

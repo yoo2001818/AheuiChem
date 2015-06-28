@@ -16,12 +16,12 @@ var running = false;
 
 function repredict(initial) {
   // Clear all paths and reset
-  if(!initial && renderer) {
-    for(var y = 0; y < interpreter.map.height; ++y) {
-      for(var x = 0; x < interpreter.map.width; ++x) {
+  if (!initial && renderer) {
+    for (var y = 0; y < interpreter.map.height; ++y) {
+      for (var x = 0; x < interpreter.map.width; ++x) {
         var tile = interpreter.map.get(x, y);
         var cacheTile = renderer.cacheMap.get(x, y);
-        if(tile) {
+        if (tile) {
           tile.directions = {};
           tile.segments = {};
           cacheTile.directions = {};
@@ -31,14 +31,14 @@ function repredict(initial) {
   }
   var predictQuota = interpreter.map.width * interpreter.map.height * 2;
   predictor = new Predictor(interpreter.map);
-  for(var i = 0; i < predictQuota; ++i) {
-    if(!predictor.next()) break;
+  for (var i = 0; i < predictQuota; ++i) {
+    if (!predictor.next()) break;
   }
-  if(!initial && renderer) renderer.redraw();
+  if (!initial && renderer) renderer.redraw();
 }
 
 function reset(initial) {
-  if(!initial) {
+  if (!initial) {
     interpreter.reset();
     renderer.reset();
   }
@@ -60,7 +60,7 @@ window.onload = function() {
     monitor = new Monitor(interpreter);
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
-    if(toolbox) toolbox.renderer = renderer;
+    if (toolbox) toolbox.renderer = renderer;
     else {
       toolbox = new ToolBox(renderer);
       toolbox.hookCanvas(function() {
@@ -89,12 +89,12 @@ window.onload = function() {
     running = false;
   };
   document.getElementById('codeForm-step').onclick = function() {
-    if(!interpreter || !renderer) return;
+    if (!interpreter || !renderer) return;
     step();
     running = false;
   };
   setInterval(function() {
-    if(!running || !interpreter || !renderer) return;
+    if (!running || !interpreter || !renderer) return;
     step();
   }, 20);
   document.getElementById('captureBtn').onclick = function() {

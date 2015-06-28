@@ -1,4 +1,3 @@
-
 // 1000 : keep direction
 // -1000 : reverse direction
 
@@ -63,12 +62,12 @@ var DirectionBitMap = {
   'down': DOWN,
   'left': LEFT,
   'right': RIGHT,
-  'horizontal': LEFT|RIGHT,
-  'vertical': UP|DOWN,
-  'up-left': UP|LEFT,
-  'down-left': DOWN|LEFT,
-  'up-right': UP|RIGHT,
-  'down-right': DOWN|RIGHT
+  'horizontal': LEFT | RIGHT,
+  'vertical': UP | DOWN,
+  'up-left': UP | LEFT,
+  'down-left': DOWN | LEFT,
+  'up-right': UP | RIGHT,
+  'down-right': DOWN | RIGHT
 };
 
 var DirectionBitRevMap = {};
@@ -79,7 +78,7 @@ Object.keys(DirectionBitMap).forEach(function(k) {
 function process(pos, map, direction, preDir, updated, segment, unlikely) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
-  if(isSkipping(direction.x, direction.y)) {
+  if (isSkipping(direction.x, direction.y)) {
     var skipX = move(pos.x, sign(direction.x), map.width);
     var skipY = move(pos.y, sign(direction.y), map.height);
     var skipTile = map.get(skipX, skipY);
@@ -87,7 +86,7 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
       x: skipX,
       y: skipY
     });
-    if(direction.x) {
+    if (direction.x) {
       write(skipTile, 'skip-horizontal', segment, unlikely);
     } else {
       write(skipTile, 'skip-vertical', segment, unlikely);
@@ -105,8 +104,8 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
 }
 
 function sign(a) {
-  if(a>0) return 1;
-  else if(a<0) return -1;
+  if (a > 0) return 1;
+  else if (a < 0) return -1;
   else return 0;
 }
 
@@ -115,33 +114,33 @@ function isSkipping(x, y) {
 }
 
 function calculate(current, target) {
-  if(target == 1000) return current;
-  else if(target == -1000) return -current;
+  if (target == 1000) return current;
+  else if (target == -1000) return -current;
   return target;
 }
 
 function move(pos, dir, size) {
   pos += dir;
-  if(pos < 0) pos = size + pos;
-  if(pos >= size) pos = pos - size;
+  if (pos < 0) pos = size + pos;
+  if (pos >= size) pos = pos - size;
   return pos;
 }
 
 function convertToBits(x, y) {
   var val = 0;
-  if(y <= -1) val |= UP;
-  if(y >= 1) val |= DOWN;
-  if(x <= -1) val |= LEFT;
-  if(x >= 1) val |= RIGHT;
+  if (y <= -1) val |= UP;
+  if (y >= 1) val |= DOWN;
+  if (x <= -1) val |= LEFT;
+  if (x >= 1) val |= RIGHT;
   return val;
 }
 
 function write(tile, direction, segment, unlikely) {
-  if(tile == null) return;
-  if(tile.directions == null) {
+  if (tile == null) return;
+  if (tile.directions == null) {
     tile.directions = {};
   }
-  if(tile.directions[direction] == null) {
+  if (tile.directions[direction] == null) {
     tile.directions[direction] = {
       segment: segment,
       unlikely: unlikely

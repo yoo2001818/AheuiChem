@@ -64,7 +64,7 @@ var commandMap = {
 
 // http://stackoverflow.com/a/3368118/3317669
 function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-  if (typeof stroke == "undefined" ) {
+  if (typeof stroke == "undefined") {
     stroke = true;
   }
   if (typeof radius === "undefined") {
@@ -93,16 +93,16 @@ var Renderer = function(viewport, interpreter, width) {
   this.interpreter = interpreter;
   this.width = width || 50;
 
-  this.canvases = new CanvasLayer(viewport,
-    ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
+  this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
     this.width * interpreter.map.width, this.width * interpreter.map.height);
 
   // TODO hold sprite sheets somewhere else and refactor code
   var loadCount = 4;
   var self = this;
+
   function handleLoad() {
-    loadCount --;
-    if(loadCount === 0) self.reset();
+    loadCount--;
+    if (loadCount === 0) self.reset();
   }
 
   var pathImage = new Image();
@@ -132,7 +132,7 @@ Renderer.prototype.reset = function() {
   this.canvases.setSize(this.width * this.interpreter.map.width,
     this.width * this.interpreter.map.height);
   this.canvases.forEach(function(ctx) {
-    ctx.font = (this.width*0.6)+"px sans-serif";
+    ctx.font = (this.width * 0.6) + "px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#000";
@@ -141,8 +141,8 @@ Renderer.prototype.reset = function() {
     this.canvases.width, this.canvases.height);
   this.canvases.get('text').fillStyle = "#555";
   // Redraw all tiles
-  for(var y = 0; y < this.interpreter.map.height; ++y) {
-    for(var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y < this.interpreter.map.height; ++y) {
+    for (var x = 0; x < this.interpreter.map.width; ++x) {
       this.cacheMap.set(x, y, {});
       this.updateTile(x, y);
     }
@@ -151,8 +151,8 @@ Renderer.prototype.reset = function() {
 
 Renderer.prototype.redraw = function() {
   // Redraw all tiles
-  for(var y = 0; y < this.interpreter.map.height; ++y) {
-    for(var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y < this.interpreter.map.height; ++y) {
+    for (var x = 0; x < this.interpreter.map.width; ++x) {
       this.updateTile(x, y);
     }
   }
@@ -162,50 +162,49 @@ Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
   var cacheTile = this.cacheMap.get(x, y);
-  if(tile) {
+  if (tile) {
     this.canvases.forEach(function(ctx) {
       ctx.save();
       ctx.translate(x * this.width, y * this.width);
     }, this);
 
     var highlighted = state && state.x == x && state.y == y;
-    if(cacheTile.highlighted != highlighted) {
+    if (cacheTile.highlighted != highlighted) {
       cacheTile.highlighted = highlighted;
       var highlightCtx = this.canvases.get('highlight');
       highlightCtx.clearRect(0, 0, this.width, this.width);
-      if(highlighted) {
+      if (highlighted) {
         highlightCtx.fillStyle = "#666";
       } else {
         highlightCtx.fillStyle = "#222";
       }
-      roundRect(highlightCtx, 1, 1, this.width-2, this.width-2, 4, true);
+      roundRect(highlightCtx, 1, 1, this.width - 2, this.width - 2, 4, true);
     }
 
-    if(cacheTile.text != tile.original) {
+    if (cacheTile.text != tile.original) {
       cacheTile.text = tile.original;
       var textCtx = this.canvases.get('text');
       textCtx.clearRect(0, 0, this.width, this.width);
-      textCtx.fillText(tile.original, this.width/2, this.width/2);
+      textCtx.fillText(tile.original, this.width / 2, this.width / 2);
     }
 
     // TODO should not use hard coding for image sizes
 
-    if(tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
+    if (tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
-      for(var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key].segment%4];
+      for (var key in tile.directions) {
+        var segment = segmentMap[tile.directions[key].segment % 4];
         var pathPos = pathMap[key];
         // globalAlpha is evil for Firefox
         var pathImg = this.pathImage;
-        if(tile.directions[key].unlikely) pathImg = this.pathTransparentImage;
-        this.canvases.get('path').drawImage(pathImg,
-          (segment[0]*4+pathPos[0]) * 100, (segment[1]*3+pathPos[1]) * 100,
+        if (tile.directions[key].unlikely) pathImg = this.pathTransparentImage;
+        this.canvases.get('path').drawImage(pathImg, (segment[0] * 4 + pathPos[0]) * 100, (segment[1] * 3 + pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);
       }
     }
 
-    if(cacheTile.direction != tile.direction) {
+    if (cacheTile.direction != tile.direction) {
       cacheTile.direction = tile.direction;
       var arrowCtx = this.canvases.get('arrow');
       arrowCtx.clearRect(0, 0, this.width, this.width);
@@ -215,7 +214,7 @@ Renderer.prototype.updateTile = function(x, y) {
         100, 100, 0, 0, this.width, this.width);
     }
 
-    if(cacheTile.command != tile.command) {
+    if (cacheTile.command != tile.command) {
       cacheTile.command = tile.command;
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
@@ -223,10 +222,10 @@ Renderer.prototype.updateTile = function(x, y) {
       commandCtx.drawImage(this.commandImage,
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
-      if(tile.data !== null) {
+      if (tile.data !== null) {
         var text = tile.data;
-        if(tile.command != 'push') text = Hangul.final[tile.data];
-        commandCtx.font = (this.width*0.3)+"px sans-serif";
+        if (tile.command != 'push') text = Hangul.final[tile.data];
+        commandCtx.font = (this.width * 0.3) + "px sans-serif";
         commandCtx.textAlign = "right";
         commandCtx.textBaseline = "bottom";
         commandCtx.fillStyle = "#fff";
@@ -242,11 +241,11 @@ Renderer.prototype.updateTile = function(x, y) {
 
 Renderer.prototype.render = function() {
   var state = this.interpreter.state;
-  while(this.interpreter.updated.length > 0) {
+  while (this.interpreter.updated.length > 0) {
     var pos = this.interpreter.updated.shift();
     this.updateTile(pos.x, pos.y);
   }
-  if(state) this.updateTile(state.x, state.y);
+  if (state) this.updateTile(state.x, state.y);
 };
 
 module.exports = Renderer;

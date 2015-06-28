@@ -19,7 +19,7 @@ var DirectionMap = {
   // Reverse direction
   'ㅢ': 'reverse',
   'ㅐ': 'none'
-}
+};
 
 var DirectionReverseMap = {};
 Object.keys(DirectionMap).forEach(function(k) {
@@ -99,7 +99,7 @@ function parseSyllable(char) {
   };
   var code = char.charCodeAt();
   // Validate input, Making sure it's a Hangul character
-  if(!isHangul(code)) return data;
+  if (!isHangul(code)) return data;
   // Extract consonants and vowel from the character
   code -= Hangul.code;
   var finalCode = code % Hangul.final.length;
@@ -114,16 +114,16 @@ function parseSyllable(char) {
   data.direction = DirectionMap[medial] || data.direction;
   data.command = CommandMap[initial] || data.command;
   // Handle special types
-  if(data.command == 'push') {
-    if(final == 'ㅇ') data.command = 'push-number';
-    else if(final == 'ㅎ') data.command = 'push-unicode';
+  if (data.command == 'push') {
+    if (final == 'ㅇ') data.command = 'push-number';
+    else if (final == 'ㅎ') data.command = 'push-unicode';
     else data.data = LineMap[final];
   }
-  if(data.command == 'pop') {
-    if(final == 'ㅇ') data.command = 'pop-number';
-    else if(final == 'ㅎ') data.command = 'pop-unicode';
+  if (data.command == 'pop') {
+    if (final == 'ㅇ') data.command = 'pop-number';
+    else if (final == 'ㅎ') data.command = 'pop-unicode';
   }
-  if(data.command == 'select' || data.command == 'move') {
+  if (data.command == 'select' || data.command == 'move') {
     data.data = finalCode;
   }
   return data;
@@ -134,21 +134,21 @@ function encodeSyllable(data) {
   var medial = DirectionReverseMap[data.direction];
   var final = ' ';
   // TODO randomize outputs
-  if(data.command == 'push-number') {
+  if (data.command == 'push-number') {
     initial = 'ㅂ';
     final = 'ㅇ';
-  } else if(data.command == 'push-unicode') {
+  } else if (data.command == 'push-unicode') {
     initial = 'ㅂ';
     final = 'ㅎ';
-  } else if(data.command == 'push') {
+  } else if (data.command == 'push') {
     final = LineReverseMap[data.data || 0];
-  } else if(data.command == 'pop-number') {
+  } else if (data.command == 'pop-number') {
     initial = 'ㅁ';
     final = 'ㅇ';
-  } else if(data.command == 'pop-unicode') {
+  } else if (data.command == 'pop-unicode') {
     initial = 'ㅁ';
     final = 'ㅎ';
-  } else if(data.command == 'select' || data.command == 'move') {
+  } else if (data.command == 'select' || data.command == 'move') {
     final = Hangul.final[data.data || 0];
   }
   var initialCode = Hangul.initial.indexOf(initial);
@@ -163,10 +163,10 @@ function encodeSyllable(data) {
 
 function encode(map) {
   var code = "";
-  for(var y = 0; y < map.height; ++y) {
-    for(var x = 0; x < map.width; ++x) {
+  for (var y = 0; y < map.height; ++y) {
+    for (var x = 0; x < map.width; ++x) {
       var tile = map.get(x, y);
-      if(tile) code += tile.original;
+      if (tile) code += tile.original;
       else code += 'ㅇ';
     }
     code += '\n';
@@ -177,10 +177,10 @@ function encode(map) {
 function parse(data) {
   var lines = data.split('\n');
   var map = new TileMap(0, lines.length);
-  for(var y = 0; y < lines.length; ++y) {
+  for (var y = 0; y < lines.length; ++y) {
     var line = lines[y].split('');
     map.expand(line.length, 0);
-    for(var x = 0; x < line.length; ++x) {
+    for (var x = 0; x < line.length; ++x) {
       map.set(x, y, parseSyllable(line[x]));
     }
   }
