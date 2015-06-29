@@ -1,4 +1,5 @@
 var parser = require('./parser');
+var ScrollPane = require('./scrollpane');
 
 var Directions = [
   'up',
@@ -43,6 +44,7 @@ function ToolBox(renderer) {
     name: 'none'
   };
   this.renderer = renderer;
+  this.scrollPane = null;
   this.hookEvents();
 }
 
@@ -70,76 +72,43 @@ ToolBox.prototype.hookEvents = function() {
 };
 
 ToolBox.prototype.hookCanvas = function(check, callback) {
-  // TODO requires refactoring.
   var self = this;
-  var prevX = 0,
-    prevY = 0,
-    moveX = 0,
-    moveY = 0;
-
-  function handleMouseMove(e) {
-    var diffX = e.pageX - prevX;
-    var diffY = e.pageY - prevY;
-    self.renderer.canvases.viewport.parentElement.scrollTop -= diffY;
-    self.renderer.canvases.viewport.parentElement.scrollLeft -= diffX;
-    moveX -= diffX;
-    moveY -= diffY;
-    prevX = e.pageX;
-    prevY = e.pageY;
-  }
-
-  function handleMouseUp(e) {
-    document.removeEventListener('mouseup', handleMouseUp);
-    document.removeEventListener('mousemove', handleMouseMove);
-    if (Math.abs(moveX) < 1 && Math.abs(moveY) < 1) {
-      // http://stackoverflow.com/a/5932203
-      var totalOffsetX = 0;
-      var totalOffsetY = 0;
-      var canvasX = 0;
-      var canvasY = 0;
-      var currentElement = self.renderer.canvases.viewport.parentElement;
-      do {
-        totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
-        totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
-        currentElement = currentElement.offsetParent;
-      } while (currentElement);
-      canvasX = e.pageX - totalOffsetX - document.body.scrollLeft;
-      canvasY = e.pageY - totalOffsetY - document.body.scrollTop;
-      e.preventDefault();
-      var tileX = canvasX / self.renderer.width | 0;
-      var tileY = canvasY / self.renderer.width | 0;
-      if (!check(tileX, tileY)) return false;
-      // Expand the map if required
-      self.renderer.interpreter.map.expand(tileX + 1, tileY + 1);
-      if (tileX + 1 >= self.renderer.interpreter.map.width ||
-        tileY + 1 >= self.renderer.interpreter.map.height) {
-        self.renderer.reset();
-      }
-      var tile = self.renderer.interpreter.map.get(tileX, tileY) || {
-        direction: 'none',
-        command: 'none',
-        original: ' '
-      };
-      if (self.selected.type == 'arrow') tile.direction = self.selected.name;
-      else tile.command = self.selected.name;
-      tile.original = parser.encodeSyllable(tile);
-      self.renderer.interpreter.map.set(tileX, tileY, tile);
-      self.renderer.updateTile(tileX, tileY);
-      callback(tileX, tileY, tile);
-    }
-    return false;
-  }
-  this.renderer.canvases.viewport.parentElement.addEventListener('mousedown',
-    function(e) {
-    if (e.button != 0) return;
-    prevX = e.pageX;
-    prevY = e.pageY;
-    moveX = 0;
-    moveY = 0;
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mousemove', handleMouseMove);
+  this.scrollPane = new ScrollPane(
+    self.renderer.canvases.viewport.parentElement, function(e) {
+    // http://stackoverflow.com/a/5932203
+    var totalOffsetX = 0;
+    var totalOffsetY = 0;
+    var canvasX = 0;
+    var canvasY = 0;
+    var currentElement = self.renderer.canvases.viewport.parentElement;
+    do {
+      totalOffsetX += currentElement.offsetLeft - currentElement.scrollLeft;
+      totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
+      currentElement = currentElement.offsetParent;
+    } while (currentElement);
+    canvasX = e.pageX - totalOffsetX - document.body.scrollLeft;
+    canvasY = e.pageY - totalOffsetY - document.body.scrollTop;
     e.preventDefault();
-    return false;
+    var tileX = canvasX / self.renderer.width | 0;
+    var tileY = canvasY / self.renderer.width | 0;
+    if (!check(tileX, tileY)) return false;
+    // Expand the map if required
+    self.renderer.interpreter.map.expand(tileX + 1, tileY + 1);
+    if (tileX + 1 >= self.renderer.interpreter.map.width ||
+      tileY + 1 >= self.renderer.interpreter.map.height) {
+      self.renderer.reset();
+    }
+    var tile = self.renderer.interpreter.map.get(tileX, tileY) || {
+      direction: 'none',
+      command: 'none',
+      original: ' '
+    };
+    if (self.selected.type == 'arrow') tile.direction = self.selected.name;
+    else tile.command = self.selected.name;
+    tile.original = parser.encodeSyllable(tile);
+    self.renderer.interpreter.map.set(tileX, tileY, tile);
+    self.renderer.updateTile(tileX, tileY);
+    callback(tileX, tileY, tile);
   });
   this.renderer.canvases.viewport.parentElement.addEventListener(
     'contextmenu', function(e) {
