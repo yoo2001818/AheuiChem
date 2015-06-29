@@ -6,12 +6,14 @@ var Interpreter = require('./interpreter');
 var Predictor = require('./predictor');
 var Monitor = require('./monitor');
 var ToolBox = require('./toolbox');
+var Keyboard = require('./keyboard');
 
 var interpreter;
 var renderer;
 var predictor;
 var monitor;
 var toolbox;
+var keyboard;
 var running = false;
 
 function repredict(initial) {
@@ -68,6 +70,7 @@ window.onload = function() {
       }, function() {
         repredict();
       });
+      keyboard = new Keyboard(toolbox);
     }
     window.interpreter = interpreter;
     window.predictor = predictor;
