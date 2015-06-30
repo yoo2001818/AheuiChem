@@ -1,35 +1,35 @@
 var KeyMapping = {
-  'q': ['command', 'push'], // ㅂ
-  'Q': ['command', 'copy'], // ㅃ
-  'w': ['command', 'compare'], // ㅈ
-  'e': ['command', 'add'], // ㄷ
-  'E': ['command', 'multiply'], // ㄸ
-  't': ['command', 'select'], // ㅅ
-  'T': ['command', 'move'], // ㅆ
-  'a': ['command', 'pop'], // ㅁ
-  's': ['command', 'divide'], // ㄴ
-  'd': ['command', 'none'], // ㅇ
-  'f': ['command', 'mod'], // ㄹ
-  'g': ['command', 'end'], // ㅎ
-  'x': ['command', 'subtract'], // ㅌ
-  'c': ['command', 'condition'], // ㅊ
-  'v': ['command', 'flip'], // ㅍ
-  'y': ['arrow', 'skip-up'], // ㅛ
-  'u': ['arrow', 'skip-left'], // ㅕ
-  'i': ['arrow', 'skip-right'], // ㅑ
-  'o': ['arrow', 'none'], // ㅐ
-  'h': ['arrow', 'up'], // ㅗ
-  'j': ['arrow', 'left'], // ㅓ
-  'k': ['arrow', 'right'], // ㅏ
-  'l': ['arrow', 'vertical'], // ㅣ
-  'b': ['arrow', 'skip-down'], // ㅠ
-  'n': ['arrow', 'down'], // ㅜ
-  'm': ['arrow', 'horizontal'], // ㅡ
-  'p': ['arrow', 'reverse'], // ㅔ (Mapped to ㅢ)
-  '[': ['command', 'pop-unicode'],
-  '{': ['command', 'push-unicode'],
-  ']': ['command', 'pop-number'],
-  '}': ['command', 'push-number']
+  'q': ['arrow', 'none'],
+  'w': ['arrow', 'up'],
+  'e': ['command', 'none'],
+  'r': ['command', 'select'],
+  't': ['command', 'move'],
+  'a': ['arrow', 'left'],
+  's': ['arrow', 'down'],
+  'd': ['arrow', 'right'],
+  'f': ['command', 'push'],
+  'g': ['command', 'pop'],
+  'z': ['arrow', 'vertical'],
+  'x': ['arrow', 'horizontal'],
+  'c': ['command', 'add'],
+  'v': ['command', 'multiply'],
+  'b': ['command', 'mod'],
+  'Q': ['arrow', 'reverse'],
+  'W': ['arrow', 'skip-up'],
+  'E': ['command', 'end'],
+  'R': ['command', 'condition'],
+  'T': ['command', 'compare'],
+  'A': ['arrow', 'skip-left'],
+  'S': ['arrow', 'skip-down'],
+  'D': ['arrow', 'skip-right'],
+  'F': ['command', 'copy'],
+  'G': ['command', 'flip'],
+  'Z': ['command', 'pop-number'],
+  'X': ['command', 'pop-unicode'],
+  'C': ['command', 'subtract'],
+  'V': ['command', 'divide'],
+  'B': ['command', 'push-unicode'],
+  'N': ['command', 'push-number']
 };
 
 function Keyboard(toolbox) {
