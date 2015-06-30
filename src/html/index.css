@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   width: 100%;
   height: 100%;
+  font-family: Noto Sans CJK KR, Noto Sans, 나눔바른고딕, 나눔고딕, sans-serif;
 }
 .container.vertical, .container.horizontal {
   display: flex;

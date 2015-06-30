@@ -6,15 +6,16 @@ var Interpreter = require('./interpreter');
 var Predictor = require('./predictor');
 var Monitor = require('./monitor');
 var ToolBox = require('./toolbox');
-var Keyboard = require('./keyboard');
+var Viewport = require('./viewport');
 
 var interpreter;
 var renderer;
 var predictor;
 var monitor;
 var toolbox;
-var keyboard;
+var viewport;
 var running = false;
+var initialized = false;
 
 function repredict(initial) {
   // Clear all paths and reset
@@ -55,6 +56,24 @@ function step() {
   document.getElementById('codeForm-debug').value = monitor.getStatus();
 }
 
+function initialize() {
+  if(initialized) {
+    toolbox.renderer = renderer;
+    viewport.renderer = renderer;
+    return;
+  }
+  toolbox = new ToolBox(renderer);
+  viewport = new Viewport(document.getElementById('viewport'), toolbox,
+    renderer);
+  viewport.checkCallback = function() {
+    return !running;
+  };
+  viewport.clickCallback = function() {
+    repredict();
+  };
+  initialized = true;
+}
+
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
@@ -62,16 +81,7 @@ window.onload = function() {
     monitor = new Monitor(interpreter);
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
-    if (toolbox) toolbox.renderer = renderer;
-    else {
-      toolbox = new ToolBox(renderer);
-      toolbox.hookCanvas(function() {
-        return !running;
-      }, function() {
-        repredict();
-      });
-      keyboard = new Keyboard(toolbox);
-    }
+    initialize();
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);
