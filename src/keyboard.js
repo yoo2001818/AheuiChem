@@ -39,9 +39,10 @@ function Keyboard(toolbox) {
 
 Keyboard.prototype.registerEvents = function() {
   var self = this;
-  document.addEventListener('keydown', function(e) {
-    if(KeyMapping[e.key]) {
-      var mapping = KeyMapping[e.key];
+  document.addEventListener('keypress', function(e) {
+    var keyPressed = e.key || String.fromCharCode(e.charCode);
+    if(KeyMapping[keyPressed]) {
+      var mapping = KeyMapping[keyPressed];
       self.toolbox.changeSelected(mapping[0], mapping[1]);
     }
   });
