@@ -28,7 +28,7 @@ html, body {
   flex: 1 1 auto;
 }
 .container.vertical > .entry.footer {
-  height: 200px;
+  height: 150px;
   flex: 0 0 auto;
 }
 .viewport {
@@ -62,7 +62,7 @@ textarea {
   box-sizing: border-box;
 }
 #toolbox {
-  height: 200px;
+  height: 150px;
   font-size: 0;
   background: #000;
   text-align: center;
@@ -84,6 +84,9 @@ textarea {
   box-sizing: border-box;
   border-radius: 3pt;
   border: #000 solid 1px;
+  font-size: 10pt;
+  text-align: left;
+  color: #fff;
 }
 #toolbox td:hover {
   background-color: #333 !important;
