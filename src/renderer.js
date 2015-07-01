@@ -215,8 +215,9 @@ Renderer.prototype.updateTile = function(x, y) {
         100, 100, 0, 0, this.width, this.width);
     }
 
-    if (cacheTile.command != tile.command) {
+    if (cacheTile.command != tile.command || cacheTile.data != tile.data) {
       cacheTile.command = tile.command;
+      cacheTile.data = tile.data;
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
       commandCtx.clearRect(0, 0, this.width, this.width);
@@ -224,8 +225,10 @@ Renderer.prototype.updateTile = function(x, y) {
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
       if (tile.data != null) {
-        var text = tile.data;
-        if (tile.command != 'push') text = Hangul.final[tile.data];
+        var text = '';
+        if (tile.command == 'push') text = tile.data;
+        if (tile.command == 'select') text = Hangul.final[tile.data];
+        if (tile.command == 'move') text = Hangul.final[tile.data];
         commandCtx.font = (this.width * 0.3) + "px sans-serif";
         commandCtx.textAlign = "right";
         commandCtx.textBaseline = "bottom";
