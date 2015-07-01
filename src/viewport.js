@@ -1,13 +1,16 @@
 var ScrollPane = require('./scrollpane');
 var parser = require('./parser');
 
-function Viewport(element, toolbox, renderer, checkCallback, clickCallback) {
+function Viewport(element, toolbox, renderer, contextmenu,
+  checkCallback, clickCallback) {
   this.element = element;
   this.toolbox = toolbox;
   this.renderer = renderer;
+  this.contextmenu = contextmenu;
   this.scrollpane = new ScrollPane(element, this.handleMouseClick.bind(this));
   this.checkCallback = checkCallback;
   this.clickCallback = clickCallback;
+  this.hookEvents();
 }
 
 Viewport.prototype.hookEvents = function() {
@@ -54,13 +57,7 @@ Viewport.prototype.handleMouseClick = function(e) {
 }
 
 Viewport.prototype.handleContext = function(e) {
-  // TODO ignore it now; should be changed
-  /*
-    var contextMenu = document.getElementById('contextMenu');
-    contextMenu.style.display = "block";
-    contextMenu.style.top = e.pageY + "px";
-    contextMenu.style.left = e.pageX + "px";
-  */
+  this.contextmenu.show(e.pageX, e.pageY);
   e.preventDefault();
   return false;
 }

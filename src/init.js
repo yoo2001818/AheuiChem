@@ -7,6 +7,7 @@ var Predictor = require('./predictor');
 var Monitor = require('./monitor');
 var ToolBox = require('./toolbox');
 var Viewport = require('./viewport');
+var ContextMenu = require('./contextmenu');
 
 var interpreter;
 var renderer;
@@ -14,6 +15,7 @@ var predictor;
 var monitor;
 var toolbox;
 var viewport;
+var contextmenu;
 var running = false;
 var initialized = false;
 
@@ -63,8 +65,9 @@ function initialize() {
     return;
   }
   toolbox = new ToolBox(renderer);
+  contextmenu = new ContextMenu(document.getElementById('contextMenu'));
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
-    renderer);
+    renderer, contextmenu);
   viewport.checkCallback = function() {
     return !running;
   };
