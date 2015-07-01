@@ -1,3 +1,10 @@
+
+var KeyLayout = [
+  'qwert', 'asdfg', 'zxcvb'
+].map(function(v) {
+  return v.split('');
+});
+
 var KeyMapping = {
   'q': ['arrow', 'none'],
   'w': ['arrow', 'up'],
@@ -9,8 +16,8 @@ var KeyMapping = {
   'd': ['arrow', 'right'],
   'f': ['command', 'push'],
   'g': ['command', 'pop'],
-  'z': ['arrow', 'vertical'],
-  'x': ['arrow', 'horizontal'],
+  'z': ['command', 'subtract'],
+  'x': ['command', 'divide'],
   'c': ['command', 'add'],
   'v': ['command', 'multiply'],
   'b': ['command', 'mod'],
@@ -24,10 +31,10 @@ var KeyMapping = {
   'D': ['arrow', 'skip-right'],
   'F': ['command', 'copy'],
   'G': ['command', 'flip'],
-  'Z': ['command', 'pop-number'],
-  'X': ['command', 'pop-unicode'],
-  'C': ['command', 'subtract'],
-  'V': ['command', 'divide'],
+  'Z': ['arrow', 'horizontal'],
+  'X': ['arrow', 'vertical'],
+  'C': ['command', 'pop-number'],
+  'V': ['command', 'pop-unicode'],
   'B': ['command', 'push-unicode'],
   'N': ['command', 'push-number']
 };
