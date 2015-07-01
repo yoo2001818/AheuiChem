@@ -41,13 +41,22 @@ html, body {
   padding-bottom: 100px;
   padding-right: 100px;
 }
-#contextMenu {
+#context-bg {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1024;
+}
+.contextmenu {
   display: none; /** Hidden by default **/
   position: absolute;
   left: 0;
   top: 0;
   width: 80pt;
-  height: 200pt;
+  height: 80pt;
   background-color: #aaa;
 }
 .title {
