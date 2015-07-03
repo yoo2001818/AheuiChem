@@ -8,6 +8,7 @@ var Monitor = require('./monitor');
 var ToolBox = require('./toolbox');
 var Viewport = require('./viewport');
 var ContextMenu = require('./contextmenu');
+var Playback = require('./playback');
 
 var interpreter;
 var renderer;
@@ -16,7 +17,7 @@ var monitor;
 var toolbox;
 var viewport;
 var contextmenu;
-var running = false;
+var playback;
 var initialized = false;
 
 function repredict(initial) {
@@ -51,26 +52,25 @@ function reset(initial) {
   running = false;
 }
 
-function step() {
-  interpreter.next();
-  renderer.render();
-  document.getElementById('codeForm-output').value += interpreter.shift();
-  document.getElementById('codeForm-debug').value = monitor.getStatus();
-}
-
 function initialize() {
   if(initialized) {
     toolbox.renderer = renderer;
     viewport.renderer = renderer;
+    playback.renderer = renderer;
+    playback.interpreter = interpreter;
     return;
   }
+  playback = new Playback(interpreter, renderer, function() {
+    document.getElementById('codeForm-output').value += interpreter.shift();
+    document.getElementById('codeForm-debug').value = monitor.getStatus();
+  });
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context-push'));
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
     renderer, contextmenu);
   viewport.checkCallback = function() {
-    return !running;
+    return !playback.running;
   };
   viewport.clickCallback = function() {
     repredict();
@@ -92,29 +92,9 @@ window.onload = function() {
     // TODO implement input
     return false;
   };
-  document.getElementById('codeForm-export').onclick = function() {
-    document.getElementById('codeForm-code').value = parser.encode(
-      interpreter.map);
-  };
-  document.getElementById('codeForm-reset').onclick = function() {
-    reset();
-  };
-  document.getElementById('codeForm-resume').onclick = function() {
-    running = true;
-  };
-  document.getElementById('codeForm-pause').onclick = function() {
-    running = false;
-  };
-  document.getElementById('codeForm-step').onclick = function() {
-    if (!interpreter || !renderer) return;
-    step();
-    running = false;
-  };
-  setInterval(function() {
-    if (!running || !interpreter || !renderer) return;
-    step();
-  }, 20);
+  /*
   document.getElementById('captureBtn').onclick = function() {
     renderer.canvases.dump(document.getElementById('capture'));
   };
+  */
 };
