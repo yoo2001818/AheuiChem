@@ -1,7 +1,8 @@
-function Playback(interpreter, renderer, callback) {
+function Playback(interpreter, renderer, callback, resetCallback) {
   this.interpreter = interpreter;
   this.renderer = renderer;
   this.callback = callback;
+  this.resetCallback = resetCallback;
   this.running = false;
   this.registerEvents();
 }
@@ -18,6 +19,9 @@ Playback.prototype.registerEvents = function() {
   document.getElementById('codeForm-step').onclick = function() {
     self.step();
     self.running = false;
+  };
+  document.getElementById('codeForm-reset').onclick = function() {
+    self.resetCallback();
   };
   setInterval(function() {
     if (!self.running) return;

@@ -49,7 +49,7 @@ function reset(initial) {
     renderer.reset();
   }
   document.getElementById('codeForm-output').value = '';
-  running = false;
+  playback.running = false;
 }
 
 function initialize() {
@@ -63,7 +63,7 @@ function initialize() {
   playback = new Playback(interpreter, renderer, function() {
     document.getElementById('codeForm-output').value += interpreter.shift();
     document.getElementById('codeForm-debug').value = monitor.getStatus();
-  });
+  }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context-push'));
@@ -72,9 +72,7 @@ function initialize() {
   viewport.checkCallback = function() {
     return !playback.running;
   };
-  viewport.clickCallback = function() {
-    repredict();
-  };
+  viewport.clickCallback = repredict.bind(this);
   initialized = true;
 }
 
