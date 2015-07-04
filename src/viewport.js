@@ -30,6 +30,8 @@ Viewport.prototype.handleMouseClick = function(e) {
     totalOffsetY += currentElement.offsetTop - currentElement.scrollTop;
     currentElement = currentElement.offsetParent;
   } while (currentElement);
+  totalOffsetX += this.renderer.canvases.viewport.offsetLeft;
+  totalOffsetY += this.renderer.canvases.viewport.offsetTop;
   canvasX = e.pageX - totalOffsetX - document.body.scrollLeft;
   canvasY = e.pageY - totalOffsetY - document.body.scrollTop;
   e.preventDefault();
