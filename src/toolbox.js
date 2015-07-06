@@ -7,6 +7,7 @@ function ToolBox(renderer) {
     type: 'arrow',
     name: 'none'
   };
+  this.oldNode = null;
   this.renderer = renderer;
   this.scrollPane = null;
   this.keyboard = new Keyboard(this);
@@ -47,14 +48,13 @@ ToolBox.prototype.generateTable = function() {
 
 ToolBox.prototype.changeSelected = function(type, name) {
   // Invalidate old object
-  var oldBtn = document.getElementById(
-    this.selected.type + '-' + this.selected.name);
-  oldBtn.className = this.selected.type;
+  if(this.oldNode) this.oldNode.className = this.selected.type;
   // Update
   this.selected.type = type;
   this.selected.name = name;
   var btn = document.getElementById(type + '-' + name);
   btn.className = type + ' selected';
+  this.oldNode = btn;
 };
 
 module.exports = ToolBox;
