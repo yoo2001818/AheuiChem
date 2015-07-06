@@ -1,6 +1,11 @@
-
 var KeyLayout = [
   'qwert', 'asdfg', 'zxcvb'
+].map(function(v) {
+  return v.split('');
+});
+
+var KeyShiftLayout = [
+  'qwertQWERT', 'asdfgASDFG', 'zxcvbZXCVBN'
 ].map(function(v) {
   return v.split('');
 });
@@ -54,5 +59,9 @@ Keyboard.prototype.registerEvents = function() {
     }
   });
 }
+
+Keyboard.KeyLayout = KeyLayout;
+Keyboard.KeyShiftLayout = KeyShiftLayout;
+Keyboard.KeyMapping = KeyMapping;
 
 module.exports = Keyboard;

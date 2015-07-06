@@ -8,7 +8,7 @@ function Table(viewport, tilemap, updateCallback) {
 }
 
 Table.prototype.reset = function() {
-  this.domMap = new TileMap(tilemap.width, tilemap.height);
+  this.domMap = new TileMap(this.tilemap.width, this.tilemap.height);
   this.createNodes();
 }
 

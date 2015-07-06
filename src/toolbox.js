@@ -1,4 +1,6 @@
 var Keyboard = require('./keyboard');
+var TileMap = require('./tilemap');
+var Table = require('./table');
 
 var Directions = [
   'up',
@@ -45,7 +47,33 @@ function ToolBox(renderer) {
   this.renderer = renderer;
   this.scrollPane = null;
   this.keyboard = new Keyboard(this);
+  this.generateTable();
   this.hookEvents();
+}
+
+ToolBox.prototype.generateTable = function() {
+  // TODO no hardcoding
+  var tilemap = new TileMap(11, 3);
+  for(var y = 0; y < tilemap.height; ++y) {
+    for(var x = 0; x < tilemap.width; ++x) {
+      var key = Keyboard.KeyShiftLayout[y][x];
+      tilemap.set(x, y, {
+        value: Keyboard.KeyMapping[key],
+        key: key
+      });
+    }
+  }
+  // TODO no getElementById in class
+  var viewport = document.getElementById('toolbox-table');
+  this.table = new Table(viewport, tilemap, function(node, tile) {
+    if(!tile || !tile.value) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.id = tile.value.join('-');
+    node.className = tile.value[0];
+    node.appendChild(document.createTextNode(tile.key));
+  });
 }
 
 ToolBox.prototype.hookEvents = function() {
