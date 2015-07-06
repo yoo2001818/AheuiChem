@@ -72,7 +72,7 @@ function initialize() {
   viewport.checkCallback = function() {
     return !playback.running;
   };
-  viewport.clickCallback = repredict.bind(this);
+  viewport.clickCallback = repredict.bind(this, false);
   initialized = true;
 }
 
