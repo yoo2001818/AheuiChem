@@ -1,7 +1,49 @@
+var Table = require('./table');
+var TileMap = require('./tilemap');
+
+var PushKeyBinding = [
+  [0, 2, 3, 4, 5],
+  [6, 7, 8, 9, -1]
+];
+
+/*
+ ㄱㄴㄷㄹㄲㄳㄵㄶ
+ㅁㅂㅅㅇㅈㄺㄻㄼㄽ
+ㅊㅋㅌㅍㅎㄾㄿㅀㅄㅆ
+*/
+var FinalKeyBinding = [
+];
+
 function ContextMenu(container, element) {
   this.container = container;
   this.element = element;
   this.hideEvent = this.hide.bind(this);
+  this.init();
+}
+
+ContextMenu.prototype.init = function() {
+  var self = this;
+  // TODO should support generating tilemap from an array
+  var tilemap = new TileMap(5, 2);
+  for(var y = 0; y < tilemap.height; ++y) {
+    for(var x = 0; x < tilemap.width; ++x) {
+      tilemap.set(x, y, PushKeyBinding[y][x]);
+    }
+  }
+  // TODO no getElementById in class
+  // This is exactly same situation as toolbox
+  var viewport = document.getElementById('push-table');
+  var pushTable = new Table(viewport, tilemap, function(node, tile) {
+    if(tile == null) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.appendChild(document.createTextNode(tile));
+    node.addEventListener('click', function() {
+      // Do nothing.
+      // TODO should be able to get/set current data from interpreter
+    });
+  });
 }
 
 ContextMenu.prototype.show = function(x, y) {
