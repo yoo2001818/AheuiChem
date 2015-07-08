@@ -62,7 +62,6 @@ Viewport.prototype.handleMouseClick = function(e) {
   } else if(e.button == 2) {
     var contextX = tileX * this.renderer.width + totalOffsetX;
     var contextY = (tileY+1) * this.renderer.width + totalOffsetY;
-    this.contextmenu.renderer = this.renderer;
     this.contextmenu.tileX = tileX;
     this.contextmenu.tileY = tileY;
     this.contextmenu.tile = tile;

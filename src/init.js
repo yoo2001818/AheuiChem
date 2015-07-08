@@ -66,7 +66,7 @@ function initialize() {
   }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
-    document.getElementById('context-push'));
+    document.getElementById('context-push'), renderer);
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
     renderer, contextmenu);
   viewport.checkCallback = function() {

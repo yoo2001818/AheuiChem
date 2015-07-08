@@ -1,5 +1,6 @@
 var Table = require('./table');
 var TileMap = require('./tilemap');
+var parser = require('./parser');
 
 var PushKeyBinding = [
   [0, 2, 3, 4, 5],
@@ -14,20 +15,23 @@ var PushKeyBinding = [
 var FinalKeyBinding = [
 ];
 
-function ContextMenu(container, element) {
+function ContextMenu(container, element, renderer, clickCallback) {
   this.container = container;
   this.element = element;
   this.hideEvent = this.hide.bind(this);
   this.init();
-  this.renderer = null;
+  this.renderer = renderer;
+  this.clickCallback = clickCallback;
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
 }
 
 ContextMenu.prototype.update = function() {
+  this.tile.original = parser.encodeSyllable(this.tile);
   this.renderer.map.set(this.tileX, this.tileY, this.tile);
   this.renderer.updateTile(this.tileX, this.tileY);
+  if(this.clickCallback) this.clickCallback(this.tileX, this.tileY, this.tile);
 }
 
 ContextMenu.prototype.init = function() {
