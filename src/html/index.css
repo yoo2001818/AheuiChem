@@ -62,8 +62,6 @@ html, body {
   position: absolute;
   left: 0;
   top: 0;
-  width: 80pt;
-  height: 80pt;
   background-color: #aaa;
 }
 .title {
@@ -77,6 +75,34 @@ html, body {
 textarea {
   width: 100%;
   box-sizing: border-box;
+}
+#context-push {
+  padding: 3px;
+  border-radius: 2px;
+}
+#push-table {
+  border-collapse: collapse;
+  font-size: 0;
+}
+#push-table td {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 3pt;
+  border: #aaa solid 1px;
+  background: #fff;
+  color: #333;
+  font-size: 24px;
+  text-align: center;
+  line-height: 48px;
+  padding: 0;
+}
+#push-table td:hover {
+  background-color: #d7ebfa;
+}
+#push-table td.selected {
+  background-color: #9bd2f5;
 }
 #toolbox {
   height: 150px;

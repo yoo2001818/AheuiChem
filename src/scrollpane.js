@@ -29,7 +29,6 @@ ScrollPane.prototype.registerEvents = function() {
     prevY = e.pageY;
   }
   this.viewport.addEventListener('mousedown', function(e) {
-    if (e.button != 0) return;
     prevX = e.pageX;
     prevY = e.pageY;
     moveX = 0;

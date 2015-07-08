@@ -32,8 +32,10 @@ Viewport.prototype.handleMouseClick = function(e) {
   } while (currentElement);
   totalOffsetX += this.renderer.canvases.viewport.offsetLeft;
   totalOffsetY += this.renderer.canvases.viewport.offsetTop;
-  canvasX = e.pageX - totalOffsetX - document.body.scrollLeft;
-  canvasY = e.pageY - totalOffsetY - document.body.scrollTop;
+  totalOffsetX += document.body.scrollLeft;
+  totalOffsetY += document.body.scrollTop;
+  canvasX = e.pageX - totalOffsetX;
+  canvasY = e.pageY - totalOffsetY;
   e.preventDefault();
   var tileX = canvasX / this.renderer.width | 0;
   var tileY = canvasY / this.renderer.width | 0;
@@ -49,17 +51,26 @@ Viewport.prototype.handleMouseClick = function(e) {
     command: 'none',
     original: ' '
   };
-  var selected = this.toolbox.selected;
-  if (selected.type == 'arrow') tile.direction = selected.name;
-  else tile.command = selected.name;
-  tile.original = parser.encodeSyllable(tile);
-  this.renderer.map.set(tileX, tileY, tile);
-  this.renderer.updateTile(tileX, tileY);
-  this.clickCallback(tileX, tileY, tile);
+  if(e.button == 0) {
+    var selected = this.toolbox.selected;
+    if (selected.type == 'arrow') tile.direction = selected.name;
+    else tile.command = selected.name;
+    tile.original = parser.encodeSyllable(tile);
+    this.renderer.map.set(tileX, tileY, tile);
+    this.renderer.updateTile(tileX, tileY);
+    this.clickCallback(tileX, tileY, tile);
+  } else if(e.button == 2) {
+    var contextX = tileX * this.renderer.width + totalOffsetX;
+    var contextY = (tileY+1) * this.renderer.width + totalOffsetY;
+    this.contextmenu.renderer = this.renderer;
+    this.contextmenu.tileX = tileX;
+    this.contextmenu.tileY = tileY;
+    this.contextmenu.tile = tile;
+    this.contextmenu.show(contextX, contextY);
+  }
 }
 
 Viewport.prototype.handleContext = function(e) {
-  this.contextmenu.show(e.pageX, e.pageY);
   e.preventDefault();
   return false;
 }

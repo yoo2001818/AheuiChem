@@ -19,6 +19,15 @@ function ContextMenu(container, element) {
   this.element = element;
   this.hideEvent = this.hide.bind(this);
   this.init();
+  this.renderer = null;
+  this.tileX = null;
+  this.tileY = null;
+  this.tile = null;
+}
+
+ContextMenu.prototype.update = function() {
+  this.renderer.map.set(this.tileX, this.tileY, this.tile);
+  this.renderer.updateTile(this.tileX, this.tileY);
 }
 
 ContextMenu.prototype.init = function() {
@@ -38,10 +47,11 @@ ContextMenu.prototype.init = function() {
       node.parentNode.removeChild(node);
       return;
     }
+    node.id = 'push-table-'+tile;
     node.appendChild(document.createTextNode(tile));
     node.addEventListener('click', function() {
-      // Do nothing.
-      // TODO should be able to get/set current data from interpreter
+      self.tile.data = tile;
+      self.update();
     });
   });
 }
