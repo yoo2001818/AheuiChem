@@ -90,6 +90,10 @@ window.onload = function() {
     // TODO implement input
     return false;
   };
+  document.getElementById('codeForm-export').onclick = function() {
+    document.getElementById('codeForm-code').value = parser.encode(
+      interpreter.map);
+  };
   /*
   document.getElementById('captureBtn').onclick = function() {
     renderer.canvases.dump(document.getElementById('capture'));
