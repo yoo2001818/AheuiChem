@@ -1,30 +1,249 @@
 html, body {
   margin: 0;
-  padding: 8pt;
-  background: #fff;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Noto Sans CJK KR, Noto Sans, 나눔바른고딕, 나눔고딕, sans-serif;
 }
-
-#source {
+.container.vertical, .container.horizontal {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+.container.vertical {
+  flex-direction: column;
+}
+.container.horizontal {
+  flex-direction: row;
+}
+.container.horizontal > .entry.fill {
+  flex: 1 1 auto;
+  min-width: 0px;
+  max-width: 100%;
+  flex-basis: 100%;
+}
+.container.horizontal > .entry.sidebar {
+  width: 220pt;
+  flex: 0 0 auto;
+  overflow-y: auto;
+}
+.container.vertical > .entry.fill {
+  flex: 1 1 auto;
+}
+.container.vertical > .entry.footer {
+  height: 150px;
+  flex: 0 0 auto;
+}
+.viewport {
+  background-color: #000;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+#canvas-container {
+  width: 100%;
+}
+#canvas {
+  padding-right: 50px;
+  padding-bottom: 50px;
+  margin: auto;
+}
+#context-bg {
   display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1024;
 }
-
-#viewport {
-  position: relative;
-  
+.contextmenu {
+  display: none; /** Hidden by default **/
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #aaa;
 }
-
-.block {
-  float: left;
-}
-
-.clear {
-  display: block;
-  font-size: 0;
-  clear: both;
-}
-
-.block .title {
+.title {
   width: 100%;
   text-align: center;
   font-weight: bold;
+}
+.content {
+  width: 100%;
+}
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+#context-push {
+  padding: 3px;
+  border-radius: 2px;
+}
+#push-table {
+  border-collapse: collapse;
+  font-size: 0;
+}
+#push-table td {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 3pt;
+  border: #aaa solid 1px;
+  background: #fff;
+  color: #333;
+  font-size: 24px;
+  text-align: center;
+  line-height: 48px;
+  padding: 0;
+}
+#push-table td:hover {
+  background-color: #d7ebfa;
+}
+#push-table td.selected {
+  background-color: #9bd2f5;
+}
+#toolbox {
+  height: 150px;
+  font-size: 0;
+  background: #000;
+  text-align: center;
+}
+#toolbox .category {
+  display: inline-block;
+  background: #000;
+  text-align: left;
+}
+#toolbox table {
+  border-collapse: collapse;
+  font-size: 0;
+  padding: 1px;
+}
+#toolbox td {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  box-sizing: border-box;
+  border-radius: 3pt;
+  border: #000 solid 1px;
+  font-size: 10pt;
+  text-align: left;
+  color: #fff;
+}
+#toolbox td:hover {
+  background-color: #333 !important;
+}
+#toolbox .arrow {
+  background: url('img/arrow.png') #222;
+  background-size: 400% 400%;
+}
+#toolbox .arrow.selected {
+  background-color: #555;
+}
+
+/** This is so painful. **/
+
+#toolbox .arrow#arrow-none {
+  background-position: 0 0;
+}
+#toolbox .arrow#arrow-reverse {
+  background-position: 0 -100%;
+}
+#toolbox .arrow#arrow-up {
+  background-position: -200% 0;
+}
+#toolbox .arrow#arrow-left {
+  background-position: -200% -100%;
+}
+#toolbox .arrow#arrow-right {
+  background-position: -300% 0;
+}
+#toolbox .arrow#arrow-down {
+  background-position: -300% -100%;
+}
+#toolbox .arrow#arrow-skip-up {
+  background-position: -200% -200%;
+}
+#toolbox .arrow#arrow-skip-left {
+  background-position: -200% -300%;
+}
+#toolbox .arrow#arrow-skip-right {
+  background-position: -300% -200%;
+}
+#toolbox .arrow#arrow-skip-down {
+  background-position: -300% -300%;
+}
+#toolbox .arrow#arrow-horizontal {
+  background-position: -100% 0;
+}
+#toolbox .arrow#arrow-vertical {
+  background-position: -100% -100%;
+}
+#toolbox .command {
+  background: url('img/command.png') #222;
+  background-size: 500% 400%;
+}
+#toolbox .command.selected {
+  background-color: #555;
+}
+
+/** Why **/
+
+#toolbox .command#command-none {
+  background-position: 0 0;
+}
+#toolbox .command#command-end {
+  background-position: -100% 0;
+}
+#toolbox .command#command-add {
+  background-position: -200% 0;
+}
+#toolbox .command#command-multiply {
+  background-position: -300% 0;
+}
+#toolbox .command#command-push-number {
+  background-position: -400% 0;
+}
+#toolbox .command#command-push {
+  background-position: 0 -100%;
+}
+#toolbox .command#command-mod {
+  background-position: -100% -100%;
+}
+#toolbox .command#command-subtract {
+  background-position: -200% -100%;
+}
+#toolbox .command#command-divide {
+  background-position: -300% -100%;
+}
+#toolbox .command#command-push-unicode {
+  background-position: -400% -100%;
+}
+#toolbox .command#command-pop {
+  background-position: 0 -200%;
+}
+#toolbox .command#command-copy {
+  background-position: -100% -200%;
+}
+#toolbox .command#command-flip {
+  background-position: -200% -200%;
+}
+#toolbox .command#command-select {
+  background-position: -300% -200%;
+}
+#toolbox .command#command-pop-number {
+  background-position: -400% -200%;
+}
+#toolbox .command#command-move {
+  background-position: 0 -300%;
+}
+#toolbox .command#command-compare {
+  background-position: -100% -300%;
+}
+#toolbox .command#command-condition {
+  background-position: -200% -300%;
+}
+#toolbox .command#command-pop-unicode {
+  background-position: -400% -300%;
 }
