@@ -13,7 +13,7 @@ ScrollPane.prototype.registerEvents = function() {
   function handleMouseUp(e) {
     document.removeEventListener('mouseup', handleMouseUp);
     document.removeEventListener('mousemove', handleMouseMove);
-    if (Math.abs(moveX) < 1 && Math.abs(moveY) < 1 && self.clickCallback) {
+    if (Math.abs(moveX) < 6 && Math.abs(moveY) < 6 && self.clickCallback) {
       self.clickCallback(e);
     }
     return false;
