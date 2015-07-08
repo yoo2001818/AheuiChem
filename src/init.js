@@ -56,6 +56,7 @@ function initialize() {
   if(initialized) {
     toolbox.renderer = renderer;
     viewport.renderer = renderer;
+    contextmenu.renderer = renderer;
     playback.renderer = renderer;
     playback.interpreter = interpreter;
     return;
