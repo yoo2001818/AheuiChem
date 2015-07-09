@@ -33,6 +33,7 @@ Playback.prototype.step = function() {
   if(!this.interpreter || !this.renderer) return;
   this.interpreter.next();
   this.renderer.render();
+  if(!this.interpreter.state.running) this.running = false;
   if(this.callback) this.callback();
 }
 
