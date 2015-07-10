@@ -84,6 +84,7 @@ function initialize() {
       toolbox.changeSelected(mapping[0], mapping[1]);
     }
   });
+  contextmenu.keyboard = keyboard;
   initialized = true;
 }
 

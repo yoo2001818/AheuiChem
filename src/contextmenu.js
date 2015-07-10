@@ -1,5 +1,6 @@
 var Table = require('./table');
 var TileMap = require('./tilemap');
+var Keyboard = require('./keyboard');
 var parser = require('./parser');
 
 var PushKeyBinding = [
@@ -15,13 +16,23 @@ var PushKeyBinding = [
 var FinalKeyBinding = [
 ];
 
-function ContextMenu(container, element, renderer, clickCallback) {
+// Generate keymap from table
+var PushKeyBindingMap = {};
+// TODO Implement a way to automate this.. I'm getting tired of this.
+for(var y = 0; y < PushKeyBinding.length; ++y) {
+  for(var x = 0; x < PushKeyBinding[0].length; ++x) {
+    PushKeyBindingMap[Keyboard.KeyLayout[y][x]] = PushKeyBinding[y][x];
+  }
+}
+
+function ContextMenu(container, element, renderer, clickCallback, keyboard) {
   this.container = container;
   this.element = element;
   this.hideEvent = this.hide.bind(this);
   this.init();
   this.renderer = renderer;
   this.clickCallback = clickCallback;
+  this.keyboard = keyboard;
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
@@ -67,6 +78,16 @@ ContextMenu.prototype.show = function(x, y) {
   this.element.style.display = 'block';
   this.element.style.top = y+'px';
   this.element.style.left = x+'px';
+  // Push keyboard state
+  var self = this;
+  this.keyboard.push({
+    map: PushKeyBindingMap,
+    callback: function(data) {
+      self.tile.data = data;
+      self.update();
+      self.hide();
+    }
+  });
 }
 
 ContextMenu.prototype.hide = function(e) {
@@ -74,6 +95,7 @@ ContextMenu.prototype.hide = function(e) {
   this.container.removeEventListener('contextmenu', this.hideEvent);
   this.container.style.display = 'none';
   this.element.style.display = 'none';
+  this.keyboard.pop();
   if(e) {
     e.preventDefault();
     return false;
