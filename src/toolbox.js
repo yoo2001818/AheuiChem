@@ -10,7 +10,6 @@ function ToolBox(renderer) {
   this.oldNode = null;
   this.renderer = renderer;
   this.scrollPane = null;
-  this.keyboard = new Keyboard(this);
   this.generateTable();
 }
 
@@ -22,7 +21,7 @@ ToolBox.prototype.generateTable = function() {
     for(var x = 0; x < tilemap.width; ++x) {
       var key = Keyboard.KeyShiftLayout[y][x];
       tilemap.set(x, y, {
-        value: Keyboard.KeyMapping[key],
+        value: Keyboard.EditorKeyMapping[key],
         key: key
       });
     }

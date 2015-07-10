@@ -9,6 +9,7 @@ var ToolBox = require('./toolbox');
 var Viewport = require('./viewport');
 var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
+var Keyboard = require('./keyboard');
 
 var interpreter;
 var renderer;
@@ -18,6 +19,7 @@ var toolbox;
 var viewport;
 var contextmenu;
 var playback;
+var keyboard;
 var initialized = false;
 
 function repredict(initial) {
@@ -74,6 +76,14 @@ function initialize() {
     return !playback.running;
   };
   viewport.clickCallback = repredict.bind(this, false);
+  keyboard = new Keyboard();
+  // Toolbox editor KeyMapping
+  keyboard.push({
+    map: Keyboard.EditorKeyMapping,
+    callback: function(mapping) {
+      toolbox.changeSelected(mapping[0], mapping[1]);
+    }
+  });
   initialized = true;
 }
 

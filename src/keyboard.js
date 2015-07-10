@@ -10,7 +10,7 @@ var KeyShiftLayout = [
   return v.split('');
 });
 
-var KeyMapping = {
+var EditorKeyMapping = {
   'q': ['arrow', 'none'],
   'w': ['arrow', 'up'],
   'e': ['command', 'none'],
@@ -44,24 +44,33 @@ var KeyMapping = {
   'N': ['command', 'push-number']
 };
 
-function Keyboard(toolbox) {
-  this.toolbox = toolbox;
+function Keyboard() {
+  this.stack = [];
   this.registerEvents();
+}
+
+Keyboard.prototype.push = function(entry) {
+  this.stack.push(entry);
+}
+
+Keyboard.prototype.pop = function() {
+  return this.stack.pop();
 }
 
 Keyboard.prototype.registerEvents = function() {
   var self = this;
   document.addEventListener('keypress', function(e) {
     var keyPressed = e.key || String.fromCharCode(e.charCode);
-    if(KeyMapping[keyPressed]) {
-      var mapping = KeyMapping[keyPressed];
-      self.toolbox.changeSelected(mapping[0], mapping[1]);
+    var entry = self.stack[self.stack.length - 1];
+    if(!entry || !entry.map) return;
+    if(entry.map[keyPressed] != undefined) {
+      entry.callback(entry.map[keyPressed]);
     }
   });
 }
 
 Keyboard.KeyLayout = KeyLayout;
 Keyboard.KeyShiftLayout = KeyShiftLayout;
-Keyboard.KeyMapping = KeyMapping;
+Keyboard.EditorKeyMapping = EditorKeyMapping;
 
 module.exports = Keyboard;
