@@ -5,7 +5,7 @@ var parser = require('./parser');
 
 var PushKeyBinding = [
   [0, 2, 3, 4, 5],
-  [6, 7, 8, 9, -1]
+  [6, 7, 8, 9]
 ];
 
 /*
@@ -57,13 +57,17 @@ ContextMenu.prototype.init = function() {
   // TODO no getElementById in class
   // This is exactly same situation as toolbox
   var viewport = document.getElementById('push-table');
-  var pushTable = new Table(viewport, tilemap, function(node, tile) {
+  var pushTable = new Table(viewport, tilemap, function(node, tile, x, y) {
     if(tile == null) {
       node.parentNode.removeChild(node);
       return;
     }
     node.id = 'push-table-'+tile;
     node.appendChild(document.createTextNode(tile));
+    var divNode = document.createElement('div');
+    divNode.className = 'key';
+    divNode.appendChild(document.createTextNode(Keyboard.KeyLayout[y][x]));
+    node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.tile.data = tile;
       self.update();

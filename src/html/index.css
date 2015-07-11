@@ -86,6 +86,7 @@ textarea {
 }
 #push-table td {
   display: inline-block;
+  position: relative;
   width: 50px;
   height: 50px;
   box-sizing: border-box;
@@ -103,6 +104,14 @@ textarea {
 }
 #push-table td.selected {
   background-color: #9bd2f5;
+}
+#push-table td .key {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  color: #000;
+  font-size: 10pt;
+  line-height: normal;
 }
 #toolbox {
   height: 150px;
