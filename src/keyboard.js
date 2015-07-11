@@ -65,6 +65,9 @@ Keyboard.prototype.registerEvents = function() {
     if(!entry || !entry.map) return;
     if(entry.map[keyPressed] != undefined) {
       entry.callback(entry.map[keyPressed]);
+    } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
+      // Quick dirty method to use uppercase if lowercase is not available
+      entry.callback(entry.map[keyPressed.toUpperCase()]);
     }
   });
 }
