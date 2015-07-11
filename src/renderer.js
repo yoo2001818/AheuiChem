@@ -1,6 +1,7 @@
 var TileMap = require('./tilemap');
 var CanvasLayer = require('./canvaslayer');
 var Hangul = require('./hangul');
+var SpriteLoader = require('./spriteloader');
 
 // TODO is Array good method to do this?
 var arrowMap = {
@@ -90,6 +91,8 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 }
 
 var Renderer = function(viewport, interpreter, width) {
+  var self = this;
+
   this.interpreter = interpreter;
   this.map = interpreter.map;
   this.width = width || 50;
@@ -97,34 +100,14 @@ var Renderer = function(viewport, interpreter, width) {
   this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
     this.width * interpreter.map.width, this.width * interpreter.map.height);
 
-  // TODO hold sprite sheets somewhere else and refactor code
-  var loadCount = 4;
-  var self = this;
+  this.sprites = new SpriteLoader(function() {
+    self.reset();
+  });
 
-  function handleLoad() {
-    loadCount--;
-    if (loadCount === 0) self.reset();
-  }
-
-  var pathImage = new Image();
-  pathImage.src = 'img/path.png';
-  pathImage.onload = handleLoad;
-  this.pathImage = pathImage;
-
-  var pathTransparentImage = new Image();
-  pathTransparentImage.src = 'img/path_transparent.png';
-  pathTransparentImage.onload = handleLoad;
-  this.pathTransparentImage = pathTransparentImage;
-
-  var arrowImage = new Image();
-  arrowImage.src = 'img/arrow.png';
-  arrowImage.onload = handleLoad;
-  this.arrowImage = arrowImage;
-
-  var commandImage = new Image();
-  commandImage.src = 'img/command.png';
-  commandImage.onload = handleLoad;
-  this.commandImage = commandImage;
+  this.sprites.load('path', 'img/path.png');
+  this.sprites.load('pathTransparent', 'img/path_transparent.png');
+  this.sprites.load('arrow', 'img/arrow.png');
+  this.sprites.load('command', 'img/command.png');
 };
 
 Renderer.prototype.reset = function() {
@@ -198,8 +181,8 @@ Renderer.prototype.updateTile = function(x, y) {
         var segment = segmentMap[tile.directions[key].segment % 4];
         var pathPos = pathMap[key];
         // globalAlpha is evil for Firefox
-        var pathImg = this.pathImage;
-        if (tile.directions[key].unlikely) pathImg = this.pathTransparentImage;
+        var pathImg = this.sprites.get('path');
+        if (tile.directions[key].unlikely) pathImg = this.sprites.get('pathTransparent');
         this.canvases.get('path').drawImage(pathImg, (segment[0] * 4 + pathPos[0]) * 100, (segment[1] * 3 + pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);
       }
@@ -210,7 +193,7 @@ Renderer.prototype.updateTile = function(x, y) {
       var arrowCtx = this.canvases.get('arrow');
       arrowCtx.clearRect(0, 0, this.width, this.width);
       var arrowPos = arrowMap[tile.direction];
-      arrowCtx.drawImage(this.arrowImage,
+      arrowCtx.drawImage(this.sprites.get('arrow'),
         arrowPos[0] * 100, arrowPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
     }
@@ -221,7 +204,7 @@ Renderer.prototype.updateTile = function(x, y) {
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
       commandCtx.clearRect(0, 0, this.width, this.width);
-      commandCtx.drawImage(this.commandImage,
+      commandCtx.drawImage(this.sprites.get('command'),
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
       if (tile.data != null) {
