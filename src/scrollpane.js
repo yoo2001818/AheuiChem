@@ -2,6 +2,7 @@ function ScrollPane(viewport, clickCallback) {
   this.viewport = viewport;
   this.clickCallback = clickCallback;
   this.registerEvents();
+  this.tolerance = 6;
 }
 
 ScrollPane.prototype.registerEvents = function() {
@@ -13,7 +14,8 @@ ScrollPane.prototype.registerEvents = function() {
   function handleMouseUp(e) {
     document.removeEventListener('mouseup', handleMouseUp);
     document.removeEventListener('mousemove', handleMouseMove);
-    if (Math.abs(moveX) < 6 && Math.abs(moveY) < 6 && self.clickCallback) {
+    if (Math.abs(moveX) < self.tolerance && Math.abs(moveY) < self.tolerance
+      && self.clickCallback) {
       self.clickCallback(e);
     }
     return false;
