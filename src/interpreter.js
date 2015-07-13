@@ -53,15 +53,38 @@ var CommandMap = {
   'push-unicode': {
     data: 0,
     exec: function(tile, state, memory) {
-      // TODO
-      memory.push(0xAC00);
+      var val = state.input.shift();
+      if(val == null) memory.push(-1);
+      else memory.push(val.charCodeAt(0));
     }
   },
   'push-number': {
     data: 0,
     exec: function(tile, state, memory) {
-      // TODO
-      memory.push(123);
+      var buffer = '';
+      while(state.input.length) {
+        var val = state.input[0];
+        if(/[0-9-+]/.test(val)) {
+          // Push number
+          buffer += val;
+          state.input.shift();
+        } else {
+          if(buffer.length > 0) {
+            // End of number; exit
+            break;
+          } else {
+            // Clear buffer
+            buffer = '';
+            state.input.shift();
+          }
+        }
+      }
+      if(buffer.length > 0) {
+        var value = parseInt(buffer);
+        memory.push(value);
+      } else {
+        memory.push(-1);
+      }
     }
   },
   'copy': {
@@ -128,7 +151,7 @@ function Interpreter(code) {
 }
 
 Interpreter.prototype.push = function(data) {
-
+  this.state.input = this.state.input.concat(data.split(''));
 };
 
 Interpreter.prototype.shift = function() {

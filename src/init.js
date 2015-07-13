@@ -51,6 +51,8 @@ function reset(initial) {
     renderer.reset();
   }
   document.getElementById('codeForm-output').value = '';
+  // supply input
+  interpreter.push(document.getElementById('codeForm-input').value);
   playback.running = false;
 }
 
