@@ -76,15 +76,15 @@ textarea {
   width: 100%;
   box-sizing: border-box;
 }
-#context-push {
+#context-push, #context-final {
   padding: 3px;
   border-radius: 2px;
 }
-#push-table {
+.context-table {
   border-collapse: collapse;
   font-size: 0;
 }
-#push-table td {
+.context-table td {
   display: inline-block;
   position: relative;
   width: 50px;
@@ -99,13 +99,13 @@ textarea {
   line-height: 48px;
   padding: 0;
 }
-#push-table td:hover {
+.context-table td:hover {
   background-color: #d7ebfa;
 }
-#push-table td.selected {
+.context-table td.selected {
   background-color: #9bd2f5;
 }
-#push-table td .key {
+.context-table td .key {
   position: absolute;
   top: 3px;
   left: 3px;
