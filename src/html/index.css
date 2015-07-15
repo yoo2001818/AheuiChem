@@ -79,6 +79,7 @@ textarea {
 #context-push, #context-final {
   padding: 3px;
   border-radius: 2px;
+  white-space: nowrap;
 }
 .context-table {
   border-collapse: collapse;
