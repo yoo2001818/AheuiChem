@@ -5,6 +5,7 @@ var Direction = require('./direction');
 var CommandMap = {
   'end': {
     data: 0,
+    output: 0,
     exec: function(tile, state, memory) {
       state.running = false;
     }
@@ -26,12 +27,14 @@ var CommandMap = {
   }),
   'pop': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       memory.pull();
     }
   },
   'pop-unicode': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       state.output.push(String.fromCharCode(data));
@@ -39,6 +42,7 @@ var CommandMap = {
   },
   'pop-number': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       state.output = state.output.concat(String(data).split(''));
@@ -46,12 +50,14 @@ var CommandMap = {
   },
   'push': {
     data: 0,
+    output: 1,
     exec: function(tile, state, memory) {
       memory.push(tile.data);
     }
   },
   'push-unicode': {
     data: 0,
+    output: 1,
     exec: function(tile, state, memory) {
       var val = state.input.shift();
       if(val == null) memory.push(-1);
@@ -60,6 +66,7 @@ var CommandMap = {
   },
   'push-number': {
     data: 0,
+    output: 1,
     exec: function(tile, state, memory) {
       var buffer = '';
       while(state.input.length) {
@@ -89,24 +96,28 @@ var CommandMap = {
   },
   'copy': {
     data: 1,
+    output: 2,
     exec: function(tile, state, memory) {
       memory.copy();
     }
   },
   'flip': {
     data: 2,
+    output: 2,
     exec: function(tile, state, memory) {
       memory.flip();
     }
   },
   'select': {
     data: 0,
+    output: 0, // This requires some special handling
     exec: function(tile, state, memory) {
       state.selected = tile.data;
     }
   },
   'move': {
     data: 1,
+    output: 0, // This also requires some special handling
     exec: function(tile, state, memory) {
       var target = state.memory[tile.data];
       var data = memory.pull();
@@ -115,6 +126,7 @@ var CommandMap = {
   },
   'compare': {
     data: 2,
+    output: 1,
     exec: function(tile, state, memory) {
       var a = memory.pull();
       var b = memory.pull();
@@ -123,6 +135,7 @@ var CommandMap = {
   },
   'condition': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       if (data === 0) return true;
@@ -133,6 +146,7 @@ var CommandMap = {
 function buildCalcCommand(callback) {
   return {
     data: 2,
+    output: 1,
     exec: function(tile, state, memory) {
       var a = memory.pull();
       var b = memory.pull();
@@ -226,5 +240,7 @@ Interpreter.prototype.next = function() {
     0);
   return this.state.running;
 };
+
+Interpreter.CommandMap = CommandMap;
 
 module.exports = Interpreter;
