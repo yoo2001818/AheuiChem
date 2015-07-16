@@ -180,4 +180,84 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     cursor.segment, false);
 }
 
+// Assembly command map to support ashembly
+var AssemblyMap = {
+  'end': 'halt',
+  'add': 'add',
+  'multiply': 'mul',
+  'subtract': 'sub',
+  'divide': 'div',
+  'mod': 'mod',
+  'pop': 'pop',
+  'pop-number': 'popnum',
+  'pop-unicode': 'popchar',
+  'push': 'push',
+  'push-number': 'pushnum',
+  'push-unicode': 'pushchar',
+  'copy': 'dup',
+  'flip': 'swap',
+  'select': 'sel',
+  'move': 'mov',
+  'compare': 'cmp',
+  'condition': 'brz'
+};
+
+// Converts code to Assembly. Just for fun! :D
+Predictor.prototype.assembly = function() {
+  var resolves = [];
+  var codes = [];
+  // Start reading code from segment 0, id 0
+  for(var segmentId = 0; segmentId < this.segments.length; ++segmentId) {
+    var segment = this.segments[segmentId];
+    for(var id = 0; id < segment.length; ++id) {
+      var cursor = segment[id];
+      cursor.index = codes.length;
+      var headingTile = this.headingMap.get(cursor.x, cursor.y);
+      var tile = this.map.get(cursor.x, cursor.y);
+      if(tile == null) continue;
+      if(tile.command != 'none') {
+        var command = Interpreter.CommandMap[tile.command];
+        var flipBit = Direction.convertToBits(-cursor.direction.x,
+          -cursor.direction.y, true);
+        if(headingTile[flipBit]) {
+          if(command.data > 0) {
+            var code = ['brpop'+command.data, headingTile[flipBit]];
+            codes.push(code);
+            resolves.push(code);
+          }
+        }
+        var code = [AssemblyMap[tile.command]];
+        if(tile.command == 'push') code[1] = tile.data;
+        if(tile.command == 'select') code[1] = tile.data;
+        if(tile.command == 'move') code[1] = tile.data;
+        if(tile.command == 'condition') {
+          code[1] = headingTile[flipBit];
+          resolves.push(code);
+        }
+        codes.push(code);
+      } else {
+        if(id == segment.length - 1) {
+          // Fetch x, y value from tile's direction
+          var tileDir = Direction.map[tile.direction];
+          // Calculate the direction where the cursor will go
+          var dirX = Direction.calculate(cursor.direction.x, tileDir.x);
+          var dirY = Direction.calculate(cursor.direction.y, tileDir.y);
+          var dirBit = Direction.convertToBits(dirX, dirY, true);
+          var targetTile = headingTile[dirBit];
+          if(!targetTile) continue;
+          var code = ['jmp', targetTile];
+          codes.push(code);
+          resolves.push(code);
+        }
+      }
+    }
+  }
+  for(var i = 0; i < resolves.length; ++i) {
+    resolves[i][1] = resolves[i][1] && resolves[i][1].index;
+  }
+  console.log(codes.map(function(v) {
+    return v.join(' ');
+  }).join('\n'));
+}
+
 module.exports = Predictor;
