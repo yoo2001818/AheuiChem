@@ -37,7 +37,7 @@ function repredict(initial) {
       }
     }
   }
-  var predictQuota = interpreter.map.width * interpreter.map.height * 2;
+  var predictQuota = interpreter.map.width * interpreter.map.height * 30;
   predictor = new Predictor(interpreter.map);
   for (var i = 0; i < predictQuota; ++i) {
     if (!predictor.next()) break;

@@ -56,6 +56,11 @@ var UP = 1;
 var DOWN = 2;
 var LEFT = 4;
 var RIGHT = 8;
+// Added to handle predictor appropriately
+var SKIP_UP = 16;
+var SKIP_DOWN = 32;
+var SKIP_LEFT = 64;
+var SKIP_RIGHT = 128;
 
 var DirectionBitMap = {
   'up': UP,
@@ -67,7 +72,12 @@ var DirectionBitMap = {
   'up-left': UP | LEFT,
   'down-left': DOWN | LEFT,
   'up-right': UP | RIGHT,
-  'down-right': DOWN | RIGHT
+  'down-right': DOWN | RIGHT,
+  // Added to handle predictor appropriately
+  'skip-up': SKIP_UP,
+  'skip-down': SKIP_DOWN,
+  'skip-left': SKIP_LEFT,
+  'skip-right': SKIP_RIGHT
 };
 
 var DirectionBitRevMap = {};
@@ -126,8 +136,12 @@ function move(pos, dir, size) {
   return pos;
 }
 
-function convertToBits(x, y) {
+function convertToBits(x, y, honorSkips) {
   var val = 0;
+  if(honorSkips && y == -2) return SKIP_UP;
+  if(honorSkips && y == 2) return SKIP_DOWN;
+  if(honorSkips && x == -2) return SKIP_LEFT;
+  if(honorSkips && x == 2) return SKIP_RIGHT;
   if (y <= -1) val |= UP;
   if (y >= 1) val |= DOWN;
   if (x <= -1) val |= LEFT;

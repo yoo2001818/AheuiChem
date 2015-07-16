@@ -1,39 +1,46 @@
 var parser = require('./parser');
+var TileMap = require('./tilemap');
 var Direction = require('./direction');
+var Interpreter = require('./interpreter');
+
+function Cursor(cursor) {
+  this.id = cursor.id;
+  this.segment = cursor.segment;
+  this.x = cursor.x;
+  this.y = cursor.y;
+  this.direction = {};
+  this.direction.x = cursor.direction.x;
+  this.direction.y = cursor.direction.y;
+  this.selected = cursor.selected;
+  this.memory = cursor.memory.slice(); // Copy machine state.
+}
+
+// Returns initial machine cursor
+Cursor.init = function() {
+  var initialMemory = [];
+  for(var i = 0; i < 28; ++i) initialMemory.push(0);
+  return new Cursor({
+    id: 0,
+    segment: 0,
+    x: 0,
+    y: 0,
+    direction: {
+      x: 0,
+      y: 1
+    },
+    selected: 0,
+    memory: initialMemory
+  });
+}
+
+// Calculates memory diff
+Cursor.prototype.diff = function(other) {
+  return this.memory.map(function(value, key) {
+    return value - other.memory[key];
+  });
+}
+
 // Predicts the path of the code
-// TODO this requires some serious refactoring... really.
-
-var ReversibleMap = {
-  'condition': true,
-  'add': true,
-  'multiply': true,
-  'subtract': true,
-  'divide': true,
-  'mod': true,
-  'pop': true,
-  'pop-unicode': true,
-  'pop-number': true,
-  'copy': true,
-  'flip': true,
-  'move': true,
-  'compare': true
-};
-
-var UnlikelyMap = {
-  'add': true,
-  'multiply': true,
-  'subtract': true,
-  'divide': true,
-  'mod': true,
-  'pop': true,
-  'pop-unicode': true,
-  'pop-number': true,
-  'copy': true,
-  'flip': true,
-  'move': true,
-  'compare': true
-};
-
 
 function Predictor(code) {
   if (typeof code == 'string') {
@@ -41,106 +48,136 @@ function Predictor(code) {
   } else {
     this.map = code;
   }
-  this.segmentId = 0;
-  this.segments = {};
-  this.stack = [{
-    x: 0,
-    y: 0,
-    direction: {
-      x: 0,
-      y: 1
-    },
-    register: {
-      x: 0,
-      y: 0,
-      preDir: 0
-    }
-  }];
+  // Create segment heading map
+  this.reset();
   this.updated = [];
+}
+
+Predictor.prototype.reset = function() {
+  this.segments = [];
+  this.stack = [];
+  this.headingMap = new TileMap(this.map.width, this.map.height);
+  var cursor = Cursor.init();
+  var segment = [];
+  segment.push(cursor);
+  this.segments.push(segment);
+  this.stack.push(cursor);
 }
 
 Predictor.prototype.next = function() {
   if (this.stack.length === 0) return false;
-  var state = this.stack[this.stack.length - 1];
-  if (state.register) {
-    // Assign segment
-    state.segment = this.segmentId++;
-    this.segments[state.segment] = [];
-    // Update the tile
-    if (state.register.preDir) {
-      Direction.process(state.register, this.map, state.direction,
-        state.register.preDir, this.updated, state.segment, state.unlikely);
-    }
-    delete state.register;
-  }
-  var segment = this.segments[state.segment];
-  var direction = state.direction;
+  // Store previous cursor.. I doubt it'll be used actually.
+  var oldCursor = this.stack.pop();
+  var cursor = new Cursor(oldCursor);
+  // Fetch current segment
+  var segment = this.segments[cursor.segment];
+  var direction = cursor.direction;
+  // Store previous reversed direction
   var preDir = Direction.convertToBits(-direction.x, -direction.y);
-  var tile = this.map.get(state.x, state.y);
-  var removal = false;
-  if (segment) segment.push(tile);
-  if (tile !== null) {
-    if (!tile.segments) {
-      tile.segments = {};
-    }
-    // Set the direction
+  var tile = this.map.get(cursor.x, cursor.y);
+  var headingTile = this.headingMap.get(cursor.x, cursor.y);
+  // Create headingTile if not exists.
+  if (headingTile == null) {
+    headingTile = {};
+    this.headingMap.set(cursor.x, cursor.y, headingTile);
+  }
+  // Continues execution in new segment if this is set.
+  var newSegment = false;
+  // Stop execution if this is set.
+  var stop = false;
+  if (tile != null) {
+    // Fetch x, y value from tile's direction
     var tileDir = Direction.map[tile.direction];
+    // Calculate the direction where the cursor will go
     direction.x = Direction.calculate(direction.x, tileDir.x);
     direction.y = Direction.calculate(direction.y, tileDir.y);
-    if (tile.command == 'end') removal = true;
-    if (tile.segments[Direction.convertToBits(direction.x, direction.y)]) {
-      removal = true;
-    } else {
-      tile.segments[Direction.convertToBits(direction.x, direction.y)] = {
-        segment: state.segment,
-        position: segment ? segment.length - 1 : 0
-      };
-    }
-    if (!removal && ReversibleMap[tile.command]) {
-      var flipDir = {
-        x: -direction.x,
-        y: -direction.y
-      };
-      var flipState = {
-        x: Direction.move(state.x, flipDir.x, this.map.width),
-        y: Direction.move(state.y, flipDir.y, this.map.height),
-        direction: flipDir,
-        unlikely: state.unlikely,
-        register: {
-          x: state.x,
-          y: state.y,
-          preDir: preDir
+    // Fetch command
+    var command = Interpreter.CommandMap[tile.command];
+    // Just skip if command is null
+    if(command != null) {
+      if(cursor.memory[cursor.selected] >= command.data) {
+        cursor.memory[cursor.selected] -= command.data; // Data we lose
+        cursor.memory[cursor.selected] += command.output; // Data we get
+        if (tile.command == 'select') {
+          cursor.selected = tile.data;
         }
-      };
-      var flipTile = this.map.get(flipState.x, flipState.y);
-      var skip = false;
-      if (flipTile) {
-        var flipTileDir = Direction.map[flipTile.direction];
-        if (flipTileDir.x == direction.x && flipTileDir.y == direction.y) {
-          // It's useless; skipping
-          skip = true;
+        if (tile.command == 'move') {
+          cursor.memory[tile.data] ++;
         }
-      }
-      if (!skip && (!flipTile || !flipTile.segments ||
-          !flipTile.segments[Direction.convertToBits(flipDir.x, flipDir.y)])) {
-        if (UnlikelyMap[tile.command]) {
-          flipState.unlikely = true;
-          this.stack.unshift(flipState);
-        } else {
-          this.stack.push(flipState);
+        if (tile.command == 'end') {
+          // End of segment; Stop processing.
+          // Techincally 'end' operator requires one data to stop,
+          // But most programs won't work with that.
+          stop = true;
         }
+        if (tile.command == 'condition') {
+          // Condition; Always create new segment.
+          // Simply create new cursor with new segment, flip direction,
+          // move position and save it.
+          var newCursor = new Cursor(cursor);
+          newCursor.direction.x = -direction.x;
+          newCursor.direction.y = -direction.y;
+          this.processCursor(newCursor, segment, tile, headingTile,
+            stop, true, preDir);
+        }
+      } else {
+        // Underflow has occurred; Go to opposite direction.
+        direction.x = -direction.x;
+        direction.y = -direction.y;
+        // For consistency, this should create a new segment;
+        newSegment = true;
       }
     }
   }
-  Direction.process(state, this.map, direction, preDir, this.updated,
-    state.segment, state.unlikely);
-  if (removal) {
-    this.stack.splice(this.stack.indexOf(state), 1);
-    if (segment && segment.length <= 1) {
-      delete this.segments[state.segment];
-    }
-  }
+  this.processCursor(cursor, segment, tile, headingTile,
+    stop, newSegment, preDir);
   return this.stack.length > 0;
 };
+
+Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
+  stop, newSegment, preDir) {
+  // Don't save current cursor and increment it if this is set.
+  var seek = false;
+  var direction = cursor.direction;
+  var directionBits = Direction.convertToBits(direction.x, direction.y, true);
+  if (headingTile[directionBits]) {
+    var before = headingTile[directionBits];
+    // Continue cursor in seek mode if memory has less data than before.
+    var hasLess = !cursor.memory.every(function(value, key) {
+      var diff = before.memory[key] - value;
+      return diff <= 0;
+    });
+    if(hasLess) before.memory = cursor.memory.slice();
+    seek = hasLess;
+    // Copy segment and ID to honor condition
+    if(cursor.segment < before.segment) {
+      cursor.id = before.id;
+      cursor.segment = before.segment;
+    }
+    if(!hasLess) stop = true;
+  }
+  if (!stop) {
+    if(!seek) {
+      if (newSegment) {
+        cursor.id = -1;
+        cursor.segment = this.segments.length;
+        segment = [];
+        this.segments.push(segment);
+      }
+      // Increment cursor id to avoid confliction
+      cursor.id ++;
+      // Insert segment into segment.
+      segment.push(cursor);
+      // Write current cursor;
+      headingTile[directionBits] = cursor;
+    }
+    // Push current cursor to stack.
+    this.stack.push(cursor);
+  }
+  // Since this is the copy of original object, we can safely modify it.
+  // This communicates with the 'old' data protocol, for now.
+  Direction.process(cursor, this.map, direction, preDir, this.updated,
+    cursor.segment, false);
+}
 
 module.exports = Predictor;
