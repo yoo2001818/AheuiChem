@@ -135,6 +135,8 @@ Predictor.prototype.next = function() {
         direction.y = -direction.y;
         // For consistency, this should create a new segment;
         newSegment = true;
+        oldCursor = this.segments[oldCursor.segment][oldCursor.id];
+        oldCursor.otherwise = cursor;
       }
     }
   }
@@ -196,6 +198,11 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     cursor.segment, false);
 }
 
+// Bytecode command map
+var BytecodeMap = Object.keys(Interpreter.CommandMap);
+var BRPOP = 18;
+var JMP = 20;
+
 // Assembly command map to support ashembly
 var AssemblyMap = {
   'end': 'halt',
@@ -218,9 +225,10 @@ var AssemblyMap = {
   'condition': 'brz'
 };
 
-// Converts code to Assembly. Just for fun! :D
-Predictor.prototype.assembly = function() {
+// Converts code to bytecode.
+Predictor.prototype.bytecode = function() {
   var resolves = [];
+  var debugs = {};
   var labels = [];
   var codes = [];
   // Start reading code from segment 0, id 0
@@ -229,60 +237,54 @@ Predictor.prototype.assembly = function() {
     for(var id = 0; id < segment.length; ++id) {
       var cursor = segment[id];
       cursor.index = codes.length;
-      var headingTile = this.headingMap.get(cursor.x, cursor.y);
+      var headingTile = this.headingMap.get(cursor.x, cursor.y) || {};
       var tile = this.map.get(cursor.x, cursor.y);
       if(tile == null) continue;
       if(tile.command != 'none') {
         var command = Interpreter.CommandMap[tile.command];
         var flipBit = Direction.convertToBits(-cursor.direction.x,
           -cursor.direction.y, true);
-        if(headingTile[flipBit]) {
+        if(cursor.otherwise) {
           if(command.data > 0) {
-            var code = ['brpop'+command.data, headingTile[flipBit]];
-            codes.push(code);
-            resolves.push(code);
+            debugs[codes.length] = cursor;
+            codes.push(BRPOP+command.data-1);
+            codes.push(cursor.otherwise);
           }
         }
-        var code = [AssemblyMap[tile.command]];
-        if(tile.command == 'push') code[1] = tile.data;
-        if(tile.command == 'select') code[1] = tile.data;
-        if(tile.command == 'move') code[1] = tile.data;
+        debugs[codes.length] = cursor;
+        codes.push(BytecodeMap.indexOf(tile.command));
+        if(tile.command == 'push') codes.push(tile.data);
+        if(tile.command == 'select') codes.push(tile.data);
+        if(tile.command == 'move') codes.push(tile.data);
         if(tile.command == 'condition') {
-          code[1] = cursor.otherwise;
-          resolves.push(code);
+          codes.push(cursor.otherwise);
         }
-        codes.push(code);
-      } else {
-        if(id == segment.length - 1) {
-          // Fetch x, y value from tile's direction
-          var tileDir = Direction.map[tile.direction];
-          // Calculate the direction where the cursor will go
-          var dirX = Direction.calculate(cursor.direction.x, tileDir.x);
-          var dirY = Direction.calculate(cursor.direction.y, tileDir.y);
-          var dirBit = Direction.convertToBits(dirX, dirY, true);
-          var targetTile = headingTile[dirBit];
-          if(!targetTile) continue;
-          var code = ['jmp', targetTile];
-          codes.push(code);
-          resolves.push(code);
-        }
+      }
+      if(id == segment.length - 1) {
+        // Fetch x, y value from tile's direction
+        var tileDir = Direction.map[tile.direction];
+        // Calculate the direction where the cursor will go
+        var dirX = Direction.calculate(cursor.direction.x, tileDir.x);
+        var dirY = Direction.calculate(cursor.direction.y, tileDir.y);
+        var dirBit = Direction.convertToBits(dirX, dirY, true);
+        var targetTile = headingTile[dirBit];
+        if(!targetTile) continue;
+        debugs[codes.length] = cursor;
+        codes.push(JMP);
+        codes.push(targetTile);
       }
     }
   }
-  for(var i = 0; i < resolves.length; ++i) {
-    var idx = resolves[i][1].index;
-    if(labels.indexOf(idx) == -1) labels.push(idx);
-    resolves[i][1] = 'p'+labels.indexOf(idx);
-  }
-  var returned = [];
-  codes.forEach(function(v, k) {
-    var label = labels.indexOf(k);
-    if(label != -1) {
-      returned.push(":p"+label);
-    }
-    returned.push(v.join(' '));
+  var code = codes.map(function(v) {
+    // Remap tiles to indexs
+    if(v.index) return v.index;
+    return v;
   });
-  console.log(returned.join("\n"));
+  var data = {
+    code: code,
+    debug: debugs
+  };
+  return data;
 }
 
 module.exports = Predictor;

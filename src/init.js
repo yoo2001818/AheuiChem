@@ -42,6 +42,10 @@ function repredict(initial) {
   for (var i = 0; i < predictQuota; ++i) {
     if (!predictor.next()) break;
   }
+  // Supply bytecode to interpreter
+  var bytecode = predictor.bytecode();
+  interpreter.code = bytecode.code;
+  interpreter.debug = bytecode.debug;
   if (!initial && renderer) renderer.redraw();
 }
 
@@ -94,7 +98,9 @@ function initialize() {
 window.onload = function() {
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
-    interpreter = new Interpreter(code);
+    interpreter = new Interpreter(null);
+    // TODO inject code to support old code... This needs to be changed.
+    interpreter.map = parser.parse(code);
     monitor = new Monitor(interpreter);
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
