@@ -113,12 +113,7 @@ Predictor.prototype.next = function() {
           // But most programs won't work with that.
           stop = true;
         }
-        var directionBits = Direction.convertToBits(direction.x,
-          direction.y, true);
-        // Just prepend we're going to the oppsite way if we visited too much.
-        if (tile.command == 'condition' ||
-          (command.data > 0 && headingTile[directionBits] &&
-          headingTile[directionBits].visit < 0)) {
+        if (tile.command == 'condition') {
           // Condition; Always create new segment.
           // Simply create new cursor with new segment, flip direction,
           // move position and save it.
@@ -155,13 +150,11 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
-      if(diff > 0) {
-        // Set memory to 0 if we visited too much.
-        // if(before.visit > 200) value = 0;
-        before.memory[key] = value;
-      }
-      return diff <= 0;
+      // Check 4 times, then just check if it has less data.
+      if(before.visit > 4) return diff <= 0;
+      else return diff == 0;
     });
+    before.memory = cursor.memory.slice();
     seek = hasLess;
     // Copy segment and ID to honor condition
     // But 'merging' cursor shouldn't.
@@ -188,7 +181,8 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     }
     cursor.seek = seek;
     // Push current cursor to stack.
-    this.stack.push(cursor);
+    if(seek) this.stack.unshift(cursor);
+    else this.stack.push(cursor);
   }
   // Since this is the copy of original object, we can safely modify it.
   // This communicates with the 'old' data protocol, for now.
