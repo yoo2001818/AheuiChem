@@ -62,6 +62,8 @@ Keyboard.prototype.registerEvents = function() {
   document.addEventListener('keypress', function(e) {
     var keyPressed = e.key || String.fromCharCode(e.charCode);
     var entry = self.stack[self.stack.length - 1];
+    // Act differently if Ctrl is pressed.
+    if(e.ctrlKey) entry = self.stack[0];
     if(!entry || !entry.map) return;
     if(entry.map[keyPressed] != undefined) {
       entry.callback(entry.map[keyPressed]);

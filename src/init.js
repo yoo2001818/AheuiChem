@@ -83,6 +83,21 @@ function initialize() {
   };
   viewport.clickCallback = repredict.bind(this, false);
   keyboard = new Keyboard();
+  // Ctrl KeyMapping
+  keyboard.push({
+    map: {
+      z: function() {
+        undomachine.undo();
+      },
+      // I prefer Ctrl+Shift+Z though.
+      y: function() {
+        undomachine.redo();
+      }
+    },
+    callback: function(mapping) {
+      mapping();
+    }
+  });
   // Toolbox editor KeyMapping
   keyboard.push({
     map: Keyboard.EditorKeyMapping,
