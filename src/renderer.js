@@ -38,7 +38,9 @@ var segmentMap = [
   [0, 0],
   [1, 0],
   [0, 1],
-  [1, 1]
+  [1, 1],
+  [0, 2],
+  [1, 2]
 ];
 
 var commandMap = {
@@ -178,7 +180,7 @@ Renderer.prototype.updateTile = function(x, y) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for (var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key].segment % 4];
+        var segment = segmentMap[tile.directions[key].segment % 6];
         var pathPos = pathMap[key];
         // globalAlpha is evil for Firefox
         var pathImg = this.sprites.get('path');
