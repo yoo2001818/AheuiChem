@@ -75,7 +75,7 @@ function initialize() {
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context-push'),
-    document.getElementById('context-final'), renderer, undomachine);
+    document.getElementById('context-final'), renderer);
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
     renderer, contextmenu, undomachine);
   viewport.checkCallback = function() {
@@ -106,6 +106,7 @@ function initialize() {
     }
   });
   contextmenu.keyboard = keyboard;
+  contextmenu.undomachine = undomachine;
   initialized = true;
 }
 
