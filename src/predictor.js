@@ -13,6 +13,7 @@ function Cursor(cursor) {
   this.direction.y = cursor.direction.y;
   this.selected = cursor.selected;
   this.memory = cursor.memory.slice(); // Copy machine state.
+  this.seek = cursor.seek || false;
 }
 
 // Returns initial machine cursor
@@ -145,12 +146,13 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
+      if(diff > 0) before.memory[key] = value;
       return diff <= 0;
     });
-    if(hasLess) before.memory = cursor.memory.slice();
     seek = hasLess;
     // Copy segment and ID to honor condition
-    if(cursor.segment < before.segment) {
+    // But 'merging' cursor shouldn't.
+    if(cursor.seek) {
       cursor.id = before.id;
       cursor.segment = before.segment;
     }
@@ -171,6 +173,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
       // Write current cursor;
       headingTile[directionBits] = cursor;
     }
+    cursor.seek = seek;
     // Push current cursor to stack.
     this.stack.push(cursor);
   }
