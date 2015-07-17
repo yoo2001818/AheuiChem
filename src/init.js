@@ -10,6 +10,7 @@ var Viewport = require('./viewport');
 var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
 var Keyboard = require('./keyboard');
+var UndoMachine = require('./undomachine');
 
 var interpreter;
 var renderer;
@@ -20,6 +21,7 @@ var viewport;
 var contextmenu;
 var playback;
 var keyboard;
+var undomachine;
 var initialized = false;
 
 function repredict(initial) {
@@ -65,6 +67,7 @@ function initialize() {
     playback.interpreter = interpreter;
     return;
   }
+  undomachine = new UndoMachine();
   playback = new Playback(interpreter, renderer, function() {
     document.getElementById('codeForm-output').value += interpreter.shift();
     document.getElementById('codeForm-debug').value = monitor.getStatus();
@@ -72,9 +75,9 @@ function initialize() {
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context-push'),
-    document.getElementById('context-final'), renderer);
+    document.getElementById('context-final'), renderer, undomachine);
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
-    renderer, contextmenu);
+    renderer, contextmenu, undomachine);
   viewport.checkCallback = function() {
     return !playback.running;
   };
@@ -99,6 +102,8 @@ window.onload = function() {
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
     initialize();
+    undomachine.reset();
+    window.undomachine = undomachine;
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);

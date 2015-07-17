@@ -3,6 +3,7 @@ var TileMap = require('./tilemap');
 var Keyboard = require('./keyboard');
 var Hangul = require('./hangul');
 var parser = require('./parser');
+var TileAction = require('./action');
 
 var PushKeyBinding = [
   [0, 2, 3, 4, 5],
@@ -20,7 +21,7 @@ var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
 var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
 
 function ContextMenu(container, element, finalElement, renderer, clickCallback,
-  keyboard) {
+  keyboard, undomachine) {
   this.container = container;
   this.element = element;
   this.finalElement = finalElement;
@@ -29,15 +30,13 @@ function ContextMenu(container, element, finalElement, renderer, clickCallback,
   this.renderer = renderer;
   this.clickCallback = clickCallback;
   this.keyboard = keyboard;
+  this.undomachine = undomachine;
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
 }
 
 ContextMenu.prototype.update = function() {
-  this.tile.original = parser.encodeSyllable(this.tile);
-  this.renderer.map.set(this.tileX, this.tileY, this.tile);
-  this.renderer.updateTile(this.tileX, this.tileY);
   if(this.clickCallback) this.clickCallback(this.tileX, this.tileY, this.tile);
 }
 
@@ -65,7 +64,8 @@ ContextMenu.prototype.init = function() {
     divNode.appendChild(document.createTextNode(Keyboard.KeyLayout[y][x]));
     node.appendChild(divNode);
     node.addEventListener('click', function() {
-      self.tile.data = tile;
+      self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+        'data', tile, self.renderer));
       self.update();
     });
   });
@@ -89,7 +89,8 @@ ContextMenu.prototype.init = function() {
     divNode.appendChild(document.createTextNode(Keyboard.KeyShiftLayout[y][x]));
     node.appendChild(divNode);
     node.addEventListener('click', function() {
-      self.tile.data = Hangul.final.indexOf(tile);
+      self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+        'data', tile, self.renderer));
       self.update();
     });
   });

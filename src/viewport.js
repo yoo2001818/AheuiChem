@@ -1,12 +1,14 @@
 var ScrollPane = require('./scrollpane');
+var TileAction = require('./action');
 var parser = require('./parser');
 
-function Viewport(element, toolbox, renderer, contextmenu,
+function Viewport(element, toolbox, renderer, contextmenu, undomachine,
   checkCallback, clickCallback) {
   this.element = element;
   this.toolbox = toolbox;
   this.renderer = renderer;
   this.contextmenu = contextmenu;
+  this.undomachine = undomachine;
   this.scrollpane = new ScrollPane(element, this.handleMouseClick.bind(this));
   this.checkCallback = checkCallback;
   this.clickCallback = clickCallback;
@@ -53,12 +55,17 @@ Viewport.prototype.handleMouseClick = function(e) {
   };
   if(e.button == 0) {
     var selected = this.toolbox.selected;
-    if (selected.type == 'arrow') tile.direction = selected.name;
-    else tile.command = selected.name;
-    tile.original = parser.encodeSyllable(tile);
-    this.renderer.map.set(tileX, tileY, tile);
-    this.renderer.updateTile(tileX, tileY);
-    this.clickCallback(tileX, tileY, tile);
+    // Why is it 'arrow'? .... It'd be good if it was 'direction'.
+    // ... to avoid Ctrl+C, V.
+    if(selected.type == 'arrow') {
+      this.undomachine.run(new TileAction(tile, tileX, tileY,
+        'direction', selected.name, this.renderer,
+        this.clickCallback.bind(this, tileX, tileY, tile)));
+    } else {
+      this.undomachine.run(new TileAction(tile, tileX, tileY,
+        'command', selected.name, this.renderer,
+        this.clickCallback.bind(this, tileX, tileY, tile)));
+    }
   } else if(e.button == 2) {
     var contextX = tileX * this.renderer.width + totalOffsetX;
     var contextY = (tileY+1) * this.renderer.width + totalOffsetY;
