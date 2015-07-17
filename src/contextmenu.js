@@ -9,11 +9,6 @@ var PushKeyBinding = [
   [6, 7, 8, 9]
 ];
 
-/*
- ㄱㄴㄷㄹㄲㄳㄵㄶ
-ㅁㅂㅅㅇㅈㄺㄻㄼㄽ
-ㅊㅋㅌㅍㅎㄾㄿㅀㅄㅆ
-*/
 var FinalKeyBinding = [
   ' ㄱㄴㄷㄹㄲㄳㄵㄶ'.split(''),
   'ㅁㅂㅅㅇㅈㄺㄻㄼㄽ'.split(''),
@@ -21,21 +16,8 @@ var FinalKeyBinding = [
 ];
 
 // Generate keymap from table
-var PushKeyBindingMap = {};
-// TODO Implement a way to automate this.. I'm getting tired of this.
-for(var y = 0; y < PushKeyBinding.length; ++y) {
-  for(var x = 0; x < PushKeyBinding[y].length; ++x) {
-    PushKeyBindingMap[Keyboard.KeyLayout[y][x]] = PushKeyBinding[y][x];
-  }
-}
-var FinalKeyBindingMap = {};
-// Yeah. totally.
-for(var y = 0; y < FinalKeyBinding.length; ++y) {
-  for(var x = 0; x < FinalKeyBinding[y].length; ++x) {
-    FinalKeyBindingMap[Keyboard.KeyShiftLayout[y][x]] =
-      Hangul.final.indexOf(FinalKeyBinding[y][x]);
-  }
-}
+var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
+var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
 
 function ContextMenu(container, element, finalElement, renderer, clickCallback,
   keyboard) {

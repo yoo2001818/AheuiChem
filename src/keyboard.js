@@ -76,4 +76,16 @@ Keyboard.KeyLayout = KeyLayout;
 Keyboard.KeyShiftLayout = KeyShiftLayout;
 Keyboard.EditorKeyMapping = EditorKeyMapping;
 
+// An utility function to create keybinding map from 2D array.
+Keyboard.createKeyMap = function(binding) {
+  var map = {};
+  for(var y = 0; y < binding.length; ++y) {
+    for(var x = 0; x < binding[y].length; ++x) {
+      // It's completely fine to use keyShiftLayout.
+      map[KeyShiftLayout[y][x]] = binding[y][x];
+    }
+  }
+  return map;
+}
+
 module.exports = Keyboard;
