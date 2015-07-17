@@ -14,6 +14,7 @@ function Cursor(cursor) {
   this.selected = cursor.selected;
   this.memory = cursor.memory.slice(); // Copy machine state.
   this.seek = cursor.seek || false;
+  this.visit = 0;
 }
 
 // Returns initial machine cursor
@@ -70,6 +71,7 @@ Predictor.prototype.next = function() {
   // Store previous cursor.. I doubt it'll be used actually.
   var oldCursor = this.stack.pop();
   var cursor = new Cursor(oldCursor);
+  if(!cursor.seek) oldCursor.then = cursor;
   // Fetch current segment
   var segment = this.segments[cursor.segment];
   var direction = cursor.direction;
@@ -111,13 +113,19 @@ Predictor.prototype.next = function() {
           // But most programs won't work with that.
           stop = true;
         }
-        if (tile.command == 'condition') {
+        var directionBits = Direction.convertToBits(direction.x,
+          direction.y, true);
+        // Just prepend we're going to the oppsite way if we visited too much.
+        if (tile.command == 'condition' ||
+          (command.data > 0 && headingTile[directionBits] &&
+          headingTile[directionBits].visit < 0)) {
           // Condition; Always create new segment.
           // Simply create new cursor with new segment, flip direction,
           // move position and save it.
           var newCursor = new Cursor(cursor);
           newCursor.direction.x = -direction.x;
           newCursor.direction.y = -direction.y;
+          oldCursor.otherwise = newCursor;
           this.processCursor(newCursor, segment, tile, headingTile,
             stop, true, preDir);
         }
@@ -143,10 +151,15 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
   var directionBits = Direction.convertToBits(direction.x, direction.y, true);
   if (headingTile[directionBits]) {
     var before = headingTile[directionBits];
+    before.visit ++;
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
-      if(diff > 0) before.memory[key] = value;
+      if(diff > 0) {
+        // Set memory to 0 if we visited too much.
+        // if(before.visit > 200) value = 0;
+        before.memory[key] = value;
+      }
       return diff <= 0;
     });
     seek = hasLess;
@@ -208,6 +221,7 @@ var AssemblyMap = {
 // Converts code to Assembly. Just for fun! :D
 Predictor.prototype.assembly = function() {
   var resolves = [];
+  var labels = [];
   var codes = [];
   // Start reading code from segment 0, id 0
   for(var segmentId = 0; segmentId < this.segments.length; ++segmentId) {
@@ -234,7 +248,7 @@ Predictor.prototype.assembly = function() {
         if(tile.command == 'select') code[1] = tile.data;
         if(tile.command == 'move') code[1] = tile.data;
         if(tile.command == 'condition') {
-          code[1] = headingTile[flipBit];
+          code[1] = cursor.otherwise;
           resolves.push(code);
         }
         codes.push(code);
@@ -256,11 +270,19 @@ Predictor.prototype.assembly = function() {
     }
   }
   for(var i = 0; i < resolves.length; ++i) {
-    resolves[i][1] = resolves[i][1] && resolves[i][1].index;
+    var idx = resolves[i][1].index;
+    if(labels.indexOf(idx) == -1) labels.push(idx);
+    resolves[i][1] = 'p'+labels.indexOf(idx);
   }
-  console.log(codes.map(function(v) {
-    return v.join(' ');
-  }).join('\n'));
+  var returned = [];
+  codes.forEach(function(v, k) {
+    var label = labels.indexOf(k);
+    if(label != -1) {
+      returned.push(":p"+label);
+    }
+    returned.push(v.join(' '));
+  });
+  console.log(returned.join("\n"));
 }
 
 module.exports = Predictor;
