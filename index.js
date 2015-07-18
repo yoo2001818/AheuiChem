@@ -1,18 +1,10 @@
-var Predictor = require('./src/predictor');
+var Interpreter = require('./src/interpreter');
 var parser = require('./src/parser');
 var fs = require('fs');
 var code = fs.readFileSync('test.txt', 'utf8');
 
-var predictor = new Predictor(code);
-console.log(predictor);
+var interpreter = new Interpreter(code);
 
-function next() {
-  if(predictor.next()) {
-    console.log(predictor.segments.map(function(v) {
-      return v.length;
-    }));
-    setTimeout(next, 10);
-  }
+while(interpreter.next()) {
 }
-
-next();
+  process.stdout.write(interpreter.shift());
