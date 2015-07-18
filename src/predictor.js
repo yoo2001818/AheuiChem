@@ -183,8 +183,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     }
     cursor.seek = seek;
     // Push current cursor to stack.
-    if(seek) this.stack.unshift(cursor);
-    else this.stack.push(cursor);
+    this.stack.unshift(cursor);
   }
   // Since this is the copy of original object, we can safely modify it.
   // This communicates with the 'old' data protocol, for now.
