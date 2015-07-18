@@ -85,7 +85,7 @@ Object.keys(DirectionBitMap).forEach(function(k) {
   DirectionBitRevMap[DirectionBitMap[k]] = k;
 });
 
-function process(pos, map, direction, preDir, updated, segment, unlikely) {
+function process(pos, map, direction, preDir, updated, segment) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
   if (isSkipping(direction.x, direction.y)) {
@@ -97,9 +97,9 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
       y: skipY
     });
     if (direction.x) {
-      write(skipTile, 'skip-horizontal', segment, unlikely);
+      write(skipTile, 'skip-horizontal', segment);
     } else {
-      write(skipTile, 'skip-vertical', segment, unlikely);
+      write(skipTile, 'skip-vertical', segment);
     }
   }
   // Move to tile
@@ -108,7 +108,7 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
     y: pos.y
   });
   var bitDir = preDir | convertToBits(direction.x, direction.y);
-  write(tile, DirectionBitRevMap[bitDir], segment, unlikely);
+  write(tile, DirectionBitRevMap[bitDir], segment);
   pos.x = move(pos.x, direction.x, map.width);
   pos.y = move(pos.y, direction.y, map.height);
 }
@@ -149,16 +149,13 @@ function convertToBits(x, y, honorSkips) {
   return val;
 }
 
-function write(tile, direction, segment, unlikely) {
+function write(tile, direction, segment) {
   if (tile == null) return;
   if (tile.directions == null) {
     tile.directions = {};
   }
   if (tile.directions[direction] == null) {
-    tile.directions[direction] = {
-      segment: segment,
-      unlikely: unlikely
-    };
+    tile.directions[direction] = segment;
   }
 }
 

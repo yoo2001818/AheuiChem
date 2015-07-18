@@ -107,7 +107,6 @@ var Renderer = function(viewport, interpreter, width) {
   });
 
   this.sprites.load('path', 'img/path.png');
-  this.sprites.load('pathTransparent', 'img/path_transparent.png');
   this.sprites.load('arrow', 'img/arrow.png');
   this.sprites.load('command', 'img/command.png');
 };
@@ -180,11 +179,9 @@ Renderer.prototype.updateTile = function(x, y) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
       for (var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key].segment % 6];
+        var segment = segmentMap[tile.directions[key] % 6];
         var pathPos = pathMap[key];
-        // globalAlpha is evil for Firefox
         var pathImg = this.sprites.get('path');
-        if (tile.directions[key].unlikely) pathImg = this.sprites.get('pathTransparent');
         this.canvases.get('path').drawImage(pathImg, (segment[0] * 4 + pathPos[0]) * 100, (segment[1] * 3 + pathPos[1]) * 100,
           100, 100, 0, 0, this.width, this.width);
       }
