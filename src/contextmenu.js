@@ -90,7 +90,7 @@ ContextMenu.prototype.init = function() {
     node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-        'data', tile, self.renderer));
+        'data', Hangul.final.indexOf(tile), self.renderer));
       self.update();
     });
   });
@@ -127,7 +127,7 @@ ContextMenu.prototype.show = function(x, y) {
       map: FinalKeyBindingMap,
       callback: function(data) {
         self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-          'data', data, self.renderer));
+          'data', Hangul.final.indexOf(data), self.renderer));
         self.update();
         self.hide();
       }

@@ -1,4 +1,5 @@
 var parser = require('./parser');
+var Interpreter = require('./interpreter');
 
 function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
   this.tile = tile;
@@ -13,14 +14,20 @@ function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
 TileAction.prototype.exec = function() {
   this.before = this.tile[this.key];
   this.tile[this.key] = this.data;
-  this.tile.original = parser.encodeSyllable(this.tile);
-  this.renderer.map.set(this.tileX, this.tileY, this.tile);
-  this.renderer.updateTile(this.tileX, this.tileY);
-  if(this.callback) this.callback();
+  this.update();
 }
 
 TileAction.prototype.undo = function() {
   this.tile[this.key] = this.before;
+  this.update();
+}
+
+TileAction.prototype.update = function() {
+  // Fill the data with 0 if it's required and null.
+  if(Interpreter.CommandMap[this.tile.command].argument &&
+    this.tile.data == null) {
+    this.tile.data = 0;
+  }
   this.tile.original = parser.encodeSyllable(this.tile);
   this.renderer.map.set(this.tileX, this.tileY, this.tile);
   this.renderer.updateTile(this.tileX, this.tileY);

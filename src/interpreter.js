@@ -51,6 +51,7 @@ var CommandMap = {
   'push': {
     data: 0,
     output: 1,
+    argument: true,
     exec: function(tile, state, memory) {
       memory.push(tile.data);
     }
@@ -111,6 +112,7 @@ var CommandMap = {
   'select': {
     data: 0,
     output: 0, // This requires some special handling
+    argument: true,
     exec: function(tile, state, memory) {
       state.selected = tile.data;
     }
@@ -118,6 +120,7 @@ var CommandMap = {
   'move': {
     data: 1,
     output: 0, // This also requires some special handling
+    argument: true,
     exec: function(tile, state, memory) {
       var target = state.memory[tile.data];
       var data = memory.pull();
