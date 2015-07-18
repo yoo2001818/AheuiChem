@@ -113,7 +113,8 @@ ContextMenu.prototype.show = function(x, y) {
     this.keyboard.push({
       map: PushKeyBindingMap,
       callback: function(data) {
-        self.tile.data = data;
+        self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+          'data', data, self.renderer));
         self.update();
         self.hide();
       }
@@ -125,7 +126,8 @@ ContextMenu.prototype.show = function(x, y) {
     this.keyboard.push({
       map: FinalKeyBindingMap,
       callback: function(data) {
-        self.tile.data = data;
+        self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+          'data', data, self.renderer));
         self.update();
         self.hide();
       }
