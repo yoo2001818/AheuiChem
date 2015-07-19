@@ -28,6 +28,10 @@ TileAction.prototype.update = function() {
   if(command != null && command.argument && this.tile.data == null) {
     this.tile.data = 0;
   }
+  if(this.tile.command == 'push' && this.tile.data > 9) {
+    // Force set data to 0 as it can't handle larger than 9
+    this.tile.data = 0;
+  }
   this.tile.original = parser.encodeSyllable(this.tile);
   this.renderer.map.set(this.tileX, this.tileY, this.tile);
   this.renderer.updateTile(this.tileX, this.tileY);
