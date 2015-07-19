@@ -123,6 +123,7 @@ Predictor.prototype.next = function() {
           oldCursor.otherwise = newCursor;
           this.processCursor(newCursor, segment, tile, headingTile,
             stop, true, preDir);
+          console.log(newCursor);
         }
       } else {
         // Underflow has occurred; Go to opposite direction.
@@ -144,8 +145,9 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
   var seek = false;
   var direction = cursor.direction;
   var directionBits = Direction.convertToBits(direction.x, direction.y, true);
+  var before;
   if (headingTile[directionBits]) {
-    var before = headingTile[directionBits];
+    before = headingTile[directionBits];
     before.visit ++;
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
@@ -158,13 +160,12 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     });
     before.memory = cursor.memory.slice();
     seek = hasLess;
-    // Copy segment and ID to honor condition
-    // But 'merging' cursor shouldn't.
-    if(cursor.seek) {
-      cursor.id = before.id;
-      cursor.segment = before.segment;
-    }
     if(!hasLess) stop = true;
+  }
+  // 'newSegment' should set their ID before drawing path.
+  if(before && newSegment) {
+    cursor.id = before.id;
+    cursor.segment = before.segment;
   }
   if (!stop) {
     if(!seek) {
@@ -181,7 +182,6 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
       // Write current cursor;
       headingTile[directionBits] = cursor;
     }
-    cursor.seek = seek;
     // Push current cursor to stack.
     this.stack.unshift(cursor);
   }
@@ -189,6 +189,15 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
   // This communicates with the 'old' data protocol, for now.
   Direction.process(cursor, this.map, direction, preDir, this.updated,
     cursor.segment, false);
+  // Copy segment and ID to honor condition
+  // But 'merging' cursor shouldn't.
+  // It may cause conflicts because it doesn't add itself to segments,
+  // But it's prevented because it's not added to segment if seek is true
+  if(before && seek) {
+    cursor.id = before.id;
+    cursor.segment = before.segment;
+  }
+  cursor.seek = seek;
 }
 
 // Assembly command map to support ashembly

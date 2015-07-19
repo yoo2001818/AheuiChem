@@ -178,12 +178,18 @@ Renderer.prototype.updateTile = function(x, y) {
     if (tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
-      for (var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key] % 6];
-        var pathPos = pathMap[key];
-        var pathImg = this.sprites.get('path');
-        this.canvases.get('path').drawImage(pathImg, (segment[0] * 4 + pathPos[0]) * 100, (segment[1] * 3 + pathPos[1]) * 100,
-          100, 100, 0, 0, this.width, this.width);
+      for(var id = tile.directions.length - 1; id >= 0; --id) {
+        var paths = tile.directions[id];
+        if(paths == null) continue;
+        paths.forEach(function(direction) {
+          var segment = segmentMap[id % 6];
+          var pathPos = pathMap[direction];
+          var pathImg = this.sprites.get('path');
+          this.canvases.get('path').drawImage(pathImg, 
+            (segment[0] * 4 + pathPos[0]) * 100, 
+            (segment[1] * 3 + pathPos[1]) * 100,
+            100, 100, 0, 0, this.width, this.width);
+        }, this);
       }
     }
 

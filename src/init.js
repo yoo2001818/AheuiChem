@@ -32,7 +32,7 @@ function repredict(initial) {
         var tile = interpreter.map.get(x, y);
         var cacheTile = renderer.cacheMap.get(x, y);
         if (tile) {
-          tile.directions = {};
+          tile.directions = [];
           tile.segments = {};
           cacheTile.directions = {};
         }
