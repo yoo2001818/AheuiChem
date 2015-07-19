@@ -151,12 +151,16 @@ ContextMenu.prototype.init = function() {
 }
 
 ContextMenu.prototype.show = function(x, y) {
+  var self = this;
   this.container.style.display = 'block';
   this.container.addEventListener('click', this.hideEvent);
   this.container.addEventListener('contextmenu', this.hideEvent);
   this.element.style.display = 'block';
-  this.element.style.top = y+'px';
-  this.element.style.left = x+'px';
+  setTimeout(function() {
+    self.element.style.top = y+'px';
+    self.element.style.left = Math.max(0, x-self.element.offsetWidth/2+
+      self.renderer.width/2)+'px';
+  }, 0);
   var self = this;
   // Prevent going more
   this.keyboard.push(null);
