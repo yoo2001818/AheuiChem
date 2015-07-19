@@ -76,7 +76,7 @@ textarea {
   width: 100%;
   box-sizing: border-box;
 }
-#context-push, #context-final {
+#context {
   padding: 3px;
   border-radius: 2px;
   white-space: nowrap;
@@ -99,6 +99,9 @@ textarea {
   text-align: center;
   line-height: 48px;
   padding: 0;
+}
+.context-table.small td {
+  font-size: 12px;
 }
 .context-table td:hover {
   background-color: #d7ebfa;

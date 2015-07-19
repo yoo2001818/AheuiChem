@@ -1,3 +1,9 @@
+var KeyNumberLayout = [
+  '1234567890'
+].map(function(v) {
+  return v.split('');
+});
+
 var KeyLayout = [
   'qwert', 'asdfg', 'zxcvb'
 ].map(function(v) {
@@ -61,30 +67,36 @@ Keyboard.prototype.registerEvents = function() {
   var self = this;
   document.addEventListener('keypress', function(e) {
     var keyPressed = e.key || String.fromCharCode(e.charCode);
-    var entry = self.stack[self.stack.length - 1];
-    // Act differently if Ctrl is pressed.
-    if(e.ctrlKey) entry = self.stack[0];
-    if(!entry || !entry.map) return;
-    if(entry.map[keyPressed] != undefined) {
-      entry.callback(entry.map[keyPressed]);
-    } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
-      // Quick dirty method to use uppercase if lowercase is not available
-      entry.callback(entry.map[keyPressed.toUpperCase()]);
+    for(var i = self.stack.length - 1; i >= 0; --i) {
+      var entry = self.stack[i];
+      // Act differently if Ctrl is pressed.
+      if(e.ctrlKey) entry = self.stack[0];
+      if(!entry || !entry.map) return;
+      if(entry.map[keyPressed] != undefined) {
+        entry.callback(entry.map[keyPressed]);
+        return;
+      } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
+        // Quick dirty method to use uppercase if lowercase is not available
+        entry.callback(entry.map[keyPressed.toUpperCase()]);
+        return;
+      }
     }
   });
 }
 
+Keyboard.KeyNumberLayout = KeyNumberLayout;
 Keyboard.KeyLayout = KeyLayout;
 Keyboard.KeyShiftLayout = KeyShiftLayout;
 Keyboard.EditorKeyMapping = EditorKeyMapping;
 
 // An utility function to create keybinding map from 2D array.
-Keyboard.createKeyMap = function(binding) {
+Keyboard.createKeyMap = function(binding, layout) {
+  if(layout == null) layout = KeyShiftLayout;
   var map = {};
   for(var y = 0; y < binding.length; ++y) {
     for(var x = 0; x < binding[y].length; ++x) {
       // It's completely fine to use keyShiftLayout.
-      map[KeyShiftLayout[y][x]] = binding[y][x];
+      map[layout[y][x]] = binding[y][x];
     }
   }
   return map;

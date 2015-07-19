@@ -76,6 +76,7 @@ function initialize() {
   }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
+    document.getElementById('context'),
     document.getElementById('context-push'),
     document.getElementById('context-final'), renderer);
   viewport = new Viewport(document.getElementById('viewport'), toolbox,

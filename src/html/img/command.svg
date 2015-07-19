@@ -405,9 +405,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.486692"
-     inkscape:cx="231.96631"
-     inkscape:cy="143.36131"
+     inkscape:zoom="2.1025"
+     inkscape:cx="233.4119"
+     inkscape:cy="73.931749"
      inkscape:document-units="px"
      inkscape:current-layer="layer4"
      showgrid="false"
@@ -972,12 +972,12 @@
        style="opacity:1;fill:#24393a;fill-opacity:1;stroke:#000000;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.5;stroke-opacity:1"
        transform="scale(-1,-1)" />
     <rect
-       style="opacity:1;fill:#ff6262;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.5;stroke-opacity:0.94117647"
+       style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:7.5;stroke-opacity:0.94117647"
        id="rect4337"
-       width="16"
-       height="16"
-       x="304.01785"
-       y="304.01785" />
+       width="10"
+       height="10"
+       x="307.01785"
+       y="307.01785" />
   </g>
   <g
      inkscape:groupmode="layer"

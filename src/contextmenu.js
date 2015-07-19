@@ -5,6 +5,33 @@ var Hangul = require('./hangul');
 var parser = require('./parser');
 var TileAction = require('./action');
 
+var UtilityKeyBinding = [
+  [
+    {
+      name: "복사",
+      exec: function() {
+      }
+    },
+    {
+      name: "자르기",
+      exec: function() {
+      }
+    },
+    {
+      name: "붙이기",
+      exec: function() {
+      }
+    },
+    {
+      name: "중단점",
+      exec: function() {
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          'breakpoint', !this.tile.breakpoint, this.renderer));
+      }
+    }
+  ]
+];
+
 var PushKeyBinding = [
   [0, 2, 3, 4, 5],
   [6, 7, 8, 9]
@@ -17,13 +44,17 @@ var FinalKeyBinding = [
 ];
 
 // Generate keymap from table
+var UtilityBindingMap = Keyboard.createKeyMap(UtilityKeyBinding,
+  Keyboard.KeyNumberLayout);
 var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
 var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
 
-function ContextMenu(container, element, finalElement, renderer, clickCallback,
+function ContextMenu(container, element, pushElement, finalElement, 
+  renderer, clickCallback,
   keyboard, undomachine) {
   this.container = container;
   this.element = element;
+  this.pushElement = pushElement;
   this.finalElement = finalElement;
   this.hideEvent = this.hide.bind(this);
   this.init();
@@ -94,21 +125,53 @@ ContextMenu.prototype.init = function() {
       self.update();
     });
   });
+  var tilemap = new TileMap(10, 1);
+  for(var y = 0; y < tilemap.height; ++y) {
+    for(var x = 0; x < tilemap.width; ++x) {
+      tilemap.set(x, y, UtilityKeyBinding[y][x]);
+    }
+  }
+  var viewport = document.getElementById('utility-table');
+  var utilityTable = new Table(viewport, tilemap, function(node, tile, x, y) {
+    if(tile == null) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.id = 'utility-table-'+tile;
+    node.appendChild(document.createTextNode(tile.name));
+    var divNode = document.createElement('div');
+    divNode.className = 'key';
+    divNode.appendChild(document.createTextNode(Keyboard.KeyNumberLayout[y][x]));
+    node.appendChild(divNode);
+    node.addEventListener('click', function() {
+      tile.exec.call(self);
+      self.update();
+    });
+  });
 }
 
 ContextMenu.prototype.show = function(x, y) {
   this.container.style.display = 'block';
   this.container.addEventListener('click', this.hideEvent);
   this.container.addEventListener('contextmenu', this.hideEvent);
+  this.element.style.display = 'block';
   this.element.style.top = y+'px';
   this.element.style.left = x+'px';
-  this.finalElement.style.top = y+'px';
-  this.finalElement.style.left = x+'px';
   var self = this;
+  // Prevent going more
+  this.keyboard.push(null);
+  this.keyboard.push({
+    map: UtilityBindingMap,
+    callback: function(data) {
+      data.exec.call(self);
+      self.update();
+      self.hide();
+    }
+  });
   // TODO it could be better really.
   if(this.tile.command == 'push') {
     this.finalElement.style.display = 'none';
-    this.element.style.display = 'block';
+    this.pushElement.style.display = 'block';
     // Push keyboard state
     this.keyboard.push({
       map: PushKeyBindingMap,
@@ -121,7 +184,7 @@ ContextMenu.prototype.show = function(x, y) {
     });
   } else {
     this.finalElement.style.display = 'block';
-    this.element.style.display = 'none';
+    this.pushElement.style.display = 'none';
     // Push keyboard state
     this.keyboard.push({
       map: FinalKeyBindingMap,
@@ -140,6 +203,8 @@ ContextMenu.prototype.hide = function(e) {
   this.container.removeEventListener('contextmenu', this.hideEvent);
   this.container.style.display = 'none';
   this.element.style.display = 'none';
+  this.keyboard.pop();
+  this.keyboard.pop();
   this.keyboard.pop();
   if(e) {
     e.preventDefault();

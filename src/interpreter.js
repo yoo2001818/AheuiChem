@@ -233,7 +233,6 @@ Interpreter.prototype.next = function() {
       }
     }
   }
-  this.state.breakpoint = tile.breakpoint;
   // Just stop
   if (!this.state.running) return false;
   if (error) {
@@ -242,6 +241,8 @@ Interpreter.prototype.next = function() {
   }
   Direction.process(this.state, this.map, direction, preDir, this.updated,
     -1);
+  var newTile = this.map.get(this.state.x, this.state.y);
+  this.state.breakpoint = newTile.breakpoint;
   return this.state.running;
 };
 
