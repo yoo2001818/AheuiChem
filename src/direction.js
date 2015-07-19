@@ -150,6 +150,8 @@ function convertToBits(x, y, honorSkips) {
 }
 
 function write(tile, direction, segment) {
+  // Ignore if it's -1
+  if (segment == -1) return;
   if (tile == null) return;
   if (tile.directions == null) {
     tile.directions = [];
@@ -157,7 +159,7 @@ function write(tile, direction, segment) {
   if (tile.directions[segment] == null) {
     tile.directions[segment] = [];
   }
-  if(tile.directions[segment].indexOf(direction) == -1) {
+  if (tile.directions[segment].indexOf(direction) == -1) {
     tile.directions[segment].push(direction);
   }
 }

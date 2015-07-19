@@ -14,6 +14,7 @@ function Cursor(cursor) {
   this.selected = cursor.selected;
   this.memory = cursor.memory.slice(); // Copy machine state.
   this.seek = cursor.seek || false;
+  this.merge = true;
   this.visit = 0;
 }
 
@@ -57,6 +58,7 @@ function Predictor(code) {
 
 Predictor.prototype.reset = function() {
   this.segments = [];
+  this.mergeCandidates = [];
   this.stack = [];
   this.headingMap = new TileMap(this.map.width, this.map.height);
   var cursor = Cursor.init();
@@ -64,6 +66,50 @@ Predictor.prototype.reset = function() {
   segment.push(cursor);
   this.segments.push(segment);
   this.stack.push(cursor);
+}
+
+Predictor.prototype.postCheck = function() {
+  // Merge candidates if possible
+  while(this.mergeCandidates.length) {
+    var candidate = this.mergeCandidates.shift();
+    // Continue if cannot merge
+    if(!candidate.merge) continue;
+    var segment = this.segments[candidate.segment];
+    while(candidate.otherwiseSet.length) {
+      var target = candidate.otherwiseSet.shift();
+      var targetSeg = this.segments[target.segment];
+      // Set 'previous' direction
+      var direction = candidate.direction;
+      var preDir = Direction.convertToBits(-direction.x, -direction.y);
+      // We have to process target...
+      if(targetSeg.length == 0) {
+        targetSeg.push(target);
+      }
+      // Exit if targetSeg is segment
+      if(segment == targetSeg) continue;
+      // Pop segment
+      while(targetSeg.length) {
+        var cursor = targetSeg.shift();
+        // Reset segment and id if candidate's segment is lower
+        if(candidate.segment < cursor.segment) {
+          cursor.segment = candidate.segment;
+          cursor.id = segment.length;
+          segment.push(cursor);
+        }
+        // Go back, and redraw
+        Direction.process({
+          x: cursor.x - cursor.direction.x,
+          y: cursor.y - cursor.direction.y
+          }, this.map, cursor.direction, preDir, this.updated,
+          cursor.segment);
+        // Set 'previous' direction
+        direction = cursor.direction;
+        preDir = Direction.convertToBits(-direction.x, -direction.y);
+      }
+    }
+    // Mark it as cannot merge as it has already processed
+    candidate.merge = false;
+  }
 }
 
 Predictor.prototype.next = function() {
@@ -123,14 +169,25 @@ Predictor.prototype.next = function() {
           oldCursor.otherwise = newCursor;
           this.processCursor(newCursor, segment, tile, headingTile,
             stop, true, preDir);
-          console.log(newCursor);
         }
+        // It can't be mergeable since original path has not stopped
+        oldCursor.merge = false;
+        cursor.merge = false;
       } else {
         // Underflow has occurred; Go to opposite direction.
         direction.x = -direction.x;
         direction.y = -direction.y;
         // For consistency, this should create a new segment;
+        // But it can probably be merged.
         newSegment = true;
+        // Saving this for good measure
+        if(!oldCursor.seek) {
+          if(!oldCursor.otherwiseSet) {
+            oldCursor.otherwiseSet = [];
+            this.mergeCandidates.push(oldCursor);
+          }
+          oldCursor.otherwiseSet.push(cursor);
+        }
       }
     }
   }
@@ -148,6 +205,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
   var before;
   if (headingTile[directionBits]) {
     before = headingTile[directionBits];
+    if(!cursor.merge) before.merge = false;
     before.visit ++;
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {

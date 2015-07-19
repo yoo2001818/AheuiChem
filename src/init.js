@@ -44,6 +44,7 @@ function repredict(initial) {
   for (var i = 0; i < predictQuota; ++i) {
     if (!predictor.next()) break;
   }
+  predictor.postCheck();
   if (!initial && renderer) renderer.redraw();
 }
 

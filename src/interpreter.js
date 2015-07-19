@@ -240,7 +240,7 @@ Interpreter.prototype.next = function() {
     direction.y *= -1;
   }
   Direction.process(this.state, this.map, direction, preDir, this.updated,
-    0);
+    -1);
   return this.state.running;
 };
 
