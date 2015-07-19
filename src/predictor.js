@@ -248,7 +248,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
       headingTile[directionBits] = cursor;
     }
     // Push current cursor to stack.
-    this.stack.unshift(cursor);
+    this.stack.push(cursor);
   }
   // Since this is the copy of original object, we can safely modify it.
   // This communicates with the 'old' data protocol, for now.
