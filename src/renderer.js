@@ -62,7 +62,8 @@ var commandMap = {
   'select': [3, 2],
   'move': [0, 3],
   'compare': [1, 3],
-  'condition': [2, 3]
+  'condition': [2, 3],
+  'breakpoint': [3, 3]
 };
 
 // http://stackoverflow.com/a/3368118/3317669
@@ -203,15 +204,23 @@ Renderer.prototype.updateTile = function(x, y) {
         100, 100, 0, 0, this.width, this.width);
     }
 
-    if (cacheTile.command != tile.command || cacheTile.data != tile.data) {
+    if (cacheTile.command != tile.command || cacheTile.data != tile.data
+      || cacheTile.breakpoint != tile.breakpoint) {
       cacheTile.command = tile.command;
       cacheTile.data = tile.data;
+      cacheTile.breakpoint = tile.breakpoint;
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
       commandCtx.clearRect(0, 0, this.width, this.width);
       commandCtx.drawImage(this.sprites.get('command'),
         commandPos[0] * 100, commandPos[1] * 100,
         100, 100, 0, 0, this.width, this.width);
+      if (tile.breakpoint) {
+        commandPos = commandMap['breakpoint'];
+        commandCtx.drawImage(this.sprites.get('command'),
+          commandPos[0] * 100, commandPos[1] * 100,
+          100, 100, 0, 0, this.width, this.width);
+      }
       if (tile.data != null) {
         var text = '';
         if (tile.command == 'push') text = tile.data;

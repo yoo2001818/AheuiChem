@@ -233,6 +233,7 @@ Interpreter.prototype.next = function() {
       }
     }
   }
+  this.state.breakpoint = tile.breakpoint;
   // Just stop
   if (!this.state.running) return false;
   if (error) {
