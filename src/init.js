@@ -46,6 +46,7 @@ function repredict(initial) {
   }
   predictor.postCheck();
   if (!initial && renderer) renderer.redraw();
+  window.predictor = predictor;
 }
 
 function reset(initial) {

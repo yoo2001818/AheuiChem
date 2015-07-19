@@ -81,31 +81,39 @@ Predictor.prototype.postCheck = function() {
       // Set 'previous' direction
       var direction = candidate.direction;
       var preDir = Direction.convertToBits(-direction.x, -direction.y);
+      // Process only if candidate's segment is lower
+      if(candidate.segment >= target.segment) continue;
       // We have to process target...
       if(targetSeg.length == 0) {
         targetSeg.push(target);
       }
-      // Exit if targetSeg is segment
-      if(segment == targetSeg) continue;
       // Pop segment
+      var cursor;
       while(targetSeg.length) {
-        var cursor = targetSeg.shift();
-        // Reset segment and id if candidate's segment is lower
-        if(candidate.segment < cursor.segment) {
-          cursor.segment = candidate.segment;
-          cursor.id = segment.length;
-          segment.push(cursor);
-        }
+        cursor = targetSeg.shift();
+        // Reset segment and id 
+        cursor.segment = candidate.segment;
+        cursor.id = segment.length;
+        segment.push(cursor);
         // Go back, and redraw
-        Direction.process({
-          x: cursor.x - cursor.direction.x,
-          y: cursor.y - cursor.direction.y
-          }, this.map, cursor.direction, preDir, this.updated,
-          cursor.segment);
+        if(cursor.before) {
+          Direction.process({
+            x: cursor.before.x,
+            y: cursor.before.y
+            }, this.map, cursor.direction, preDir, this.updated,
+            cursor.segment);
+        }
         // Set 'previous' direction
         direction = cursor.direction;
         preDir = Direction.convertToBits(-direction.x, -direction.y);
       }
+    }
+    if(cursor.then) {
+      Direction.process({
+        x: cursor.x,
+        y: cursor.y
+        }, this.map, cursor.then.direction, preDir, this.updated,
+        cursor.segment);
     }
     // Mark it as cannot merge as it has already processed
     candidate.merge = false;
@@ -117,6 +125,7 @@ Predictor.prototype.next = function() {
   // Store previous cursor.. I doubt it'll be used actually.
   var oldCursor = this.stack.pop();
   var cursor = new Cursor(oldCursor);
+  cursor.before = oldCursor;
   if(!cursor.seek) oldCursor.then = cursor;
   // Fetch current segment
   var segment = this.segments[cursor.segment];
@@ -172,7 +181,6 @@ Predictor.prototype.next = function() {
         }
         // It can't be mergeable since original path has not stopped
         oldCursor.merge = false;
-        cursor.merge = false;
       } else {
         // Underflow has occurred; Go to opposite direction.
         direction.x = -direction.x;
@@ -205,7 +213,6 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
   var before;
   if (headingTile[directionBits]) {
     before = headingTile[directionBits];
-    if(!cursor.merge) before.merge = false;
     before.visit ++;
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
