@@ -40,7 +40,10 @@ var segmentMap = [
   [0, 1],
   [1, 1],
   [0, 2],
-  [1, 2]
+  [1, 2],
+  [2, 0],
+  [2, 1],
+  [2, 2]
 ];
 
 var commandMap = {
@@ -182,7 +185,7 @@ Renderer.prototype.updateTile = function(x, y) {
         var paths = tile.directions[id];
         if(paths == null) continue;
         paths.forEach(function(direction) {
-          var segment = segmentMap[id % 6];
+          var segment = segmentMap[id % segmentMap.length];
           var pathPos = pathMap[direction];
           var pathImg = this.sprites.get('path');
           this.canvases.get('path').drawImage(pathImg, 
