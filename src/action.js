@@ -24,8 +24,8 @@ TileAction.prototype.undo = function() {
 
 TileAction.prototype.update = function() {
   // Fill the data with 0 if it's required and null.
-  if(Interpreter.CommandMap[this.tile.command].argument &&
-    this.tile.data == null) {
+  var command = Interpreter.CommandMap[this.tile.command];
+  if(command != null && command.argument && this.tile.data == null) {
     this.tile.data = 0;
   }
   this.tile.original = parser.encodeSyllable(this.tile);
