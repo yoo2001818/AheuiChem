@@ -131,8 +131,8 @@ function calculate(current, target) {
 
 function move(pos, dir, size) {
   pos += dir;
-  if (pos < 0) pos = size + pos;
-  if (pos >= size) pos = pos - size;
+  if (pos < 0) pos = Math.max(0, size + pos);
+  if (pos >= size) pos = Math.min(size - 1, pos - size);
   return pos;
 }
 
