@@ -73,13 +73,7 @@ ContextMenu.prototype.update = function() {
 
 ContextMenu.prototype.init = function() {
   var self = this;
-  // TODO should support generating tilemap from an array
-  var tilemap = new TileMap(5, 2);
-  for(var y = 0; y < tilemap.height; ++y) {
-    for(var x = 0; x < tilemap.width; ++x) {
-      tilemap.set(x, y, PushKeyBinding[y][x]);
-    }
-  }
+  var tilemap = TileMap.fromArray(PushKeyBinding);
   // TODO no getElementById in class
   // This is exactly same situation as toolbox
   var viewport = document.getElementById('push-table');
@@ -100,12 +94,7 @@ ContextMenu.prototype.init = function() {
       self.update();
     });
   });
-  var tilemap = new TileMap(10, 3);
-  for(var y = 0; y < tilemap.height; ++y) {
-    for(var x = 0; x < tilemap.width; ++x) {
-      tilemap.set(x, y, FinalKeyBinding[y][x]);
-    }
-  }
+  var tilemap = TileMap.fromArray(FinalKeyBinding);
   // ... No Ctrl+C, Ctrl+V Please?
   var viewport = document.getElementById('final-table');
   var pushTable = new Table(viewport, tilemap, function(node, tile, x, y) {
@@ -125,12 +114,7 @@ ContextMenu.prototype.init = function() {
       self.update();
     });
   });
-  var tilemap = new TileMap(10, 1);
-  for(var y = 0; y < tilemap.height; ++y) {
-    for(var x = 0; x < tilemap.width; ++x) {
-      tilemap.set(x, y, UtilityKeyBinding[y][x]);
-    }
-  }
+  var tilemap = TileMap.fromArray(UtilityKeyBinding);
   var viewport = document.getElementById('utility-table');
   var utilityTable = new Table(viewport, tilemap, function(node, tile, x, y) {
     if(tile == null) {

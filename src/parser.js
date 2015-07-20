@@ -136,7 +136,6 @@ function encodeSyllable(data) {
   var initial = getRandomChar(CommandReverseMap[data.command]);
   var medial = getRandomChar(DirectionReverseMap[data.direction]);
   var final = ' ';
-  // TODO randomize outputs
   if (data.command == 'push-number') {
     initial = 'ㅂ';
     final = 'ㅇ';

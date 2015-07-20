@@ -15,8 +15,8 @@ function ToolBox(renderer) {
 
 ToolBox.prototype.generateTable = function() {
   var self = this;
-  // TODO no hardcoding
-  var tilemap = new TileMap(11, 3);
+  var tilemap = new TileMap(Keyboard.KeyShiftLayout[0].length,
+    Keyboard.KeyShiftLayout.length);
   for(var y = 0; y < tilemap.height; ++y) {
     for(var x = 0; x < tilemap.width; ++x) {
       var key = Keyboard.KeyShiftLayout[y][x];

@@ -49,4 +49,15 @@ TileMap.prototype.set = function(x, y, data) {
   this.map[y][x] = data;
 };
 
+TileMap.fromArray = function(arr) {
+  var tileMap = new TileMap(0, arr.length);
+  for(var y = 0; y < arr.length; ++y) {
+    tileMap.expand(arr[y].length, 0);
+    for(var x = 0; x < arr[y].length; ++x) {
+      tileMap.set(x, y, arr[y][x]);
+    }
+  }
+  return tileMap;
+}
+
 module.exports = TileMap;
