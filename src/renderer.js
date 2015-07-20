@@ -3,7 +3,6 @@ var CanvasLayer = require('./canvaslayer');
 var Hangul = require('./hangul');
 var SpriteLoader = require('./spriteloader');
 
-// TODO is Array good method to do this?
 var arrowMap = {
   up: [2, 0],
   left: [2, 1],

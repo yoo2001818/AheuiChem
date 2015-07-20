@@ -126,7 +126,6 @@ window.onload = function() {
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);
-    // TODO implement input
     return false;
   };
   document.getElementById('codeForm-export').onclick = function() {

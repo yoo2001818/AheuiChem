@@ -38,8 +38,6 @@ ToolBox.prototype.generateTable = function() {
     node.className = tile.value[0];
     node.appendChild(document.createTextNode(tile.key));
     node.addEventListener('click', function() {
-      // TODO Not sure if it's good idea to abuse closures
-      // Though I don't think this is abusing.
       self.changeSelected.apply(self, tile.value);
     });
   });

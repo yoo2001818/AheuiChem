@@ -20,7 +20,6 @@ Viewport.prototype.hookEvents = function() {
 }
 
 Viewport.prototype.handleMouseClick = function(e) {
-  // TODO it could be better.
   // http://stackoverflow.com/a/5932203
   var totalOffsetX = 0;
   var totalOffsetY = 0;
