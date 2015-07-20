@@ -3,6 +3,8 @@ var CanvasLayer = require('./canvaslayer');
 var Hangul = require('./hangul');
 var SpriteLoader = require('./spriteloader');
 
+var SPRITE_SIZE = 100;
+
 var arrowMap = {
   up: [2, 0],
   left: [2, 1],
@@ -173,8 +175,6 @@ Renderer.prototype.updateTile = function(x, y) {
       textCtx.fillText(tile.original, this.width / 2, this.width / 2);
     }
 
-    // TODO should not use hard coding for image sizes
-
     if (tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
@@ -186,9 +186,9 @@ Renderer.prototype.updateTile = function(x, y) {
           var pathPos = pathMap[direction];
           var pathImg = this.sprites.get('path');
           this.canvases.get('path').drawImage(pathImg, 
-            (segment[0] * 4 + pathPos[0]) * 100, 
-            (segment[1] * 3 + pathPos[1]) * 100,
-            100, 100, 0, 0, this.width, this.width);
+            (segment[0] * 4 + pathPos[0]) * SPRITE_SIZE, 
+            (segment[1] * 3 + pathPos[1]) * SPRITE_SIZE,
+            SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
         }, this);
       }
     }
@@ -199,8 +199,8 @@ Renderer.prototype.updateTile = function(x, y) {
       arrowCtx.clearRect(0, 0, this.width, this.width);
       var arrowPos = arrowMap[tile.direction];
       arrowCtx.drawImage(this.sprites.get('arrow'),
-        arrowPos[0] * 100, arrowPos[1] * 100,
-        100, 100, 0, 0, this.width, this.width);
+        arrowPos[0] * SPRITE_SIZE, arrowPos[1] * SPRITE_SIZE,
+        SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
     }
 
     if (cacheTile.command != tile.command || cacheTile.data != tile.data
@@ -212,13 +212,13 @@ Renderer.prototype.updateTile = function(x, y) {
       var commandPos = commandMap[tile.command];
       commandCtx.clearRect(0, 0, this.width, this.width);
       commandCtx.drawImage(this.sprites.get('command'),
-        commandPos[0] * 100, commandPos[1] * 100,
-        100, 100, 0, 0, this.width, this.width);
+        commandPos[0] * SPRITE_SIZE, commandPos[1] * SPRITE_SIZE,
+        SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
       if (tile.breakpoint) {
         commandPos = commandMap['breakpoint'];
         commandCtx.drawImage(this.sprites.get('command'),
-          commandPos[0] * 100, commandPos[1] * 100,
-          100, 100, 0, 0, this.width, this.width);
+          commandPos[0] * SPRITE_SIZE, commandPos[1] * SPRITE_SIZE,
+          SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
       }
       if (tile.data != null) {
         var text = '';
