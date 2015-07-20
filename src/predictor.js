@@ -91,7 +91,7 @@ Predictor.prototype.postCheck = function() {
       var cursor;
       while(targetSeg.length) {
         cursor = targetSeg.shift();
-        // Reset segment and id 
+        // Reset segment and id
         cursor.segment = candidate.segment;
         cursor.id = segment.length;
         segment.push(cursor);
@@ -218,7 +218,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
       // Maximum memory space
-      if(diff <= 0 && value >= 16) cursor.memory[key] = 16;
+      if(diff <= 0 && value >= 8) cursor.memory[key] = 8;
       // Check 16 times, then just check if it has less data.
       if(before.visit > 16) return diff <= 0;
       else return diff == 0;
