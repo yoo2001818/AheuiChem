@@ -85,9 +85,9 @@ var LineMap = {
 var LineReverseMap = {};
 Object.keys(LineMap).forEach(function(k) {
   if(LineReverseMap[LineMap[k]] == null) {
-    LineReverseMap[LineMap[k]] = [];
+    LineReverseMap[LineMap[k]] = '';
   }
-  LineReverseMap[LineMap[k]].push(k);
+  LineReverseMap[LineMap[k]] += k;
 });
 
 function isHangul(code) {
