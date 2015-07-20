@@ -58,6 +58,7 @@ function reset(initial) {
   // supply input
   interpreter.push(document.getElementById('codeForm-input').value);
   playback.running = false;
+  document.activeElement.blur();
 }
 
 function initialize() {
@@ -95,6 +96,9 @@ function initialize() {
       // I prefer Ctrl+Shift+Z though.
       y: function() {
         undomachine.redo();
+      },
+      ' ': function() {
+        playback.running = !playback.running;
       }
     },
     callback: function(mapping) {
