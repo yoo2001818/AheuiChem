@@ -18,7 +18,7 @@ var DirectionMap = {
   'ㅣ': 'vertical',
   // Reverse direction
   'ㅢ': 'reverse',
-  'ㅐ': 'none'
+  'ㅐㅔㅒㅖㅘㅙㅚㅝㅞㅟ': 'none'
 };
 
 var DirectionReverseMap = {};
@@ -28,7 +28,7 @@ Object.keys(DirectionMap).forEach(function(k) {
 
 var CommandMap = {
   // ㅇ 묶음
-  'ㅇ': 'none',
+  'ㅇㄱㄲㅉㅋ': 'none',
   'ㅎ': 'end',
   // ㄷ 묶음 - 셈
   'ㄷ': 'add',
@@ -84,7 +84,10 @@ var LineMap = {
 
 var LineReverseMap = {};
 Object.keys(LineMap).forEach(function(k) {
-  LineReverseMap[LineMap[k]] = k;
+  if(LineReverseMap[LineMap[k]] == null) {
+    LineReverseMap[LineMap[k]] = [];
+  }
+  LineReverseMap[LineMap[k]].push(k);
 });
 
 function isHangul(code) {
@@ -130,8 +133,8 @@ function parseSyllable(char) {
 }
 
 function encodeSyllable(data) {
-  var initial = CommandReverseMap[data.command];
-  var medial = DirectionReverseMap[data.direction];
+  var initial = getRandomChar(CommandReverseMap[data.command]);
+  var medial = getRandomChar(DirectionReverseMap[data.direction]);
   var final = ' ';
   // TODO randomize outputs
   if (data.command == 'push-number') {
@@ -141,7 +144,7 @@ function encodeSyllable(data) {
     initial = 'ㅂ';
     final = 'ㅎ';
   } else if (data.command == 'push') {
-    final = LineReverseMap[data.data || 0];
+    final = getRandomChar(LineReverseMap[data.data || 0]);
   } else if (data.command == 'pop-number') {
     initial = 'ㅁ';
     final = 'ㅇ';
@@ -149,7 +152,7 @@ function encodeSyllable(data) {
     initial = 'ㅁ';
     final = 'ㅎ';
   } else if (data.command == 'select' || data.command == 'move') {
-    final = Hangul.final[data.data || 0];
+    final = getRandomChar(Hangul.final[data.data || 0]);
   }
   var initialCode = Hangul.initial.indexOf(initial);
   var medialCode = Hangul.medial.indexOf(medial);
@@ -172,6 +175,10 @@ function encode(map) {
     code += '\n';
   }
   return code.slice(0, -1);
+}
+
+function getRandomChar(n) {
+  return n.charAt(n.length * Math.random() | 0);
 }
 
 function parse(data) {
