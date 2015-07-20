@@ -1,4 +1,47 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var parser = require('./parser');
+var Interpreter = require('./interpreter');
+
+function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
+  this.tile = tile;
+  this.key = key;
+  this.data = data;
+  this.tileX = tileX;
+  this.tileY = tileY;
+  this.renderer = renderer;
+  this.callback = callback;
+}
+
+TileAction.prototype.exec = function() {
+  this.before = this.tile[this.key];
+  this.tile[this.key] = this.data;
+  this.update();
+}
+
+TileAction.prototype.undo = function() {
+  this.tile[this.key] = this.before;
+  this.update();
+}
+
+TileAction.prototype.update = function() {
+  // Fill the data with 0 if it's required and null.
+  var command = Interpreter.CommandMap[this.tile.command];
+  if(command != null && command.argument && this.tile.data == null) {
+    this.tile.data = 0;
+  }
+  if(this.tile.command == 'push' && this.tile.data > 9) {
+    // Force set data to 0 as it can't handle larger than 9
+    this.tile.data = 0;
+  }
+  this.tile.original = parser.encodeSyllable(this.tile);
+  this.renderer.map.set(this.tileX, this.tileY, this.tile);
+  this.renderer.updateTile(this.tileX, this.tileY);
+  if(this.callback) this.callback();
+}
+
+module.exports = TileAction;
+
+},{"./interpreter":7,"./parser":11}],2:[function(require,module,exports){
 function CanvasLayer(viewport, layerNames, width, height) {
   this.layers = [];
   this.layersByName = {};
@@ -65,76 +108,193 @@ CanvasLayer.prototype.dump = function(targetCanvas) {
 
 module.exports = CanvasLayer;
 
-},{}],2:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 var Table = require('./table');
 var TileMap = require('./tilemap');
+var Keyboard = require('./keyboard');
+var Hangul = require('./hangul');
 var parser = require('./parser');
+var TileAction = require('./action');
+
+var UtilityKeyBinding = [
+  [
+    {
+      name: "복사",
+      exec: function() {
+      }
+    },
+    {
+      name: "자르기",
+      exec: function() {
+      }
+    },
+    {
+      name: "붙이기",
+      exec: function() {
+      }
+    },
+    {
+      name: "중단점",
+      exec: function() {
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          'breakpoint', !this.tile.breakpoint, this.renderer));
+      }
+    }
+  ]
+];
 
 var PushKeyBinding = [
   [0, 2, 3, 4, 5],
-  [6, 7, 8, 9, -1]
+  [6, 7, 8, 9]
 ];
 
-/*
- ㄱㄴㄷㄹㄲㄳㄵㄶ
-ㅁㅂㅅㅇㅈㄺㄻㄼㄽ
-ㅊㅋㅌㅍㅎㄾㄿㅀㅄㅆ
-*/
 var FinalKeyBinding = [
+  ' ㄱㄴㄷㄹㄲㄳㄵㄶ'.split(''),
+  'ㅁㅂㅅㅇㅈㄺㄻㄼㄽ'.split(''),
+  'ㅊㅋㅌㅍㅎㄾㄿㅀㅄㅆ'.split('')
 ];
 
-function ContextMenu(container, element, renderer, clickCallback) {
+// Generate keymap from table
+var UtilityBindingMap = Keyboard.createKeyMap(UtilityKeyBinding,
+  Keyboard.KeyNumberLayout);
+var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
+var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
+
+function ContextMenu(container, element, pushElement, finalElement, 
+  renderer, clickCallback,
+  keyboard, undomachine) {
   this.container = container;
   this.element = element;
+  this.pushElement = pushElement;
+  this.finalElement = finalElement;
   this.hideEvent = this.hide.bind(this);
   this.init();
   this.renderer = renderer;
   this.clickCallback = clickCallback;
+  this.keyboard = keyboard;
+  this.undomachine = undomachine;
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
 }
 
 ContextMenu.prototype.update = function() {
-  this.tile.original = parser.encodeSyllable(this.tile);
-  this.renderer.map.set(this.tileX, this.tileY, this.tile);
-  this.renderer.updateTile(this.tileX, this.tileY);
   if(this.clickCallback) this.clickCallback(this.tileX, this.tileY, this.tile);
 }
 
 ContextMenu.prototype.init = function() {
   var self = this;
-  // TODO should support generating tilemap from an array
-  var tilemap = new TileMap(5, 2);
-  for(var y = 0; y < tilemap.height; ++y) {
-    for(var x = 0; x < tilemap.width; ++x) {
-      tilemap.set(x, y, PushKeyBinding[y][x]);
-    }
-  }
+  var tilemap = TileMap.fromArray(PushKeyBinding);
   // TODO no getElementById in class
   // This is exactly same situation as toolbox
   var viewport = document.getElementById('push-table');
-  var pushTable = new Table(viewport, tilemap, function(node, tile) {
+  var pushTable = new Table(viewport, tilemap, function(node, tile, x, y) {
     if(tile == null) {
       node.parentNode.removeChild(node);
       return;
     }
     node.id = 'push-table-'+tile;
     node.appendChild(document.createTextNode(tile));
+    var divNode = document.createElement('div');
+    divNode.className = 'key';
+    divNode.appendChild(document.createTextNode(Keyboard.KeyLayout[y][x]));
+    node.appendChild(divNode);
     node.addEventListener('click', function() {
-      self.tile.data = tile;
+      self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+        'data', tile, self.renderer));
+      self.update();
+    });
+  });
+  var tilemap = TileMap.fromArray(FinalKeyBinding);
+  // ... No Ctrl+C, Ctrl+V Please?
+  var viewport = document.getElementById('final-table');
+  var pushTable = new Table(viewport, tilemap, function(node, tile, x, y) {
+    if(tile == null) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.id = 'final-table-'+tile;
+    node.appendChild(document.createTextNode(tile));
+    var divNode = document.createElement('div');
+    divNode.className = 'key';
+    divNode.appendChild(document.createTextNode(Keyboard.KeyShiftLayout[y][x]));
+    node.appendChild(divNode);
+    node.addEventListener('click', function() {
+      self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+        'data', Hangul.final.indexOf(tile), self.renderer));
+      self.update();
+    });
+  });
+  var tilemap = TileMap.fromArray(UtilityKeyBinding);
+  var viewport = document.getElementById('utility-table');
+  var utilityTable = new Table(viewport, tilemap, function(node, tile, x, y) {
+    if(tile == null) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.id = 'utility-table-'+tile;
+    node.appendChild(document.createTextNode(tile.name));
+    var divNode = document.createElement('div');
+    divNode.className = 'key';
+    divNode.appendChild(document.createTextNode(Keyboard.KeyNumberLayout[y][x]));
+    node.appendChild(divNode);
+    node.addEventListener('click', function() {
+      tile.exec.call(self);
       self.update();
     });
   });
 }
 
 ContextMenu.prototype.show = function(x, y) {
+  var self = this;
   this.container.style.display = 'block';
   this.container.addEventListener('click', this.hideEvent);
   this.container.addEventListener('contextmenu', this.hideEvent);
   this.element.style.display = 'block';
-  this.element.style.top = y+'px';
-  this.element.style.left = x+'px';
+  setTimeout(function() {
+    self.element.style.top = y+'px';
+    self.element.style.left = Math.max(0, x-self.element.offsetWidth/2+
+      self.renderer.width/2)+'px';
+  }, 0);
+  var self = this;
+  // Prevent going more
+  this.keyboard.push(null);
+  this.keyboard.push({
+    map: UtilityBindingMap,
+    callback: function(data) {
+      data.exec.call(self);
+      self.update();
+      self.hide();
+    }
+  });
+  // TODO it could be better really.
+  if(this.tile.command == 'push') {
+    this.finalElement.style.display = 'none';
+    this.pushElement.style.display = 'block';
+    // Push keyboard state
+    this.keyboard.push({
+      map: PushKeyBindingMap,
+      callback: function(data) {
+        self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+          'data', data, self.renderer));
+        self.update();
+        self.hide();
+      }
+    });
+  } else {
+    this.finalElement.style.display = 'block';
+    this.pushElement.style.display = 'none';
+    // Push keyboard state
+    this.keyboard.push({
+      map: FinalKeyBindingMap,
+      callback: function(data) {
+        self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
+          'data', Hangul.final.indexOf(data), self.renderer));
+        self.update();
+        self.hide();
+      }
+    });
+  }
 }
 
 ContextMenu.prototype.hide = function(e) {
@@ -142,6 +302,9 @@ ContextMenu.prototype.hide = function(e) {
   this.container.removeEventListener('contextmenu', this.hideEvent);
   this.container.style.display = 'none';
   this.element.style.display = 'none';
+  this.keyboard.pop();
+  this.keyboard.pop();
+  this.keyboard.pop();
   if(e) {
     e.preventDefault();
     return false;
@@ -150,7 +313,7 @@ ContextMenu.prototype.hide = function(e) {
 
 module.exports = ContextMenu;
 
-},{"./parser":10,"./table":15,"./tilemap":16}],3:[function(require,module,exports){
+},{"./action":1,"./hangul":5,"./keyboard":8,"./parser":11,"./table":17,"./tilemap":18}],4:[function(require,module,exports){
 // 1000 : keep direction
 // -1000 : reverse direction
 
@@ -209,6 +372,11 @@ var UP = 1;
 var DOWN = 2;
 var LEFT = 4;
 var RIGHT = 8;
+// Added to handle predictor appropriately
+var SKIP_UP = 16;
+var SKIP_DOWN = 32;
+var SKIP_LEFT = 64;
+var SKIP_RIGHT = 128;
 
 var DirectionBitMap = {
   'up': UP,
@@ -220,7 +388,12 @@ var DirectionBitMap = {
   'up-left': UP | LEFT,
   'down-left': DOWN | LEFT,
   'up-right': UP | RIGHT,
-  'down-right': DOWN | RIGHT
+  'down-right': DOWN | RIGHT,
+  // Added to handle predictor appropriately
+  'skip-up': SKIP_UP,
+  'skip-down': SKIP_DOWN,
+  'skip-left': SKIP_LEFT,
+  'skip-right': SKIP_RIGHT
 };
 
 var DirectionBitRevMap = {};
@@ -228,7 +401,7 @@ Object.keys(DirectionBitMap).forEach(function(k) {
   DirectionBitRevMap[DirectionBitMap[k]] = k;
 });
 
-function process(pos, map, direction, preDir, updated, segment, unlikely) {
+function process(pos, map, direction, preDir, updated, segment) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
   if (isSkipping(direction.x, direction.y)) {
@@ -240,9 +413,9 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
       y: skipY
     });
     if (direction.x) {
-      write(skipTile, 'skip-horizontal', segment, unlikely);
+      write(skipTile, 'skip-horizontal', segment);
     } else {
-      write(skipTile, 'skip-vertical', segment, unlikely);
+      write(skipTile, 'skip-vertical', segment);
     }
   }
   // Move to tile
@@ -251,7 +424,7 @@ function process(pos, map, direction, preDir, updated, segment, unlikely) {
     y: pos.y
   });
   var bitDir = preDir | convertToBits(direction.x, direction.y);
-  write(tile, DirectionBitRevMap[bitDir], segment, unlikely);
+  write(tile, DirectionBitRevMap[bitDir], segment);
   pos.x = move(pos.x, direction.x, map.width);
   pos.y = move(pos.y, direction.y, map.height);
 }
@@ -279,8 +452,12 @@ function move(pos, dir, size) {
   return pos;
 }
 
-function convertToBits(x, y) {
+function convertToBits(x, y, honorSkips) {
   var val = 0;
+  if(honorSkips && y == -2) return SKIP_UP;
+  if(honorSkips && y == 2) return SKIP_DOWN;
+  if(honorSkips && x == -2) return SKIP_LEFT;
+  if(honorSkips && x == 2) return SKIP_RIGHT;
   if (y <= -1) val |= UP;
   if (y >= 1) val |= DOWN;
   if (x <= -1) val |= LEFT;
@@ -288,16 +465,18 @@ function convertToBits(x, y) {
   return val;
 }
 
-function write(tile, direction, segment, unlikely) {
+function write(tile, direction, segment) {
+  // Ignore if it's -1
+  if (segment == -1) return;
   if (tile == null) return;
   if (tile.directions == null) {
-    tile.directions = {};
+    tile.directions = [];
   }
-  if (tile.directions[direction] == null) {
-    tile.directions[direction] = {
-      segment: segment,
-      unlikely: unlikely
-    };
+  if (tile.directions[segment] == null) {
+    tile.directions[segment] = [];
+  }
+  if (tile.directions[segment].indexOf(direction) == -1) {
+    tile.directions[segment].push(direction);
   }
 }
 
@@ -312,7 +491,7 @@ module.exports = {
   write: write
 };
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var Hangul = {
   initial: 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split(''),
   medial: 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ'.split(''),
@@ -322,7 +501,7 @@ var Hangul = {
 
 module.exports = Hangul;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Entry point of the application
 
 var parser = require('./parser');
@@ -334,6 +513,8 @@ var ToolBox = require('./toolbox');
 var Viewport = require('./viewport');
 var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
+var Keyboard = require('./keyboard');
+var UndoMachine = require('./undomachine');
 
 var interpreter;
 var renderer;
@@ -343,6 +524,8 @@ var toolbox;
 var viewport;
 var contextmenu;
 var playback;
+var keyboard;
+var undomachine;
 var initialized = false;
 
 function repredict(initial) {
@@ -353,19 +536,21 @@ function repredict(initial) {
         var tile = interpreter.map.get(x, y);
         var cacheTile = renderer.cacheMap.get(x, y);
         if (tile) {
-          tile.directions = {};
+          tile.directions = [];
           tile.segments = {};
           cacheTile.directions = {};
         }
       }
     }
   }
-  var predictQuota = interpreter.map.width * interpreter.map.height * 2;
+  var predictQuota = interpreter.map.width * interpreter.map.height * 30;
   predictor = new Predictor(interpreter.map);
   for (var i = 0; i < predictQuota; ++i) {
     if (!predictor.next()) break;
   }
+  predictor.postCheck();
   if (!initial && renderer) renderer.redraw();
+  window.predictor = predictor;
 }
 
 function reset(initial) {
@@ -374,7 +559,10 @@ function reset(initial) {
     renderer.reset();
   }
   document.getElementById('codeForm-output').value = '';
+  // supply input
+  interpreter.push(document.getElementById('codeForm-input').value);
   playback.running = false;
+  document.activeElement.blur();
 }
 
 function initialize() {
@@ -386,19 +574,50 @@ function initialize() {
     playback.interpreter = interpreter;
     return;
   }
+  undomachine = new UndoMachine();
   playback = new Playback(interpreter, renderer, function() {
     document.getElementById('codeForm-output').value += interpreter.shift();
     document.getElementById('codeForm-debug').value = monitor.getStatus();
   }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
-    document.getElementById('context-push'), renderer);
+    document.getElementById('context'),
+    document.getElementById('context-push'),
+    document.getElementById('context-final'), renderer);
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
-    renderer, contextmenu);
+    renderer, contextmenu, undomachine);
   viewport.checkCallback = function() {
     return !playback.running;
   };
   viewport.clickCallback = repredict.bind(this, false);
+  keyboard = new Keyboard();
+  // Ctrl KeyMapping
+  keyboard.push({
+    map: {
+      z: function() {
+        undomachine.undo();
+      },
+      // I prefer Ctrl+Shift+Z though.
+      y: function() {
+        undomachine.redo();
+      },
+      ' ': function() {
+        playback.running = !playback.running;
+      }
+    },
+    callback: function(mapping) {
+      mapping();
+    }
+  });
+  // Toolbox editor KeyMapping
+  keyboard.push({
+    map: Keyboard.EditorKeyMapping,
+    callback: function(mapping) {
+      toolbox.changeSelected(mapping[0], mapping[1]);
+    }
+  });
+  contextmenu.keyboard = keyboard;
+  contextmenu.undomachine = undomachine;
   initialized = true;
 }
 
@@ -410,10 +629,11 @@ window.onload = function() {
     repredict(true);
     renderer = new Renderer(document.getElementById('canvas'), interpreter);
     initialize();
+    undomachine.reset();
+    window.undomachine = undomachine;
     window.interpreter = interpreter;
     window.predictor = predictor;
     reset(true);
-    // TODO implement input
     return false;
   };
   document.getElementById('codeForm-export').onclick = function() {
@@ -427,7 +647,7 @@ window.onload = function() {
   */
 };
 
-},{"./contextmenu":2,"./interpreter":6,"./monitor":9,"./parser":10,"./playback":11,"./predictor":12,"./renderer":13,"./toolbox":17,"./viewport":18}],6:[function(require,module,exports){
+},{"./contextmenu":3,"./interpreter":7,"./keyboard":8,"./monitor":10,"./parser":11,"./playback":12,"./predictor":13,"./renderer":14,"./toolbox":19,"./undomachine":20,"./viewport":21}],7:[function(require,module,exports){
 var parser = require('./parser');
 var memory = require('./memory');
 var Direction = require('./direction');
@@ -435,6 +655,7 @@ var Direction = require('./direction');
 var CommandMap = {
   'end': {
     data: 0,
+    output: 0,
     exec: function(tile, state, memory) {
       state.running = false;
     }
@@ -456,12 +677,14 @@ var CommandMap = {
   }),
   'pop': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       memory.pull();
     }
   },
   'pop-unicode': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       state.output.push(String.fromCharCode(data));
@@ -469,6 +692,7 @@ var CommandMap = {
   },
   'pop-number': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       state.output = state.output.concat(String(data).split(''));
@@ -476,44 +700,77 @@ var CommandMap = {
   },
   'push': {
     data: 0,
+    output: 1,
+    argument: true,
     exec: function(tile, state, memory) {
       memory.push(tile.data);
     }
   },
   'push-unicode': {
     data: 0,
+    output: 1,
     exec: function(tile, state, memory) {
-      // TODO
-      memory.push(0xAC00);
+      var val = state.input.shift();
+      if(val == null) memory.push(-1);
+      else memory.push(val.charCodeAt(0));
     }
   },
   'push-number': {
     data: 0,
+    output: 1,
     exec: function(tile, state, memory) {
-      // TODO
-      memory.push(123);
+      var buffer = '';
+      while(state.input.length) {
+        var val = state.input[0];
+        if(/[0-9-+]/.test(val)) {
+          // Push number
+          buffer += val;
+          state.input.shift();
+        } else {
+          if(buffer.length > 0) {
+            // End of number; exit
+            break;
+          } else {
+            // Clear buffer
+            buffer = '';
+            state.input.shift();
+          }
+        }
+      }
+      if(buffer.length > 0) {
+        var value = parseInt(buffer);
+        memory.push(value);
+      } else {
+        memory.push(-1);
+      }
     }
   },
   'copy': {
     data: 1,
+    output: 2,
     exec: function(tile, state, memory) {
       memory.copy();
     }
   },
   'flip': {
     data: 2,
+    output: 2,
     exec: function(tile, state, memory) {
       memory.flip();
     }
   },
   'select': {
     data: 0,
+    output: 0, // This requires some special handling
+    argument: true,
     exec: function(tile, state, memory) {
       state.selected = tile.data;
     }
   },
   'move': {
     data: 1,
+    output: 0, // This also requires some special handling
+    argument: true,
     exec: function(tile, state, memory) {
       var target = state.memory[tile.data];
       var data = memory.pull();
@@ -522,6 +779,7 @@ var CommandMap = {
   },
   'compare': {
     data: 2,
+    output: 1,
     exec: function(tile, state, memory) {
       var a = memory.pull();
       var b = memory.pull();
@@ -530,6 +788,7 @@ var CommandMap = {
   },
   'condition': {
     data: 1,
+    output: 0,
     exec: function(tile, state, memory) {
       var data = memory.pull();
       if (data === 0) return true;
@@ -540,6 +799,7 @@ var CommandMap = {
 function buildCalcCommand(callback) {
   return {
     data: 2,
+    output: 1,
     exec: function(tile, state, memory) {
       var a = memory.pull();
       var b = memory.pull();
@@ -558,7 +818,7 @@ function Interpreter(code) {
 }
 
 Interpreter.prototype.push = function(data) {
-
+  this.state.input = this.state.input.concat(data.split(''));
 };
 
 Interpreter.prototype.shift = function() {
@@ -630,13 +890,23 @@ Interpreter.prototype.next = function() {
     direction.y *= -1;
   }
   Direction.process(this.state, this.map, direction, preDir, this.updated,
-    0);
+    -1);
+  var newTile = this.map.get(this.state.x, this.state.y);
+  this.state.breakpoint = newTile.breakpoint;
   return this.state.running;
 };
 
+Interpreter.CommandMap = CommandMap;
+
 module.exports = Interpreter;
 
-},{"./direction":3,"./memory":8,"./parser":10}],7:[function(require,module,exports){
+},{"./direction":4,"./memory":9,"./parser":11}],8:[function(require,module,exports){
+var KeyNumberLayout = [
+  '1234567890'
+].map(function(v) {
+  return v.split('');
+});
+
 var KeyLayout = [
   'qwert', 'asdfg', 'zxcvb'
 ].map(function(v) {
@@ -649,7 +919,7 @@ var KeyShiftLayout = [
   return v.split('');
 });
 
-var KeyMapping = {
+var EditorKeyMapping = {
   'q': ['arrow', 'none'],
   'w': ['arrow', 'up'],
   'e': ['command', 'none'],
@@ -683,29 +953,61 @@ var KeyMapping = {
   'N': ['command', 'push-number']
 };
 
-function Keyboard(toolbox) {
-  this.toolbox = toolbox;
+function Keyboard() {
+  this.stack = [];
   this.registerEvents();
+}
+
+Keyboard.prototype.push = function(entry) {
+  this.stack.push(entry);
+}
+
+Keyboard.prototype.pop = function() {
+  return this.stack.pop();
 }
 
 Keyboard.prototype.registerEvents = function() {
   var self = this;
   document.addEventListener('keypress', function(e) {
     var keyPressed = e.key || String.fromCharCode(e.charCode);
-    if(KeyMapping[keyPressed]) {
-      var mapping = KeyMapping[keyPressed];
-      self.toolbox.changeSelected(mapping[0], mapping[1]);
+    for(var i = self.stack.length - 1; i >= 0; --i) {
+      var entry = self.stack[i];
+      // Act differently if Ctrl is pressed.
+      if(e.ctrlKey) entry = self.stack[0];
+      if(!entry || !entry.map) continue;
+      if(entry.map[keyPressed] != undefined) {
+        entry.callback(entry.map[keyPressed]);
+        return;
+      } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
+        // Quick dirty method to use uppercase if lowercase is not available
+        entry.callback(entry.map[keyPressed.toUpperCase()]);
+        return;
+      }
     }
   });
 }
 
+Keyboard.KeyNumberLayout = KeyNumberLayout;
 Keyboard.KeyLayout = KeyLayout;
 Keyboard.KeyShiftLayout = KeyShiftLayout;
-Keyboard.KeyMapping = KeyMapping;
+Keyboard.EditorKeyMapping = EditorKeyMapping;
+
+// An utility function to create keybinding map from 2D array.
+Keyboard.createKeyMap = function(binding, layout) {
+  if(layout == null) layout = KeyShiftLayout;
+  var map = {};
+  for(var y = 0; y < binding.length; ++y) {
+    for(var x = 0; x < binding[y].length; ++x) {
+      // It's completely fine to use keyShiftLayout.
+      map[layout[y][x]] = binding[y][x];
+    }
+  }
+  return map;
+}
 
 module.exports = Keyboard;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 function Memory() {}
 
 Memory.prototype.push = function(data) {};
@@ -786,7 +1088,7 @@ Queue.prototype.flip = function() {
 module.exports.Memory = Memory;
 module.exports.Stack = Stack;
 module.exports.Queue = Queue;
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var Hangul = require('./hangul');
 
 function Monitor(interpreter) {
@@ -814,7 +1116,7 @@ Monitor.prototype.getStatus = function() {
 };
 
 module.exports = Monitor;
-},{"./hangul":4}],10:[function(require,module,exports){
+},{"./hangul":5}],11:[function(require,module,exports){
 var TileMap = require('./tilemap');
 var Hangul = require('./hangul');
 
@@ -835,7 +1137,7 @@ var DirectionMap = {
   'ㅣ': 'vertical',
   // Reverse direction
   'ㅢ': 'reverse',
-  'ㅐ': 'none'
+  'ㅐㅔㅒㅖㅘㅙㅚㅝㅞㅟ': 'none'
 };
 
 var DirectionReverseMap = {};
@@ -845,7 +1147,7 @@ Object.keys(DirectionMap).forEach(function(k) {
 
 var CommandMap = {
   // ㅇ 묶음
-  'ㅇ': 'none',
+  'ㅇㄱㄲㅉㅋ': 'none',
   'ㅎ': 'end',
   // ㄷ 묶음 - 셈
   'ㄷ': 'add',
@@ -901,7 +1203,10 @@ var LineMap = {
 
 var LineReverseMap = {};
 Object.keys(LineMap).forEach(function(k) {
-  LineReverseMap[LineMap[k]] = k;
+  if(LineReverseMap[LineMap[k]] == null) {
+    LineReverseMap[LineMap[k]] = [];
+  }
+  LineReverseMap[LineMap[k]].push(k);
 });
 
 function isHangul(code) {
@@ -947,10 +1252,9 @@ function parseSyllable(char) {
 }
 
 function encodeSyllable(data) {
-  var initial = CommandReverseMap[data.command];
-  var medial = DirectionReverseMap[data.direction];
+  var initial = getRandomChar(CommandReverseMap[data.command]);
+  var medial = getRandomChar(DirectionReverseMap[data.direction]);
   var final = ' ';
-  // TODO randomize outputs
   if (data.command == 'push-number') {
     initial = 'ㅂ';
     final = 'ㅇ';
@@ -958,7 +1262,7 @@ function encodeSyllable(data) {
     initial = 'ㅂ';
     final = 'ㅎ';
   } else if (data.command == 'push') {
-    final = LineReverseMap[data.data || 0];
+    final = getRandomChar(LineReverseMap[data.data || 0]);
   } else if (data.command == 'pop-number') {
     initial = 'ㅁ';
     final = 'ㅇ';
@@ -966,7 +1270,7 @@ function encodeSyllable(data) {
     initial = 'ㅁ';
     final = 'ㅎ';
   } else if (data.command == 'select' || data.command == 'move') {
-    final = Hangul.final[data.data || 0];
+    final = getRandomChar(Hangul.final[data.data || 0]);
   }
   var initialCode = Hangul.initial.indexOf(initial);
   var medialCode = Hangul.medial.indexOf(medial);
@@ -991,6 +1295,10 @@ function encode(map) {
   return code.slice(0, -1);
 }
 
+function getRandomChar(n) {
+  return n.charAt(n.length * Math.random() | 0);
+}
+
 function parse(data) {
   var lines = data.split('\n');
   var map = new TileMap(0, lines.length);
@@ -1009,7 +1317,7 @@ module.exports.parse = parse;
 module.exports.encodeSyllable = encodeSyllable;
 module.exports.encode = encode;
 
-},{"./hangul":4,"./tilemap":16}],11:[function(require,module,exports){
+},{"./hangul":5,"./tilemap":18}],12:[function(require,module,exports){
 function Playback(interpreter, renderer, callback, resetCallback) {
   this.interpreter = interpreter;
   this.renderer = renderer;
@@ -1023,12 +1331,15 @@ Playback.prototype.registerEvents = function() {
   var self = this;
   // TODO let's not use getElementById in classes
   document.getElementById('codeForm-resume').onclick = function() {
+    document.activeElement.blur();
     self.running = true;
   };
   document.getElementById('codeForm-pause').onclick = function() {
+    document.activeElement.blur();
     self.running = false;
   };
   document.getElementById('codeForm-step').onclick = function() {
+    document.activeElement.blur();
     self.step();
     self.running = false;
   };
@@ -1045,48 +1356,60 @@ Playback.prototype.step = function() {
   if(!this.interpreter || !this.renderer) return;
   this.interpreter.next();
   this.renderer.render();
+  if(this.interpreter.state.breakpoint) this.running = false;
+  if(!this.interpreter.state.running) this.running = false;
   if(this.callback) this.callback();
 }
 
 module.exports = Playback;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var parser = require('./parser');
+var TileMap = require('./tilemap');
 var Direction = require('./direction');
+var Interpreter = require('./interpreter');
+
+function Cursor(cursor) {
+  this.id = cursor.id;
+  this.segment = cursor.segment;
+  this.x = cursor.x;
+  this.y = cursor.y;
+  this.direction = {};
+  this.direction.x = cursor.direction.x;
+  this.direction.y = cursor.direction.y;
+  this.selected = cursor.selected;
+  this.memory = cursor.memory.slice(); // Copy machine state.
+  this.seek = cursor.seek || false;
+  this.merge = true;
+  this.visit = 0;
+}
+
+// Returns initial machine cursor
+Cursor.init = function() {
+  var initialMemory = [];
+  for(var i = 0; i < 28; ++i) initialMemory.push(0);
+  return new Cursor({
+    id: 0,
+    segment: 0,
+    x: 0,
+    y: 0,
+    direction: {
+      x: 0,
+      y: 1
+    },
+    selected: 0,
+    memory: initialMemory
+  });
+}
+
+// Calculates memory diff
+Cursor.prototype.diff = function(other) {
+  return this.memory.map(function(value, key) {
+    return value - other.memory[key];
+  });
+}
+
 // Predicts the path of the code
-// TODO this requires some serious refactoring... really.
-
-var ReversibleMap = {
-  'condition': true,
-  'add': true,
-  'multiply': true,
-  'subtract': true,
-  'divide': true,
-  'mod': true,
-  'pop': true,
-  'pop-unicode': true,
-  'pop-number': true,
-  'copy': true,
-  'flip': true,
-  'move': true,
-  'compare': true
-};
-
-var UnlikelyMap = {
-  'add': true,
-  'multiply': true,
-  'subtract': true,
-  'divide': true,
-  'mod': true,
-  'pop': true,
-  'pop-unicode': true,
-  'pop-number': true,
-  'copy': true,
-  'flip': true,
-  'move': true,
-  'compare': true
-};
-
 
 function Predictor(code) {
   if (typeof code == 'string') {
@@ -1094,116 +1417,319 @@ function Predictor(code) {
   } else {
     this.map = code;
   }
-  this.segmentId = 0;
-  this.segments = {};
-  this.stack = [{
-    x: 0,
-    y: 0,
-    direction: {
-      x: 0,
-      y: 1
-    },
-    register: {
-      x: 0,
-      y: 0,
-      preDir: 0
-    }
-  }];
+  // Create segment heading map
+  this.reset();
   this.updated = [];
+}
+
+Predictor.prototype.reset = function() {
+  this.segments = [];
+  this.mergeCandidates = [];
+  this.stack = [];
+  this.headingMap = new TileMap(this.map.width, this.map.height);
+  var cursor = Cursor.init();
+  var segment = [];
+  segment.push(cursor);
+  this.segments.push(segment);
+  this.stack.push(cursor);
+}
+
+Predictor.prototype.postCheck = function() {
+  // Merge candidates if possible
+  while(this.mergeCandidates.length) {
+    var candidate = this.mergeCandidates.shift();
+    // Continue if cannot merge
+    if(!candidate.merge) continue;
+    var segment = this.segments[candidate.segment];
+    while(candidate.otherwiseSet.length) {
+      var target = candidate.otherwiseSet.shift();
+      var targetSeg = this.segments[target.segment];
+      // Set 'previous' direction
+      var direction = candidate.direction;
+      var preDir = Direction.convertToBits(-direction.x, -direction.y);
+      // Process only if candidate's segment is lower
+      if(candidate.segment >= target.segment) continue;
+      // We have to process target...
+      if(targetSeg.length == 0) {
+        targetSeg.push(target);
+      }
+      // Pop segment
+      var cursor;
+      while(targetSeg.length) {
+        cursor = targetSeg.shift();
+        // Reset segment and id 
+        cursor.segment = candidate.segment;
+        cursor.id = segment.length;
+        segment.push(cursor);
+        // Go back, and redraw
+        if(cursor.before) {
+          Direction.process({
+            x: cursor.before.x,
+            y: cursor.before.y
+            }, this.map, cursor.direction, preDir, this.updated,
+            cursor.segment);
+        }
+        // Set 'previous' direction
+        direction = cursor.direction;
+        preDir = Direction.convertToBits(-direction.x, -direction.y);
+      }
+    }
+    if(cursor.then) {
+      Direction.process({
+        x: cursor.x,
+        y: cursor.y
+        }, this.map, cursor.then.direction, preDir, this.updated,
+        cursor.segment);
+    }
+    // Mark it as cannot merge as it has already processed
+    candidate.merge = false;
+  }
 }
 
 Predictor.prototype.next = function() {
   if (this.stack.length === 0) return false;
-  var state = this.stack[this.stack.length - 1];
-  if (state.register) {
-    // Assign segment
-    state.segment = this.segmentId++;
-    this.segments[state.segment] = [];
-    // Update the tile
-    if (state.register.preDir) {
-      Direction.process(state.register, this.map, state.direction,
-        state.register.preDir, this.updated, state.segment, state.unlikely);
-    }
-    delete state.register;
-  }
-  var segment = this.segments[state.segment];
-  var direction = state.direction;
+  // Store previous cursor.. I doubt it'll be used actually.
+  var oldCursor = this.stack.pop();
+  var cursor = new Cursor(oldCursor);
+  cursor.before = oldCursor;
+  if(!cursor.seek) oldCursor.then = cursor;
+  // Fetch current segment
+  var segment = this.segments[cursor.segment];
+  var direction = cursor.direction;
+  // Store previous reversed direction
   var preDir = Direction.convertToBits(-direction.x, -direction.y);
-  var tile = this.map.get(state.x, state.y);
-  var removal = false;
-  if (segment) segment.push(tile);
-  if (tile !== null) {
-    if (!tile.segments) {
-      tile.segments = {};
-    }
-    // Set the direction
+  var tile = this.map.get(cursor.x, cursor.y);
+  var headingTile = this.headingMap.get(cursor.x, cursor.y);
+  // Create headingTile if not exists.
+  if (headingTile == null) {
+    headingTile = {};
+    this.headingMap.set(cursor.x, cursor.y, headingTile);
+  }
+  // Continues execution in new segment if this is set.
+  var newSegment = false;
+  // Stop execution if this is set.
+  var stop = false;
+  if (tile != null) {
+    // Fetch x, y value from tile's direction
     var tileDir = Direction.map[tile.direction];
+    // Calculate the direction where the cursor will go
     direction.x = Direction.calculate(direction.x, tileDir.x);
     direction.y = Direction.calculate(direction.y, tileDir.y);
-    if (tile.command == 'end') removal = true;
-    if (tile.segments[Direction.convertToBits(direction.x, direction.y)]) {
-      removal = true;
-    } else {
-      tile.segments[Direction.convertToBits(direction.x, direction.y)] = {
-        segment: state.segment,
-        position: segment ? segment.length - 1 : 0
-      };
-    }
-    if (!removal && ReversibleMap[tile.command]) {
-      var flipDir = {
-        x: -direction.x,
-        y: -direction.y
-      };
-      var flipState = {
-        x: Direction.move(state.x, flipDir.x, this.map.width),
-        y: Direction.move(state.y, flipDir.y, this.map.height),
-        direction: flipDir,
-        unlikely: state.unlikely,
-        register: {
-          x: state.x,
-          y: state.y,
-          preDir: preDir
+    // Fetch command
+    var command = Interpreter.CommandMap[tile.command];
+    // Just skip if command is null
+    if(command != null) {
+      if(cursor.memory[cursor.selected] >= command.data) {
+        cursor.memory[cursor.selected] -= command.data; // Data we lose
+        cursor.memory[cursor.selected] += command.output; // Data we get
+        if (tile.command == 'select') {
+          cursor.selected = tile.data;
         }
-      };
-      var flipTile = this.map.get(flipState.x, flipState.y);
-      var skip = false;
-      if (flipTile) {
-        var flipTileDir = Direction.map[flipTile.direction];
-        if (flipTileDir.x == direction.x && flipTileDir.y == direction.y) {
-          // It's useless; skipping
-          skip = true;
+        if (tile.command == 'move') {
+          cursor.memory[tile.data] ++;
         }
-      }
-      if (!skip && (!flipTile || !flipTile.segments ||
-          !flipTile.segments[Direction.convertToBits(flipDir.x, flipDir.y)])) {
-        if (UnlikelyMap[tile.command]) {
-          flipState.unlikely = true;
-          this.stack.unshift(flipState);
-        } else {
-          this.stack.push(flipState);
+        if (tile.command == 'end') {
+          // End of segment; Stop processing.
+          // Techincally 'end' operator requires one data to stop,
+          // But most programs won't work with that.
+          stop = true;
+        }
+        if (tile.command == 'condition') {
+          // Condition; Always create new segment.
+          // Simply create new cursor with new segment, flip direction,
+          // move position and save it.
+          var newCursor = new Cursor(cursor);
+          newCursor.direction.x = -direction.x;
+          newCursor.direction.y = -direction.y;
+          oldCursor.otherwise = newCursor;
+          this.processCursor(newCursor, segment, tile, headingTile,
+            stop, true, preDir);
+        }
+        // It can't be mergeable since original path has not stopped
+        oldCursor.merge = false;
+      } else {
+        // Underflow has occurred; Go to opposite direction.
+        direction.x = -direction.x;
+        direction.y = -direction.y;
+        // For consistency, this should create a new segment;
+        // But it can probably be merged.
+        newSegment = true;
+        // Saving this for good measure
+        if(!oldCursor.seek) {
+          if(!oldCursor.otherwiseSet) {
+            oldCursor.otherwiseSet = [];
+            this.mergeCandidates.push(oldCursor);
+          }
+          oldCursor.otherwiseSet.push(cursor);
         }
       }
     }
   }
-  Direction.process(state, this.map, direction, preDir, this.updated,
-    state.segment, state.unlikely);
-  if (removal) {
-    this.stack.splice(this.stack.indexOf(state), 1);
-    if (segment && segment.length <= 1) {
-      delete this.segments[state.segment];
-    }
-  }
+  this.processCursor(cursor, segment, tile, headingTile,
+    stop, newSegment, preDir);
   return this.stack.length > 0;
 };
 
+Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
+  stop, newSegment, preDir) {
+  // Don't save current cursor and increment it if this is set.
+  var seek = false;
+  var direction = cursor.direction;
+  var directionBits = Direction.convertToBits(direction.x, direction.y, true);
+  var before;
+  if (headingTile[directionBits]) {
+    before = headingTile[directionBits];
+    before.visit ++;
+    // Continue cursor in seek mode if memory has less data than before.
+    var hasLess = !cursor.memory.every(function(value, key) {
+      var diff = before.memory[key] - value;
+      // Maximum memory space
+      if(diff <= 0 && value >= 16) cursor.memory[key] = 16;
+      // Check 16 times, then just check if it has less data.
+      if(before.visit > 16) return diff <= 0;
+      else return diff == 0;
+    });
+    before.memory = cursor.memory.slice();
+    seek = hasLess;
+    if(!hasLess) stop = true;
+  }
+  // 'newSegment' should set their ID before drawing path.
+  if(before && newSegment) {
+    cursor.id = before.id;
+    cursor.segment = before.segment;
+  }
+  if (!stop) {
+    if(!seek) {
+      if (newSegment) {
+        cursor.id = -1;
+        cursor.segment = this.segments.length;
+        segment = [];
+        this.segments.push(segment);
+      }
+      // Increment cursor id to avoid confliction
+      cursor.id ++;
+      // Insert segment into segment.
+      segment.push(cursor);
+      // Write current cursor;
+      headingTile[directionBits] = cursor;
+    }
+    // Push current cursor to stack.
+    this.stack.push(cursor);
+  }
+  // Since this is the copy of original object, we can safely modify it.
+  // This communicates with the 'old' data protocol, for now.
+  Direction.process(cursor, this.map, direction, preDir, this.updated,
+    cursor.segment, false);
+  // Copy segment and ID to honor condition
+  // But 'merging' cursor shouldn't.
+  // It may cause conflicts because it doesn't add itself to segments,
+  // But it's prevented because it's not added to segment if seek is true
+  if(before && seek) {
+    cursor.id = before.id;
+    cursor.segment = before.segment;
+  }
+  cursor.seek = seek;
+}
+
+// Assembly command map to support ashembly
+var AssemblyMap = {
+  'end': 'halt',
+  'add': 'add',
+  'multiply': 'mul',
+  'subtract': 'sub',
+  'divide': 'div',
+  'mod': 'mod',
+  'pop': 'pop',
+  'pop-number': 'popnum',
+  'pop-unicode': 'popchar',
+  'push': 'push',
+  'push-number': 'pushnum',
+  'push-unicode': 'pushchar',
+  'copy': 'dup',
+  'flip': 'swap',
+  'select': 'sel',
+  'move': 'mov',
+  'compare': 'cmp',
+  'condition': 'brz'
+};
+
+// Converts code to Assembly. Just for fun! :D
+Predictor.prototype.assembly = function() {
+  var resolves = [];
+  var labels = [];
+  var codes = [];
+  // Start reading code from segment 0, id 0
+  for(var segmentId = 0; segmentId < this.segments.length; ++segmentId) {
+    var segment = this.segments[segmentId];
+    for(var id = 0; id < segment.length; ++id) {
+      var cursor = segment[id];
+      cursor.index = codes.length;
+      var headingTile = this.headingMap.get(cursor.x, cursor.y);
+      var tile = this.map.get(cursor.x, cursor.y);
+      if(tile == null) continue;
+      if(tile.command != 'none') {
+        var command = Interpreter.CommandMap[tile.command];
+        var flipBit = Direction.convertToBits(-cursor.direction.x,
+          -cursor.direction.y, true);
+        if(headingTile[flipBit]) {
+          if(command.data > 0) {
+            var code = ['brpop'+command.data, headingTile[flipBit]];
+            codes.push(code);
+            resolves.push(code);
+          }
+        }
+        var code = [AssemblyMap[tile.command]];
+        if(tile.command == 'push') code[1] = tile.data;
+        if(tile.command == 'select') code[1] = tile.data;
+        if(tile.command == 'move') code[1] = tile.data;
+        if(tile.command == 'condition') {
+          code[1] = cursor.otherwise;
+          resolves.push(code);
+        }
+        codes.push(code);
+      } else {
+        if(id == segment.length - 1) {
+          // Fetch x, y value from tile's direction
+          var tileDir = Direction.map[tile.direction];
+          // Calculate the direction where the cursor will go
+          var dirX = Direction.calculate(cursor.direction.x, tileDir.x);
+          var dirY = Direction.calculate(cursor.direction.y, tileDir.y);
+          var dirBit = Direction.convertToBits(dirX, dirY, true);
+          var targetTile = headingTile[dirBit];
+          if(!targetTile) continue;
+          var code = ['jmp', targetTile];
+          codes.push(code);
+          resolves.push(code);
+        }
+      }
+    }
+  }
+  for(var i = 0; i < resolves.length; ++i) {
+    var idx = resolves[i][1].index;
+    if(labels.indexOf(idx) == -1) labels.push(idx);
+    resolves[i][1] = 'p'+labels.indexOf(idx);
+  }
+  var returned = [];
+  codes.forEach(function(v, k) {
+    var label = labels.indexOf(k);
+    if(label != -1) {
+      returned.push(":p"+label);
+    }
+    returned.push(v.join(' '));
+  });
+  console.log(returned.join("\n"));
+}
+
 module.exports = Predictor;
 
-},{"./direction":3,"./parser":10}],13:[function(require,module,exports){
+},{"./direction":4,"./interpreter":7,"./parser":11,"./tilemap":18}],14:[function(require,module,exports){
 var TileMap = require('./tilemap');
 var CanvasLayer = require('./canvaslayer');
 var Hangul = require('./hangul');
+var SpriteLoader = require('./spriteloader');
 
-// TODO is Array good method to do this?
+var SPRITE_SIZE = 100;
+
 var arrowMap = {
   up: [2, 0],
   left: [2, 1],
@@ -1238,7 +1764,9 @@ var segmentMap = [
   [0, 0],
   [1, 0],
   [0, 1],
-  [1, 1]
+  [1, 1],
+  [0, 2],
+  [1, 2]
 ];
 
 var commandMap = {
@@ -1260,7 +1788,8 @@ var commandMap = {
   'select': [3, 2],
   'move': [0, 3],
   'compare': [1, 3],
-  'condition': [2, 3]
+  'condition': [2, 3],
+  'breakpoint': [3, 3]
 };
 
 // http://stackoverflow.com/a/3368118/3317669
@@ -1291,6 +1820,8 @@ function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
 }
 
 var Renderer = function(viewport, interpreter, width) {
+  var self = this;
+
   this.interpreter = interpreter;
   this.map = interpreter.map;
   this.width = width || 50;
@@ -1298,34 +1829,13 @@ var Renderer = function(viewport, interpreter, width) {
   this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
     this.width * interpreter.map.width, this.width * interpreter.map.height);
 
-  // TODO hold sprite sheets somewhere else and refactor code
-  var loadCount = 4;
-  var self = this;
+  this.sprites = new SpriteLoader(function() {
+    self.reset();
+  });
 
-  function handleLoad() {
-    loadCount--;
-    if (loadCount === 0) self.reset();
-  }
-
-  var pathImage = new Image();
-  pathImage.src = 'img/path.png';
-  pathImage.onload = handleLoad;
-  this.pathImage = pathImage;
-
-  var pathTransparentImage = new Image();
-  pathTransparentImage.src = 'img/path_transparent.png';
-  pathTransparentImage.onload = handleLoad;
-  this.pathTransparentImage = pathTransparentImage;
-
-  var arrowImage = new Image();
-  arrowImage.src = 'img/arrow.png';
-  arrowImage.onload = handleLoad;
-  this.arrowImage = arrowImage;
-
-  var commandImage = new Image();
-  commandImage.src = 'img/command.png';
-  commandImage.onload = handleLoad;
-  this.commandImage = commandImage;
+  this.sprites.load('path', 'img/path.png');
+  this.sprites.load('arrow', 'img/arrow.png');
+  this.sprites.load('command', 'img/command.png');
 };
 
 Renderer.prototype.reset = function() {
@@ -1390,19 +1900,21 @@ Renderer.prototype.updateTile = function(x, y) {
       textCtx.fillText(tile.original, this.width / 2, this.width / 2);
     }
 
-    // TODO should not use hard coding for image sizes
-
     if (tile.directions && (cacheTile.directions != Object.keys(tile.directions).length)) {
       cacheTile.directions = Object.keys(tile.directions).length;
       this.canvases.get('path').clearRect(0, 0, this.width, this.width);
-      for (var key in tile.directions) {
-        var segment = segmentMap[tile.directions[key].segment % 4];
-        var pathPos = pathMap[key];
-        // globalAlpha is evil for Firefox
-        var pathImg = this.pathImage;
-        if (tile.directions[key].unlikely) pathImg = this.pathTransparentImage;
-        this.canvases.get('path').drawImage(pathImg, (segment[0] * 4 + pathPos[0]) * 100, (segment[1] * 3 + pathPos[1]) * 100,
-          100, 100, 0, 0, this.width, this.width);
+      for(var id = tile.directions.length - 1; id >= 0; --id) {
+        var paths = tile.directions[id];
+        if(paths == null) continue;
+        paths.forEach(function(direction) {
+          var segment = segmentMap[id % 6];
+          var pathPos = pathMap[direction];
+          var pathImg = this.sprites.get('path');
+          this.canvases.get('path').drawImage(pathImg, 
+            (segment[0] * 4 + pathPos[0]) * SPRITE_SIZE, 
+            (segment[1] * 3 + pathPos[1]) * SPRITE_SIZE,
+            SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
+        }, this);
       }
     }
 
@@ -1411,20 +1923,28 @@ Renderer.prototype.updateTile = function(x, y) {
       var arrowCtx = this.canvases.get('arrow');
       arrowCtx.clearRect(0, 0, this.width, this.width);
       var arrowPos = arrowMap[tile.direction];
-      arrowCtx.drawImage(this.arrowImage,
-        arrowPos[0] * 100, arrowPos[1] * 100,
-        100, 100, 0, 0, this.width, this.width);
+      arrowCtx.drawImage(this.sprites.get('arrow'),
+        arrowPos[0] * SPRITE_SIZE, arrowPos[1] * SPRITE_SIZE,
+        SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
     }
 
-    if (cacheTile.command != tile.command || cacheTile.data != tile.data) {
+    if (cacheTile.command != tile.command || cacheTile.data != tile.data
+      || cacheTile.breakpoint != tile.breakpoint) {
       cacheTile.command = tile.command;
       cacheTile.data = tile.data;
+      cacheTile.breakpoint = tile.breakpoint;
       var commandCtx = this.canvases.get('command');
       var commandPos = commandMap[tile.command];
       commandCtx.clearRect(0, 0, this.width, this.width);
-      commandCtx.drawImage(this.commandImage,
-        commandPos[0] * 100, commandPos[1] * 100,
-        100, 100, 0, 0, this.width, this.width);
+      commandCtx.drawImage(this.sprites.get('command'),
+        commandPos[0] * SPRITE_SIZE, commandPos[1] * SPRITE_SIZE,
+        SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
+      if (tile.breakpoint) {
+        commandPos = commandMap['breakpoint'];
+        commandCtx.drawImage(this.sprites.get('command'),
+          commandPos[0] * SPRITE_SIZE, commandPos[1] * SPRITE_SIZE,
+          SPRITE_SIZE, SPRITE_SIZE, 0, 0, this.width, this.width);
+      }
       if (tile.data != null) {
         var text = '';
         if (tile.command == 'push') text = tile.data;
@@ -1455,11 +1975,12 @@ Renderer.prototype.render = function() {
 
 module.exports = Renderer;
 
-},{"./canvaslayer":1,"./hangul":4,"./tilemap":16}],14:[function(require,module,exports){
+},{"./canvaslayer":2,"./hangul":5,"./spriteloader":16,"./tilemap":18}],15:[function(require,module,exports){
 function ScrollPane(viewport, clickCallback) {
   this.viewport = viewport;
   this.clickCallback = clickCallback;
   this.registerEvents();
+  this.tolerance = 6;
 }
 
 ScrollPane.prototype.registerEvents = function() {
@@ -1471,7 +1992,8 @@ ScrollPane.prototype.registerEvents = function() {
   function handleMouseUp(e) {
     document.removeEventListener('mouseup', handleMouseUp);
     document.removeEventListener('mousemove', handleMouseMove);
-    if (Math.abs(moveX) < 6 && Math.abs(moveY) < 6 && self.clickCallback) {
+    if (Math.abs(moveX) < self.tolerance && Math.abs(moveY) < self.tolerance
+      && self.clickCallback) {
       self.clickCallback(e);
     }
     return false;
@@ -1500,7 +2022,37 @@ ScrollPane.prototype.registerEvents = function() {
 
 module.exports = ScrollPane;
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
+function SpriteLoader(callback) {
+  this.sprites = [];
+  this.loadCount = 0;
+  this.callback = callback;
+}
+
+SpriteLoader.prototype.get = function(name) {
+  return this.sprites[name];
+}
+
+SpriteLoader.prototype.load = function(name, src) {
+  var img = new Image();
+  img.src = src;
+  img.onload = (function() {
+    this.sprites[name] = img;
+    this.handleDone();
+  }).bind(this);
+  this.loadCount ++;
+}
+
+SpriteLoader.prototype.handleDone = function() {
+  this.loadCount --;
+  if(this.loadCount == 0) {
+    if(this.callback) this.callback();
+  }
+}
+
+module.exports = SpriteLoader;
+
+},{}],17:[function(require,module,exports){
 var TileMap = require('./tilemap');
 
 function Table(viewport, tilemap, updateCallback) {
@@ -1543,7 +2095,7 @@ Table.prototype.updateNode = function(x, y) {
 
 module.exports = Table;
 
-},{"./tilemap":16}],16:[function(require,module,exports){
+},{"./tilemap":18}],18:[function(require,module,exports){
 function TileMap(width, height) {
   this.width = width;
   this.height = height;
@@ -1595,8 +2147,20 @@ TileMap.prototype.set = function(x, y, data) {
   this.map[y][x] = data;
 };
 
+TileMap.fromArray = function(arr) {
+  var tileMap = new TileMap(0, arr.length);
+  for(var y = 0; y < arr.length; ++y) {
+    tileMap.expand(arr[y].length, 0);
+    for(var x = 0; x < arr[y].length; ++x) {
+      tileMap.set(x, y, arr[y][x]);
+    }
+  }
+  return tileMap;
+}
+
 module.exports = TileMap;
-},{}],17:[function(require,module,exports){
+
+},{}],19:[function(require,module,exports){
 var Keyboard = require('./keyboard');
 var TileMap = require('./tilemap');
 var Table = require('./table');
@@ -1609,19 +2173,18 @@ function ToolBox(renderer) {
   this.oldNode = null;
   this.renderer = renderer;
   this.scrollPane = null;
-  this.keyboard = new Keyboard(this);
   this.generateTable();
 }
 
 ToolBox.prototype.generateTable = function() {
   var self = this;
-  // TODO no hardcoding
-  var tilemap = new TileMap(11, 3);
+  var tilemap = new TileMap(Keyboard.KeyShiftLayout[0].length,
+    Keyboard.KeyShiftLayout.length);
   for(var y = 0; y < tilemap.height; ++y) {
     for(var x = 0; x < tilemap.width; ++x) {
       var key = Keyboard.KeyShiftLayout[y][x];
       tilemap.set(x, y, {
-        value: Keyboard.KeyMapping[key],
+        value: Keyboard.EditorKeyMapping[key],
         key: key
       });
     }
@@ -1638,8 +2201,6 @@ ToolBox.prototype.generateTable = function() {
     node.className = tile.value[0];
     node.appendChild(document.createTextNode(tile.key));
     node.addEventListener('click', function() {
-      // TODO Not sure if it's good idea to abuse closures
-      // Though I don't think this is abusing.
       self.changeSelected.apply(self, tile.value);
     });
   });
@@ -1658,16 +2219,66 @@ ToolBox.prototype.changeSelected = function(type, name) {
 
 module.exports = ToolBox;
 
-},{"./keyboard":7,"./table":15,"./tilemap":16}],18:[function(require,module,exports){
+},{"./keyboard":8,"./table":17,"./tilemap":18}],20:[function(require,module,exports){
+// Saves undo stack and preforms undo
+function UndoMachine() {
+  this.undoStack = [];
+  this.redoStack = [];
+}
+
+UndoMachine.prototype.run = function(action) {
+  // Clear redo stack, as it becomes unusable
+  this.redoStack = [];
+  // Execute action...
+  action.exec();
+  this.undoStack.push(action);
+}
+
+UndoMachine.prototype.canUndo = function() {
+  return this.undoStack.length >= 1;
+}
+
+UndoMachine.prototype.undo = function() {
+  if(!this.canUndo()) return false;
+  // Undo action and push to redo stack
+  var action = this.undoStack.pop();
+  action.undo();
+  this.redoStack.push(action);
+  return action;
+}
+
+UndoMachine.prototype.canRedo = function() {
+  return this.redoStack.length >= 1;
+}
+
+UndoMachine.prototype.redo = function() {
+  if(!this.canRedo()) return false;
+  // Redo action and push to undo stack..
+  var action = this.redoStack.pop();
+  action.exec();
+  this.undoStack.push(action);
+  return action;
+}
+
+UndoMachine.prototype.reset = function() {
+  this.undoStack = [];
+  this.redoStack = [];
+}
+
+module.exports = UndoMachine;
+
+},{}],21:[function(require,module,exports){
 var ScrollPane = require('./scrollpane');
+var TileAction = require('./action');
 var parser = require('./parser');
 
-function Viewport(element, toolbox, renderer, contextmenu,
+function Viewport(element, toolbox, renderer, contextmenu, undomachine,
   checkCallback, clickCallback) {
   this.element = element;
   this.toolbox = toolbox;
   this.renderer = renderer;
   this.contextmenu = contextmenu;
+  this.undomachine = undomachine;
   this.scrollpane = new ScrollPane(element, this.handleMouseClick.bind(this));
   this.checkCallback = checkCallback;
   this.clickCallback = clickCallback;
@@ -1679,7 +2290,6 @@ Viewport.prototype.hookEvents = function() {
 }
 
 Viewport.prototype.handleMouseClick = function(e) {
-  // TODO it could be better.
   // http://stackoverflow.com/a/5932203
   var totalOffsetX = 0;
   var totalOffsetY = 0;
@@ -1714,12 +2324,17 @@ Viewport.prototype.handleMouseClick = function(e) {
   };
   if(e.button == 0) {
     var selected = this.toolbox.selected;
-    if (selected.type == 'arrow') tile.direction = selected.name;
-    else tile.command = selected.name;
-    tile.original = parser.encodeSyllable(tile);
-    this.renderer.map.set(tileX, tileY, tile);
-    this.renderer.updateTile(tileX, tileY);
-    this.clickCallback(tileX, tileY, tile);
+    // Why is it 'arrow'? .... It'd be good if it was 'direction'.
+    // ... to avoid Ctrl+C, V.
+    if(selected.type == 'arrow') {
+      this.undomachine.run(new TileAction(tile, tileX, tileY,
+        'direction', selected.name, this.renderer,
+        this.clickCallback.bind(this, tileX, tileY, tile)));
+    } else {
+      this.undomachine.run(new TileAction(tile, tileX, tileY,
+        'command', selected.name, this.renderer,
+        this.clickCallback.bind(this, tileX, tileY, tile)));
+    }
   } else if(e.button == 2) {
     var contextX = tileX * this.renderer.width + totalOffsetX;
     var contextY = (tileY+1) * this.renderer.width + totalOffsetY;
@@ -1737,4 +2352,4 @@ Viewport.prototype.handleContext = function(e) {
 
 module.exports = Viewport;
 
-},{"./parser":10,"./scrollpane":14}]},{},[5]);
+},{"./action":1,"./parser":11,"./scrollpane":15}]},{},[6]);
