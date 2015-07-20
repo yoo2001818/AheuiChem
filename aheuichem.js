@@ -543,7 +543,7 @@ function repredict(initial) {
       }
     }
   }
-  var predictQuota = interpreter.map.width * interpreter.map.height * 30;
+  var predictQuota = interpreter.map.width * interpreter.map.height * 80;
   predictor = new Predictor(interpreter.map);
   for (var i = 0; i < predictQuota; ++i) {
     if (!predictor.next()) break;
@@ -1204,9 +1204,9 @@ var LineMap = {
 var LineReverseMap = {};
 Object.keys(LineMap).forEach(function(k) {
   if(LineReverseMap[LineMap[k]] == null) {
-    LineReverseMap[LineMap[k]] = [];
+    LineReverseMap[LineMap[k]] = '';
   }
-  LineReverseMap[LineMap[k]].push(k);
+  LineReverseMap[LineMap[k]] += k;
 });
 
 function isHangul(code) {
@@ -1457,7 +1457,7 @@ Predictor.prototype.postCheck = function() {
       var cursor;
       while(targetSeg.length) {
         cursor = targetSeg.shift();
-        // Reset segment and id 
+        // Reset segment and id
         cursor.segment = candidate.segment;
         cursor.id = segment.length;
         segment.push(cursor);
@@ -1584,7 +1584,7 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
       // Maximum memory space
-      if(diff <= 0 && value >= 16) cursor.memory[key] = 16;
+      if(diff <= 0 && value >= 8) cursor.memory[key] = 8;
       // Check 16 times, then just check if it has less data.
       if(before.visit > 16) return diff <= 0;
       else return diff == 0;
