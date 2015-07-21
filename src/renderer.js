@@ -149,25 +149,26 @@ Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
   var cacheTile = this.cacheMap.get(x, y);
-  if (tile) {
-    this.canvases.forEach(function(ctx) {
-      ctx.save();
-      ctx.translate(x * this.width, y * this.width);
-    }, this);
+  
+  this.canvases.forEach(function(ctx) {
+    ctx.save();
+    ctx.translate(x * this.width, y * this.width);
+  }, this);
 
-    var highlighted = state && state.x == x && state.y == y;
-    if (cacheTile.highlighted != highlighted) {
-      cacheTile.highlighted = highlighted;
-      var highlightCtx = this.canvases.get('highlight');
-      highlightCtx.clearRect(0, 0, this.width, this.width);
-      if (highlighted) {
-        highlightCtx.fillStyle = "#666";
-      } else {
-        highlightCtx.fillStyle = "#222";
-      }
-      roundRect(highlightCtx, 1, 1, this.width - 2, this.width - 2, 4, true);
+  var highlighted = state && state.x == x && state.y == y;
+  if (cacheTile.highlighted != highlighted) {
+    cacheTile.highlighted = highlighted;
+    var highlightCtx = this.canvases.get('highlight');
+    highlightCtx.clearRect(0, 0, this.width, this.width);
+    if (highlighted) {
+      highlightCtx.fillStyle = "#666";
+    } else {
+      highlightCtx.fillStyle = "#222";
     }
-
+    roundRect(highlightCtx, 1, 1, this.width - 2, this.width - 2, 4, true);
+  }
+  
+  if (tile) {
     if (cacheTile.text != tile.original) {
       cacheTile.text = tile.original;
       var textCtx = this.canvases.get('text');
@@ -232,11 +233,10 @@ Renderer.prototype.updateTile = function(x, y) {
         commandCtx.fillText(text, this.width - 3, this.width - 3);
       }
     }
-
-    this.canvases.forEach(function(ctx) {
-      ctx.restore();
-    }, this);
   }
+  this.canvases.forEach(function(ctx) {
+    ctx.restore();
+  }, this);
 };
 
 Renderer.prototype.render = function() {
