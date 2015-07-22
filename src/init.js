@@ -75,7 +75,12 @@ function initialize() {
     playback.interpreter = interpreter;
     return;
   }
-  undomachine = new UndoMachine();
+  undomachine = new UndoMachine(function() {
+    document.getElementById('icon-undo').className = 'icon'+
+      (undomachine.undoStack.length > 0 ? '' : ' disabled');
+    document.getElementById('icon-redo').className = 'icon'+
+      (undomachine.redoStack.length > 0 ? '' : ' disabled');
+  });
   playback = new Playback(interpreter, renderer, function() {
     document.getElementById('codeForm-output').value += interpreter.shift();
     document.getElementById('codeForm-debug').value = monitor.getStatus();
@@ -149,6 +154,12 @@ window.onload = function() {
   document.getElementById('codeForm-export').onclick = function() {
     document.getElementById('codeForm-code').value = parser.encode(
       interpreter.map);
+  };
+  document.getElementById('icon-undo').onclick = function() {
+    undomachine.undo();
+  };
+  document.getElementById('icon-redo').onclick = function() {
+    undomachine.redo();
   };
   /*
   document.getElementById('captureBtn').onclick = function() {

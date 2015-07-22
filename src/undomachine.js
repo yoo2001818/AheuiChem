@@ -1,7 +1,8 @@
 // Saves undo stack and preforms undo
-function UndoMachine() {
+function UndoMachine(callback) {
   this.undoStack = [];
   this.redoStack = [];
+  this.callback = callback;
 }
 
 UndoMachine.prototype.run = function(action) {
@@ -10,6 +11,7 @@ UndoMachine.prototype.run = function(action) {
   // Execute action...
   action.exec();
   this.undoStack.push(action);
+  if(this.callback) this.callback();
 }
 
 UndoMachine.prototype.canUndo = function() {
@@ -22,6 +24,7 @@ UndoMachine.prototype.undo = function() {
   var action = this.undoStack.pop();
   action.undo();
   this.redoStack.push(action);
+  if(this.callback) this.callback();
   return action;
 }
 
@@ -35,12 +38,14 @@ UndoMachine.prototype.redo = function() {
   var action = this.redoStack.pop();
   action.exec();
   this.undoStack.push(action);
+  if(this.callback) this.callback();
   return action;
 }
 
 UndoMachine.prototype.reset = function() {
   this.undoStack = [];
   this.redoStack = [];
+  if(this.callback) this.callback();
 }
 
 module.exports = UndoMachine;
