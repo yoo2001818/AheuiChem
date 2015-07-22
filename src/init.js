@@ -59,7 +59,9 @@ function reset(initial) {
   document.getElementById('codeForm-output').value = '';
   // supply input
   interpreter.push(document.getElementById('codeForm-input').value);
+  playback.playing = false;
   playback.running = false;
+  playback.update();
   document.activeElement.blur();
 }
 
@@ -103,7 +105,9 @@ function initialize() {
         undomachine.redo();
       },
       ' ': function() {
+        playback.playing = true;
         playback.running = !playback.running;
+        playback.update();
       }
     },
     callback: function(mapping) {
