@@ -172,8 +172,8 @@ ContextMenu.prototype.show = function(x, y) {
     self.element.style.left = Math.max(0,
       Math.min(window.innerWidth - self.element.offsetWidth,
       x-self.element.offsetWidth/2+self.renderer.width/2))+'px';
-    this.container.addEventListener('click', this.hideEvent);
-    this.container.addEventListener('contextmenu', this.hideEvent);
+    self.container.addEventListener('click', self.hideEvent);
+    self.container.addEventListener('contextmenu', self.hideEvent);
   }, 0);
   var self = this;
   // Prevent going more
