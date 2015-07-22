@@ -4,6 +4,7 @@ var Keyboard = require('./keyboard');
 var Hangul = require('./hangul');
 var parser = require('./parser');
 var TileAction = require('./action');
+var Interpreter = require('./interpreter');
 
 var UtilityKeyBinding = [
   [
@@ -200,7 +201,7 @@ ContextMenu.prototype.show = function(x, y) {
         self.hide();
       }
     });
-  } else {
+  } else if(Interpreter.CommandMap[this.tile.command].argument){
     this.finalElement.style.display = 'block';
     this.pushElement.style.display = 'none';
     // Push keyboard state
@@ -215,6 +216,12 @@ ContextMenu.prototype.show = function(x, y) {
         self.hide();
       }
     });
+  } else {
+    // Hide all
+    this.finalElement.style.display = 'none';
+    this.pushElement.style.display = 'none';
+    // Push keyboard state
+    this.keyboard.push(null);
   }
 }
 
