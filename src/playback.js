@@ -5,7 +5,32 @@ function Playback(interpreter, renderer, callback, resetCallback) {
   this.resetCallback = resetCallback;
   this.running = false;
   this.playing = false;
+  this.intervalId = -1;
+  this.delay = 400;
   this.registerEvents();
+}
+
+Playback.prototype.resetInterval = function() {
+  var self = this;
+  if(this.intervalId != -1) clearInterval(this.intervalId);
+  this.intervalId = setInterval(function() {
+    if (!self.running) return;
+    self.step();
+  }, this.delay);
+}
+
+Playback.prototype.updateDelay = function(id) {
+  var element = document.getElementById('icon-play'+id+'x');
+  if(this.preElement) {
+    this.preElement.className = 'icon';
+    this.preElement = element;
+  }
+  element.className = 'icon selected';
+  // Reset timing
+  if(id == 1) this.delay = 400;
+  if(id == 2) this.delay = 20;
+  if(id == 3) this.delay = 0;
+  this.resetInterval();
 }
 
 Playback.prototype.registerEvents = function() {
@@ -36,10 +61,14 @@ Playback.prototype.registerEvents = function() {
     self.resetCallback();
     self.update();
   };
-  setInterval(function() {
-    if (!self.running) return;
-    self.step();
-  }, 20);
+  document.getElementById('icon-play1x').onclick =
+    this.updateDelay.bind(this, 1);
+  document.getElementById('icon-play2x').onclick =
+    this.updateDelay.bind(this, 2);
+  document.getElementById('icon-play3x').onclick =
+    this.updateDelay.bind(this, 3);
+  this.preElement = document.getElementById('icon-play1x');
+  this.resetInterval();
   self.update();
 }
 
