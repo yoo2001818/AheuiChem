@@ -101,8 +101,9 @@ var Renderer = function(viewport, interpreter, width) {
   this.map = interpreter.map;
   this.width = width || 50;
 
-  this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
-    this.width * interpreter.map.width, this.width * interpreter.map.height);
+  this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text',
+    'path', 'arrow', 'command'],
+    this.width * (this.map.width + 1), this.width * (this.map.height + 1));
 
   this.sprites = new SpriteLoader(function() {
     self.reset();
@@ -114,10 +115,10 @@ var Renderer = function(viewport, interpreter, width) {
 };
 
 Renderer.prototype.reset = function() {
-  this.cacheMap = new TileMap(this.interpreter.map.width,
-    this.interpreter.map.height);
-  this.canvases.setSize(this.width * this.interpreter.map.width,
-    this.width * this.interpreter.map.height);
+  this.cacheMap = new TileMap(this.interpreter.map.width + 1,
+    this.interpreter.map.height + 1);
+  this.canvases.setSize(this.width * (this.interpreter.map.width + 1),
+    this.width * (this.interpreter.map.height + 1));
   this.canvases.forEach(function(ctx) {
     ctx.font = (this.width * 0.6) + "px sans-serif";
     ctx.textAlign = "center";
@@ -128,8 +129,8 @@ Renderer.prototype.reset = function() {
     this.canvases.width, this.canvases.height);
   this.canvases.get('text').fillStyle = "#555";
   // Redraw all tiles
-  for (var y = 0; y < this.interpreter.map.height; ++y) {
-    for (var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y <= this.interpreter.map.height; ++y) {
+    for (var x = 0; x <= this.interpreter.map.width; ++x) {
       this.cacheMap.set(x, y, {});
       this.updateTile(x, y);
     }
@@ -138,8 +139,8 @@ Renderer.prototype.reset = function() {
 
 Renderer.prototype.redraw = function() {
   // Redraw all tiles
-  for (var y = 0; y < this.interpreter.map.height; ++y) {
-    for (var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y <= this.interpreter.map.height; ++y) {
+    for (var x = 0; x <= this.interpreter.map.width; ++x) {
       this.updateTile(x, y);
     }
   }

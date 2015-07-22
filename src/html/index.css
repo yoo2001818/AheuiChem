@@ -47,7 +47,6 @@ html, body {
   width: 100%;
 }
 #canvas {
-  padding: 50px;
   margin: auto;
 }
 #context-bg {
