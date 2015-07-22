@@ -171,8 +171,9 @@ ContextMenu.prototype.show = function(x, y) {
   this.element.style.display = 'block';
   setTimeout(function() {
     self.element.style.top = y+'px';
-    self.element.style.left = Math.max(0, x-self.element.offsetWidth/2+
-      self.renderer.width/2)+'px';
+    self.element.style.left = Math.max(0, 
+      Math.min(window.innerWidth - self.element.offsetWidth,
+      x-self.element.offsetWidth/2+self.renderer.width/2))+'px';
   }, 0);
   var self = this;
   // Prevent going more
