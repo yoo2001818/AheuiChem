@@ -117,19 +117,24 @@ function initialize() {
   initialized = true;
 }
 
+function loadCode(code) {
+  interpreter = new Interpreter(code);
+  monitor = new Monitor(interpreter);
+  repredict(true);
+  renderer = new Renderer(document.getElementById('canvas'), interpreter);
+  initialize();
+  undomachine.reset();
+  window.undomachine = undomachine;
+  window.interpreter = interpreter;
+  window.predictor = predictor;
+  reset(true);
+}
+
 window.onload = function() {
+  loadCode(' ');
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
-    interpreter = new Interpreter(code);
-    monitor = new Monitor(interpreter);
-    repredict(true);
-    renderer = new Renderer(document.getElementById('canvas'), interpreter);
-    initialize();
-    undomachine.reset();
-    window.undomachine = undomachine;
-    window.interpreter = interpreter;
-    window.predictor = predictor;
-    reset(true);
+    loadCode(code);
     return false;
   };
   document.getElementById('codeForm-export').onclick = function() {
