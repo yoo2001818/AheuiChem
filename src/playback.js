@@ -7,6 +7,7 @@ function Playback(interpreter, renderer, callback, resetCallback) {
   this.playing = false;
   this.intervalId = -1;
   this.delay = 400;
+  this.times = 1;
   this.registerEvents();
 }
 
@@ -27,9 +28,13 @@ Playback.prototype.updateDelay = function(id) {
   }
   element.className = 'icon selected';
   // Reset timing
+  this.times = 1;
   if(id == 1) this.delay = 400;
   if(id == 2) this.delay = 20;
-  if(id == 3) this.delay = 0;
+  if(id == 3) {
+    this.delay = 20;
+    this.times = 10;
+  }
   this.resetInterval();
 }
 
@@ -98,17 +103,21 @@ Playback.prototype.update = function() {
 
 Playback.prototype.step = function() {
   if(!this.interpreter || !this.renderer) return;
-  this.interpreter.next();
+  for(var i = 0; i < this.times; ++i) {
+    this.interpreter.next();
+    if(this.interpreter.state.breakpoint) {
+      this.running = false;
+      this.update();
+      break;
+    }
+    if(!this.interpreter.state.running) {
+      this.running = false;
+      this.stopped = true;
+      this.update();
+      break;
+    }
+  }
   this.renderer.render();
-  if(this.interpreter.state.breakpoint) {
-    this.running = false;
-    this.update();
-  }
-  if(!this.interpreter.state.running) {
-    this.running = false;
-    this.stopped = true;
-    this.update();
-  }
   if(this.callback) this.callback();
 }
 
