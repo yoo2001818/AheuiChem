@@ -11,6 +11,7 @@ var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
 var Keyboard = require('./keyboard');
 var UndoMachine = require('./undomachine');
+var MenuPane = require('./menupane');
 var LayerToggler = require('./layertoggler');
 
 var interpreter;
@@ -23,6 +24,7 @@ var contextmenu;
 var playback;
 var keyboard;
 var undomachine;
+var menupane;
 var layertoggler;
 var initialized = false;
 
@@ -92,6 +94,14 @@ function initialize() {
     document.getElementById('context'),
     document.getElementById('context-push'),
     document.getElementById('context-final'), renderer);
+  menupane = new MenuPane(
+    ['menu-import', 'menu-status', 'menu-help'].map(function(v) {
+      return document.getElementById(v);
+    }),
+    ['menu-btn-import', 'menu-btn-status', 'menu-btn-help'].map(function(v) {
+      return document.getElementById(v);
+    })
+  );
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
     renderer, contextmenu, undomachine);
   viewport.checkCallback = function() {

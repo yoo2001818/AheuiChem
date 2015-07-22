@@ -17,7 +17,25 @@
           </div>
         </div>
       </div>
-      <div class="entry sidebar">
+      <div class="entry sidebar menu" id="menu-help">
+        Nothing in here yet.
+      </div>
+      <div class="entry sidebar menu" id="menu-status">
+        <div class="title">입력</div>
+        <div class="content">
+          <textarea id="codeForm-input"></textarea>
+        </div>
+        <div class="title">출력</div>
+        <div class="content">
+          <textarea id="codeForm-output" readonly="yes"></textarea>
+        </div>
+        <div class="title">상태</div>
+        <div class="content">
+          <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
+          </textarea>
+        </div>
+      </div>
+      <div class="entry sidebar menu" id="menu-import">
         <form id="codeForm">
           <div class="title">실행할 코드</div>
           <div class="content">
@@ -34,24 +52,11 @@
 만든이ㅇㅇ밝밦발밤받본뿌
 최종찬ㅇㅇ봃벒선뻐뻐뻐뻐</textarea>
           </div>
-          <div class="title">입력</div>
-          <div class="content">
-            <textarea id="codeForm-input"></textarea>
-          </div>
-          <div class="title">출력</div>
-          <div class="content">
-            <textarea id="codeForm-output" readonly="yes"></textarea>
-          </div>
           <div class="content">
             <input type="submit" value="불러오기">
             <button type="button" id="codeForm-export">내보내기</button>
           </div>
         </form>
-        <div class="title">상태</div>
-        <div class="content">
-          <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
-          </textarea>
-        </div>
       </div>
     </div>
     <div class="entry footer" id="toolbox">
@@ -97,6 +102,20 @@
       <div class="category">
         <table id="view-table" class="mini">
         </table>
+      </div>
+      <div class="category">
+        <table id="menu-table" class="big">
+          <tr>
+            <td id="menu-btn-import" class="menu-btn">불러오기/내보내기</td>
+          </tr>
+          <tr>
+            <td id="menu-btn-status" class="menu-btn">인터프리터 상태</td>
+          </tr>
+          <tr>
+            <td id="menu-btn-help" class="menu-btn">도움말</td>
+          </tr>
+        </table>
+      </div>
     </div>
   </div>
   <div id="context-bg">

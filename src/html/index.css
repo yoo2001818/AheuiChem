@@ -73,6 +73,9 @@ html, body {
 .content {
   width: 100%;
 }
+.menu {
+  display: none;
+}
 textarea {
   width: 100%;
   box-sizing: border-box;
@@ -123,7 +126,6 @@ textarea {
   font-size: 0;
   background: #000;
   text-align: center;
-  padding-right: 220pt;
 }
 #toolbox .category {
   display: inline-block;
@@ -150,6 +152,13 @@ textarea {
   width: 25px;
   height: 25px;
 }
+#toolbox table.big td {
+  width: 150px;
+  font-size: 12pt;
+  background: #222;
+  line-height: 50px;
+  text-align: center;
+}
 #toolbox td:hover {
   background-color: #333 !important;
 }
@@ -163,16 +172,16 @@ textarea {
   background: url('img/arrow.png') #222;
   background-size: 400% 400%;
 }
-#toolbox td.selected {
+#toolbox table td.selected {
   background-color: #555;
 }
-#toolbox td.selected:hover {
+#toolbox table td.selected:hover {
   background-color: #666 !important;
 }
-#toolbox td.disabled {
+#toolbox table td.disabled {
   background-color: #111;
 }
-#toolbox td.disabled:hover {
+#toolbox table td.disabled:hover {
   background-color: #111 !important;
 }
 
