@@ -74,11 +74,11 @@ Keyboard.prototype.registerEvents = function() {
       if(!entry || !entry.map) continue;
       if(entry.map[keyPressed] != undefined) {
         entry.callback(entry.map[keyPressed]);
-        return;
+        return false;
       } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
         // Quick dirty method to use uppercase if lowercase is not available
         entry.callback(entry.map[keyPressed.toUpperCase()]);
-        return;
+        return false;
       }
     }
   });

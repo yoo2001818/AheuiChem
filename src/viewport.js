@@ -41,6 +41,11 @@ Viewport.prototype.handleMouseClick = function(e) {
   var tileX = canvasX / this.renderer.width | 0;
   var tileY = canvasY / this.renderer.width | 0;
   if (!this.checkCallback(tileX, tileY)) return false;
+  // Ignore if we have to expand too much
+  if(tileX < 0) return false;
+  if(tileY < 0) return false;
+  if(tileX > this.renderer.map.width) return false;
+  if(tileY > this.renderer.map.height) return false;
   // Expand the map if required
   this.renderer.map.expand(tileX + 1, tileY + 1);
   if (tileX + 1 >= this.renderer.map.width ||
