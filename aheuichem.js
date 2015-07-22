@@ -213,6 +213,10 @@ ContextMenu.prototype.update = function() {
 
 ContextMenu.prototype.init = function() {
   var self = this;
+  self.container.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
   var tilemap = TileMap.fromArray(PushKeyBinding);
   // TODO no getElementById in class
   // This is exactly same situation as toolbox
