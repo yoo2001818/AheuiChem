@@ -166,14 +166,14 @@ ContextMenu.prototype.init = function() {
 ContextMenu.prototype.show = function(x, y) {
   var self = this;
   this.container.style.display = 'block';
-  this.container.addEventListener('click', this.hideEvent);
-  this.container.addEventListener('contextmenu', this.hideEvent);
   this.element.style.display = 'block';
   setTimeout(function() {
     self.element.style.top = y+'px';
-    self.element.style.left = Math.max(0, 
+    self.element.style.left = Math.max(0,
       Math.min(window.innerWidth - self.element.offsetWidth,
       x-self.element.offsetWidth/2+self.renderer.width/2))+'px';
+    this.container.addEventListener('click', this.hideEvent);
+    this.container.addEventListener('contextmenu', this.hideEvent);
   }, 0);
   var self = this;
   // Prevent going more
@@ -202,7 +202,8 @@ ContextMenu.prototype.show = function(x, y) {
         self.hide();
       }
     });
-  } else if(Interpreter.CommandMap[this.tile.command].argument){
+  } else if(Interpreter.CommandMap[this.tile.command] &&
+    Interpreter.CommandMap[this.tile.command].argument){
     this.finalElement.style.display = 'block';
     this.pushElement.style.display = 'none';
     // Push keyboard state
