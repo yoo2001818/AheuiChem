@@ -9,61 +9,123 @@
 </head>
 
 <body>
-  <div class="container horizontal">
-    <div class="entry fill container vertical">
+  <div class="container vertical">
+    <div class="entry fill container horizontal">
       <div class="entry fill viewport" id="viewport">
         <div id="canvas-container">
           <div id="canvas">
           </div>
         </div>
       </div>
-      <div class="entry footer" id="toolbox">
-        <div class="category">
-          <table id="toolbox-table">
-          </table>
+      <div class="entry sidebar menu" id="menu-help">
+        <div class="content texts">
+          <div>
+            <p>AheuiChem 1.0.0</p>
+            <p>By Duknam Yoo</p>
+          </div>
+          <div>
+            <p><a href="./manual/manual.html"
+              target="blank">AheuiChem 설명서</a></p>
+            <p><a href="https://aheui.github.io/specification.ko/"
+              target="_blank">
+              아희 스펙
+            </a></p>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="entry sidebar">
-      <form id="codeForm">
-        <div class="title">실행할 코드</div>
-        <div class="content">
-          <textarea id="codeForm-code">
-삼반반타반빠빠빠빠빠빠우
+      <div class="entry sidebar menu" id="menu-status">
+        <div class="container vertical">
+          <div class="content entry">
+            <textarea id="codeForm-input" rows="4" placeholder="입력"></textarea>
+          </div>
+          <div class="content entry">
+            <textarea id="codeForm-output" readonly="yes" rows="7"
+              placeholder="출력"></textarea>
+          </div>
+          <div class="content entry fill">
+            <textarea id="codeForm-debug" readonly="yes" placeholder="상태">
+            </textarea>
+          </div>
+        </div>
+      </div>
+      <div class="entry sidebar menu" id="menu-import">
+        <form id="codeForm" class="container vertical">
+          <div class="content entry fill">
+            <textarea id="codeForm-code">
+삼바반빠빠빠빠빠빠아아우
 우어어번벋범벌벖벍벓벒석
 삭싿삳빠빠빠빠빠빠빠빠술
-초섬어어어어쑫썽뻐선썽분
+초섬어어어어쑫썽뻐선썽부
 숭밝밦따뭏오삳따쌍술뽀분
-망속숙멍성오어어어차솓투
-송어밢밦따밝다맣상뭉토분
-ㅇ모뻐희셩멓떠벌번선본뿌
-ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ볻뿌
-만든이ㅇㅇ밝밦발밤받본뿌
-최종찬ㅇㅇ봃벒선뻐뻐뻐뻐</textarea>
-        </div>
-        <div class="title">입력</div>
-        <div class="content">
-          <textarea id="codeForm-input">아직 미지원</textarea>
-        </div>
-        <div class="title">출력</div>
-        <div class="content">
-          <textarea id="codeForm-output" readonly="yes"></textarea>
-        </div>
-        <div class="content">
-          <input type="submit" value="불러오기">
-          <button type="button" id="codeForm-export">내보내기</button>
-        </div>
-      </form>
-      <div class="content">
-        <button id="codeForm-reset">초기화</button>
-        <button id="codeForm-pause">멈춤</button>
-        <button id="codeForm-resume">실행</button>
-        <button id="codeForm-step">한단계</button>
+망속숙멍성오어어어차솓뿌
+송어밢밦따밝다맣상뭉노뿌
+ㄹ모뻐희셩멓떠벌번선뽀뿌
+최종찬만듬밦발밤받반뽀뿌
+유덕남고침볽벓벒선뻐뻐뻐</textarea>
+          </div>
+          <div class="content entry">
+            <input type="submit" value="불러오기">
+            <button type="button" id="codeForm-export">내보내기</button>
+          </div>
+        </form>
       </div>
-      <div class="title">상태</div>
-      <div class="content">
-        <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
-        </textarea>
+    </div>
+    <div class="entry footer" id="toolbox">
+      <div class="category">
+        <table id="undo-table">
+          <tr>
+            <td id="icon-play" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-pause" class="icon disabled"></td>
+          </tr>
+          <tr>
+            <td id="icon-stop" class="icon"></td>
+          </tr>
+        </table>
+      </div>
+      <div class="category">
+        <table id="playback-table" class="mini">
+          <tr>
+            <td id="icon-step" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play1x" class="icon selected"></td>
+          </tr>
+          <tr>
+            <td id="icon-play2x" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play3x" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-undo" class="icon disabled"></td>
+          </tr>
+          <tr>
+            <td id="icon-redo" class="icon disabled"></td>
+          </tr>
+        </table>
+      </div>
+      <div class="category">
+        <table id="toolbox-table">
+        </table>
+      </div>
+      <div class="category">
+        <table id="view-table" class="mini">
+        </table>
+      </div>
+      <div class="category">
+        <table id="menu-table" class="big">
+          <tr>
+            <td id="menu-btn-import" class="menu-btn">불러오기/내보내기</td>
+          </tr>
+          <tr>
+            <td id="menu-btn-status" class="menu-btn">인터프리터 상태</td>
+          </tr>
+          <tr>
+            <td id="menu-btn-help" class="menu-btn">도움말</td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>

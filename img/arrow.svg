@@ -15,7 +15,7 @@
    version="1.1"
    inkscape:version="0.91 r13725"
    sodipodi:docname="arrow.svg"
-   inkscape:export-filename="/home/yoo2001818/git/AheuiChem/src/html/img/path.png"
+   inkscape:export-filename="/home/yoo2001818/git/AheuiChem/src/html/img/arrow.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
@@ -178,26 +178,28 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="40.981891"
-     inkscape:cy="205.12559"
+     inkscape:zoom="2.8"
+     inkscape:cx="-148.01065"
+     inkscape:cy="121.5829"
      inkscape:document-units="px"
-     inkscape:current-layer="g4222"
+     inkscape:current-layer="layer2"
      showgrid="false"
-     inkscape:window-width="774"
-     inkscape:window-height="414"
-     inkscape:window-x="653"
-     inkscape:window-y="326"
-     inkscape:window-maximized="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
      inkscape:snap-page="true"
      inkscape:snap-bbox="true"
-     inkscape:bbox-nodes="true"
+     inkscape:bbox-nodes="false"
      inkscape:snap-object-midpoints="true"
      inkscape:object-nodes="true"
-     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-edge-midpoints="false"
      inkscape:bbox-paths="false"
      inkscape:object-paths="false"
-     inkscape:snap-center="false" />
+     inkscape:snap-center="false"
+     inkscape:snap-nodes="false"
+     inkscape:snap-bbox-midpoints="true" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -342,7 +344,6 @@
      inkscape:label="ArrowBorder"
      id="g4222"
      inkscape:groupmode="layer"
-     sodipodi:insensitive="true"
      style="display:inline">
     <g
        id="g4360"
@@ -827,5 +828,11 @@
        id="path4299"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
+    <path
+       sodipodi:nodetypes="cccc"
+       inkscape:connector-curvature="0"
+       id="path4353"
+       d="M 32.702785,264.96659 50,237.0444 67.297215,264.96659 Z"
+       style="display:inline;opacity:1;fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:6, 3;stroke-dashoffset:0;stroke-opacity:1" />
   </g>
 </svg>

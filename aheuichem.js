@@ -2,9 +2,8 @@
 var parser = require('./parser');
 var Interpreter = require('./interpreter');
 
-function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
+function TileAction(tile, tileX, tileY, data, renderer, callback) {
   this.tile = tile;
-  this.key = key;
   this.data = data;
   this.tileX = tileX;
   this.tileY = tileY;
@@ -13,13 +12,18 @@ function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
 }
 
 TileAction.prototype.exec = function() {
-  this.before = this.tile[this.key];
-  this.tile[this.key] = this.data;
+  this.before = {};
+  for(var key in this.data) {
+    this.before[key] = this.tile[key];
+    this.tile[key] = this.data[key];
+  }
   this.update();
 }
 
 TileAction.prototype.undo = function() {
-  this.tile[this.key] = this.before;
+  for(var key in this.before) {
+    this.tile[key] = this.before[key];
+  }
   this.update();
 }
 
@@ -41,7 +45,7 @@ TileAction.prototype.update = function() {
 
 module.exports = TileAction;
 
-},{"./interpreter":7,"./parser":11}],2:[function(require,module,exports){
+},{"./interpreter":7,"./parser":13}],2:[function(require,module,exports){
 function CanvasLayer(viewport, layerNames, width, height) {
   this.layers = [];
   this.layersByName = {};
@@ -115,29 +119,53 @@ var Keyboard = require('./keyboard');
 var Hangul = require('./hangul');
 var parser = require('./parser');
 var TileAction = require('./action');
+var Interpreter = require('./interpreter');
 
 var UtilityKeyBinding = [
   [
     {
       name: "복사",
       exec: function() {
+        // TODO yes, yes. I know. This code is like a 30 days old spaghetti
+        // in the garbage can that smells like rotten ActiveX.
+        // Which means... it needs to be fixed.
+        this.clipboard = {
+          command: this.tile.command,
+          direction: this.tile.direction,
+          data: this.tile.data
+        }
       }
     },
     {
       name: "자르기",
       exec: function() {
+        this.clipboard = {
+          command: this.tile.command,
+          direction: this.tile.direction,
+          data: this.tile.data
+        }
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          {
+            command: 'none',
+            direction: 'none',
+            breakpoint: false
+          }, this.renderer));
       }
     },
     {
       name: "붙이기",
       exec: function() {
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          this.clipboard, this.renderer));
       }
     },
     {
       name: "중단점",
       exec: function() {
         this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
-          'breakpoint', !this.tile.breakpoint, this.renderer));
+          {
+            breakpoint: !this.tile.breakpoint
+          }, this.renderer));
       }
     }
   ]
@@ -160,7 +188,7 @@ var UtilityBindingMap = Keyboard.createKeyMap(UtilityKeyBinding,
 var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
 var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
 
-function ContextMenu(container, element, pushElement, finalElement, 
+function ContextMenu(container, element, pushElement, finalElement,
   renderer, clickCallback,
   keyboard, undomachine) {
   this.container = container;
@@ -176,6 +204,7 @@ function ContextMenu(container, element, pushElement, finalElement,
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
+  this.clipboard = {};
 }
 
 ContextMenu.prototype.update = function() {
@@ -201,7 +230,9 @@ ContextMenu.prototype.init = function() {
     node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-        'data', tile, self.renderer));
+        {
+          data: tile
+        }, self.renderer));
       self.update();
     });
   });
@@ -221,7 +252,9 @@ ContextMenu.prototype.init = function() {
     node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-        'data', Hangul.final.indexOf(tile), self.renderer));
+        {
+          data: Hangul.final.indexOf(tile)
+        }, self.renderer));
       self.update();
     });
   });
@@ -253,8 +286,9 @@ ContextMenu.prototype.show = function(x, y) {
   this.element.style.display = 'block';
   setTimeout(function() {
     self.element.style.top = y+'px';
-    self.element.style.left = Math.max(0, x-self.element.offsetWidth/2+
-      self.renderer.width/2)+'px';
+    self.element.style.left = Math.max(0, 
+      Math.min(window.innerWidth - self.element.offsetWidth,
+      x-self.element.offsetWidth/2+self.renderer.width/2))+'px';
   }, 0);
   var self = this;
   // Prevent going more
@@ -276,12 +310,14 @@ ContextMenu.prototype.show = function(x, y) {
       map: PushKeyBindingMap,
       callback: function(data) {
         self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-          'data', data, self.renderer));
+          {
+            data: data
+          }, self.renderer));
         self.update();
         self.hide();
       }
     });
-  } else {
+  } else if(Interpreter.CommandMap[this.tile.command].argument){
     this.finalElement.style.display = 'block';
     this.pushElement.style.display = 'none';
     // Push keyboard state
@@ -289,11 +325,19 @@ ContextMenu.prototype.show = function(x, y) {
       map: FinalKeyBindingMap,
       callback: function(data) {
         self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-          'data', Hangul.final.indexOf(data), self.renderer));
+          {
+            data: Hangul.final.indexOf(data)
+          }, self.renderer));
         self.update();
         self.hide();
       }
     });
+  } else {
+    // Hide all
+    this.finalElement.style.display = 'none';
+    this.pushElement.style.display = 'none';
+    // Push keyboard state
+    this.keyboard.push(null);
   }
 }
 
@@ -313,7 +357,7 @@ ContextMenu.prototype.hide = function(e) {
 
 module.exports = ContextMenu;
 
-},{"./action":1,"./hangul":5,"./keyboard":8,"./parser":11,"./table":17,"./tilemap":18}],4:[function(require,module,exports){
+},{"./action":1,"./hangul":5,"./interpreter":7,"./keyboard":8,"./parser":13,"./table":19,"./tilemap":20}],4:[function(require,module,exports){
 // 1000 : keep direction
 // -1000 : reverse direction
 
@@ -447,8 +491,8 @@ function calculate(current, target) {
 
 function move(pos, dir, size) {
   pos += dir;
-  if (pos < 0) pos = size + pos;
-  if (pos >= size) pos = pos - size;
+  if (pos < 0) pos = Math.max(0, size + pos);
+  if (pos >= size) pos = Math.min(size - 1, pos - size);
   return pos;
 }
 
@@ -515,6 +559,8 @@ var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
 var Keyboard = require('./keyboard');
 var UndoMachine = require('./undomachine');
+var MenuPane = require('./menupane');
+var LayerToggler = require('./layertoggler');
 
 var interpreter;
 var renderer;
@@ -526,19 +572,25 @@ var contextmenu;
 var playback;
 var keyboard;
 var undomachine;
+var menupane;
+var layertoggler;
 var initialized = false;
 
 function repredict(initial) {
   // Clear all paths and reset
   if (!initial && renderer) {
-    for (var y = 0; y < interpreter.map.height; ++y) {
-      for (var x = 0; x < interpreter.map.width; ++x) {
-        var tile = interpreter.map.get(x, y);
-        var cacheTile = renderer.cacheMap.get(x, y);
-        if (tile) {
-          tile.directions = [];
-          tile.segments = {};
-          cacheTile.directions = {};
+    if(interpreter.trim()) {
+      renderer.reset();
+    } else {
+      for (var y = 0; y < interpreter.map.height; ++y) {
+        for (var x = 0; x < interpreter.map.width; ++x) {
+          var tile = interpreter.map.get(x, y);
+          var cacheTile = renderer.cacheMap.get(x, y);
+          if (tile) {
+            tile.directions = [];
+            tile.segments = {};
+            cacheTile.directions = {};
+          }
         }
       }
     }
@@ -561,12 +613,15 @@ function reset(initial) {
   document.getElementById('codeForm-output').value = '';
   // supply input
   interpreter.push(document.getElementById('codeForm-input').value);
+  playback.playing = false;
   playback.running = false;
+  playback.update();
   document.activeElement.blur();
 }
 
 function initialize() {
   if(initialized) {
+    layertoggler.renderer = renderer;
     toolbox.renderer = renderer;
     viewport.renderer = renderer;
     contextmenu.renderer = renderer;
@@ -574,16 +629,37 @@ function initialize() {
     playback.interpreter = interpreter;
     return;
   }
-  undomachine = new UndoMachine();
+  undomachine = new UndoMachine(function() {
+    document.getElementById('icon-undo').className = 'icon'+
+      (undomachine.undoStack.length > 0 ? '' : ' disabled');
+    document.getElementById('icon-redo').className = 'icon'+
+      (undomachine.redoStack.length > 0 ? '' : ' disabled');
+  });
   playback = new Playback(interpreter, renderer, function() {
     document.getElementById('codeForm-output').value += interpreter.shift();
     document.getElementById('codeForm-debug').value = monitor.getStatus();
   }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
+  layertoggler = new LayerToggler(renderer,
+    document.getElementById('view-table'));
+  // TODO should be changed. it's dirty.
+  layertoggler.trim = function() {
+    interpreter.trim(true);
+    renderer.reset();
+    repredict(false);
+  }
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context'),
     document.getElementById('context-push'),
     document.getElementById('context-final'), renderer);
+  menupane = new MenuPane(
+    ['menu-import', 'menu-status', 'menu-help'].map(function(v) {
+      return document.getElementById(v);
+    }),
+    ['menu-btn-import', 'menu-btn-status', 'menu-btn-help'].map(function(v) {
+      return document.getElementById(v);
+    })
+  );
   viewport = new Viewport(document.getElementById('viewport'), toolbox,
     renderer, contextmenu, undomachine);
   viewport.checkCallback = function() {
@@ -602,7 +678,9 @@ function initialize() {
         undomachine.redo();
       },
       ' ': function() {
+        playback.playing = true;
         playback.running = !playback.running;
+        playback.update();
       }
     },
     callback: function(mapping) {
@@ -621,24 +699,35 @@ function initialize() {
   initialized = true;
 }
 
+function loadCode(code) {
+  interpreter = new Interpreter(code);
+  monitor = new Monitor(interpreter);
+  repredict(true);
+  renderer = new Renderer(document.getElementById('canvas'), interpreter);
+  initialize();
+  undomachine.reset();
+  window.undomachine = undomachine;
+  window.interpreter = interpreter;
+  window.predictor = predictor;
+  reset(true);
+}
+
 window.onload = function() {
+  loadCode(' ');
   document.getElementById('codeForm').onsubmit = function() {
     var code = document.getElementById('codeForm-code').value;
-    interpreter = new Interpreter(code);
-    monitor = new Monitor(interpreter);
-    repredict(true);
-    renderer = new Renderer(document.getElementById('canvas'), interpreter);
-    initialize();
-    undomachine.reset();
-    window.undomachine = undomachine;
-    window.interpreter = interpreter;
-    window.predictor = predictor;
-    reset(true);
+    loadCode(code);
     return false;
   };
   document.getElementById('codeForm-export').onclick = function() {
     document.getElementById('codeForm-code').value = parser.encode(
       interpreter.map);
+  };
+  document.getElementById('icon-undo').onclick = function() {
+    undomachine.undo();
+  };
+  document.getElementById('icon-redo').onclick = function() {
+    undomachine.redo();
   };
   /*
   document.getElementById('captureBtn').onclick = function() {
@@ -647,7 +736,7 @@ window.onload = function() {
   */
 };
 
-},{"./contextmenu":3,"./interpreter":7,"./keyboard":8,"./monitor":10,"./parser":11,"./playback":12,"./predictor":13,"./renderer":14,"./toolbox":19,"./undomachine":20,"./viewport":21}],7:[function(require,module,exports){
+},{"./contextmenu":3,"./interpreter":7,"./keyboard":8,"./layertoggler":9,"./menupane":11,"./monitor":12,"./parser":13,"./playback":14,"./predictor":15,"./renderer":16,"./toolbox":21,"./undomachine":22,"./viewport":23}],7:[function(require,module,exports){
 var parser = require('./parser');
 var memory = require('./memory');
 var Direction = require('./direction');
@@ -896,11 +985,38 @@ Interpreter.prototype.next = function() {
   return this.state.running;
 };
 
+// TODO move it somewhere?
+// Trims the tilemap
+Interpreter.prototype.trim = function(checkUsed) {
+  var requestedWidth = 0;
+  var requestedHeight = 0;
+  for(var y = 0; y < this.map.height; ++y) {
+    var currentWidth = 0;
+    for(var x = 0; x < this.map.width; ++x) {
+      var tile = this.map.get(x, y);
+      if(tile == null) continue;
+      if(tile.direction == 'none' && tile.command == 'none') continue;
+      // ... why is it here..
+      if(checkUsed && tile.directions == null) continue;
+      if(checkUsed && tile.directions.length == 0) continue;
+      currentWidth = x + 1;
+    }
+    if(currentWidth > 0) requestedHeight = y + 1;
+    if(currentWidth > requestedWidth) requestedWidth = currentWidth;
+  }
+  var hasChanged = false;
+  if(this.map.width != requestedWidth) hasChanged = true;
+  if(this.map.height != requestedHeight) hasChanged = true;
+  this.map.width = requestedWidth;
+  this.map.height = requestedHeight;
+  return hasChanged;
+}
+
 Interpreter.CommandMap = CommandMap;
 
 module.exports = Interpreter;
 
-},{"./direction":4,"./memory":9,"./parser":11}],8:[function(require,module,exports){
+},{"./direction":4,"./memory":10,"./parser":13}],8:[function(require,module,exports){
 var KeyNumberLayout = [
   '1234567890'
 ].map(function(v) {
@@ -977,11 +1093,11 @@ Keyboard.prototype.registerEvents = function() {
       if(!entry || !entry.map) continue;
       if(entry.map[keyPressed] != undefined) {
         entry.callback(entry.map[keyPressed]);
-        return;
+        return false;
       } else if(entry.map[keyPressed.toUpperCase()] != undefined) {
         // Quick dirty method to use uppercase if lowercase is not available
         entry.callback(entry.map[keyPressed.toUpperCase()]);
-        return;
+        return false;
       }
     }
   });
@@ -1008,6 +1124,77 @@ Keyboard.createKeyMap = function(binding, layout) {
 module.exports = Keyboard;
 
 },{}],9:[function(require,module,exports){
+var TileMap = require('./tilemap');
+var Table = require('./table');
+
+var LayerToggleBinding = [
+  [
+    {
+      name: '청소',
+      data: 'clean'
+    },
+    {
+      name: '명령',
+      data: 'command'
+    },
+    {
+      name: '방향',
+      data: 'arrow'
+    },
+    {
+      name: '경로',
+      data: 'path',
+    },
+    {
+      name: '글자',
+      data: 'text'
+    },
+    {
+      name: '배경',
+      data: 'highlight'
+    }
+  ]
+];
+
+function LayerToggler(renderer, element) {
+  this.renderer = renderer;
+  this.element = element;
+  this.init();
+}
+
+LayerToggler.prototype.init = function() {
+  var self = this;
+  var tilemap = TileMap.fromArray(LayerToggleBinding).transpose();
+  console.log(tilemap);
+  var table = new Table(this.element, tilemap, function(node, tile, x, y) {
+    if(tile == null) {
+      node.parentNode.removeChild(node);
+      return;
+    }
+    node.id = 'view-'+tile.data;
+    node.className = 'view';
+    node.appendChild(document.createTextNode(tile.name));
+    node.addEventListener('click', function() {
+      // TODO move it somewhere else????
+      if(tile.data == 'clean') {
+        self.trim();
+        return;
+      }
+      var style = self.renderer.canvases.getCanvas(tile.data).style;
+      if(style.visibility == 'hidden') {
+        style.visibility = 'visible';
+        node.className = 'view';
+      } else {
+        style.visibility = 'hidden';
+        node.className = 'view selected';
+      }
+    });
+  });
+}
+
+module.exports = LayerToggler;
+
+},{"./table":19,"./tilemap":20}],10:[function(require,module,exports){
 function Memory() {}
 
 Memory.prototype.push = function(data) {};
@@ -1088,7 +1275,53 @@ Queue.prototype.flip = function() {
 module.exports.Memory = Memory;
 module.exports.Stack = Stack;
 module.exports.Queue = Queue;
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+function MenuPane(panes, buttons) {
+  this.panes = panes;
+  this.buttons = buttons;
+  this.selected = -1;
+  this.registerEvents();
+}
+
+MenuPane.prototype.registerEvents = function() {
+  var self = this;
+  this.buttons.forEach(function(element, key) {
+    element.onclick = function() {
+      if(self.selected == key) {
+        self.show(-1);
+      } else {
+        self.show(key);
+      }
+    }
+  });
+  this.update();
+}
+
+MenuPane.prototype.show = function(index) {
+  this.selected = index;
+  this.update();
+}
+
+MenuPane.prototype.update = function() {
+  this.buttons.forEach(function(element, key) {
+    if(this.selected == key) {
+      element.className = 'menu-btn selected';
+    } else {
+      element.className = 'menu-btn';
+    }
+  }, this);
+  this.panes.forEach(function(element, key) {
+    if(this.selected == key) {
+      element.style.display = 'block';
+    } else {
+      element.style.display = 'none';
+    }
+  }, this);
+}
+
+module.exports = MenuPane;
+
+},{}],12:[function(require,module,exports){
 var Hangul = require('./hangul');
 
 function Monitor(interpreter) {
@@ -1116,7 +1349,7 @@ Monitor.prototype.getStatus = function() {
 };
 
 module.exports = Monitor;
-},{"./hangul":5}],11:[function(require,module,exports){
+},{"./hangul":5}],13:[function(require,module,exports){
 var TileMap = require('./tilemap');
 var Hangul = require('./hangul');
 
@@ -1252,7 +1485,7 @@ function parseSyllable(char) {
 }
 
 function encodeSyllable(data) {
-  var initial = getRandomChar(CommandReverseMap[data.command]);
+  var initial = getRandomChar(CommandReverseMap[data.command]||'');
   var medial = getRandomChar(DirectionReverseMap[data.direction]);
   var final = ' ';
   if (data.command == 'push-number') {
@@ -1317,53 +1550,134 @@ module.exports.parse = parse;
 module.exports.encodeSyllable = encodeSyllable;
 module.exports.encode = encode;
 
-},{"./hangul":5,"./tilemap":18}],12:[function(require,module,exports){
+},{"./hangul":5,"./tilemap":20}],14:[function(require,module,exports){
 function Playback(interpreter, renderer, callback, resetCallback) {
   this.interpreter = interpreter;
   this.renderer = renderer;
   this.callback = callback;
   this.resetCallback = resetCallback;
   this.running = false;
+  this.playing = false;
+  this.intervalId = -1;
+  this.delay = 400;
+  this.times = 1;
   this.registerEvents();
+}
+
+Playback.prototype.resetInterval = function() {
+  var self = this;
+  if(this.intervalId != -1) clearInterval(this.intervalId);
+  this.intervalId = setInterval(function() {
+    if (!self.running) return;
+    self.step();
+  }, this.delay);
+}
+
+Playback.prototype.updateDelay = function(id) {
+  var element = document.getElementById('icon-play'+id+'x');
+  if(this.preElement) {
+    this.preElement.className = 'icon';
+    this.preElement = element;
+  }
+  element.className = 'icon selected';
+  // Reset timing
+  this.times = 1;
+  if(id == 1) this.delay = 400;
+  if(id == 2) this.delay = 20;
+  if(id == 3) {
+    this.delay = 20;
+    this.times = 10;
+  }
+  this.resetInterval();
 }
 
 Playback.prototype.registerEvents = function() {
   var self = this;
   // TODO let's not use getElementById in classes
-  document.getElementById('codeForm-resume').onclick = function() {
+  document.getElementById('icon-play').onclick = function() {
     document.activeElement.blur();
+    self.playing = true;
     self.running = true;
+    self.update();
   };
-  document.getElementById('codeForm-pause').onclick = function() {
+  document.getElementById('icon-pause').onclick = function() {
     document.activeElement.blur();
+    if(!self.playing) return;
     self.running = false;
+    self.update();
   };
-  document.getElementById('codeForm-step').onclick = function() {
+  document.getElementById('icon-step').onclick = function() {
     document.activeElement.blur();
-    self.step();
+    self.playing = true;
+    self.step(true);
     self.running = false;
+    self.update();
   };
-  document.getElementById('codeForm-reset').onclick = function() {
+  document.getElementById('icon-stop').onclick = function() {
+    self.playing = false;
+    self.running = false;
     self.resetCallback();
+    self.update();
   };
-  setInterval(function() {
-    if (!self.running) return;
-    self.step();
-  }, 20);
+  document.getElementById('icon-play1x').onclick =
+    this.updateDelay.bind(this, 1);
+  document.getElementById('icon-play2x').onclick =
+    this.updateDelay.bind(this, 2);
+  document.getElementById('icon-play3x').onclick =
+    this.updateDelay.bind(this, 3);
+  this.preElement = document.getElementById('icon-play1x');
+  this.resetInterval();
+  self.update();
 }
 
-Playback.prototype.step = function() {
+Playback.prototype.update = function() {
+  // TODO PLEASE CLEANUP THIS CODE
+  if(this.playing) {
+    // Stop button is enabled
+    document.getElementById('icon-stop').className = 'icon';
+    if(this.running) {
+      // Play button is selected
+      document.getElementById('icon-play').className = 'icon selected';
+      document.getElementById('icon-pause').className = 'icon';
+      document.getElementById('icon-step').className = 'icon disabled';
+    } else {
+      // Pause button is selected
+      document.getElementById('icon-play').className = 'icon';
+      document.getElementById('icon-pause').className = 'icon selected';
+      document.getElementById('icon-step').className = 'icon';
+    }
+  } else {
+    // Stop, pause button is disabled
+    document.getElementById('icon-stop').className = 'icon disabled';
+    document.getElementById('icon-play').className = 'icon';
+    document.getElementById('icon-pause').className = 'icon disabled';
+  }
+}
+
+Playback.prototype.step = function(once) {
   if(!this.interpreter || !this.renderer) return;
-  this.interpreter.next();
+  for(var i = 0; i < this.times; ++i) {
+    this.interpreter.next();
+    if(this.interpreter.state.breakpoint) {
+      this.running = false;
+      this.update();
+      break;
+    }
+    if(!this.interpreter.state.running) {
+      this.running = false;
+      this.stopped = true;
+      this.update();
+      break;
+    }
+    if(once) break;
+  }
   this.renderer.render();
-  if(this.interpreter.state.breakpoint) this.running = false;
-  if(!this.interpreter.state.running) this.running = false;
   if(this.callback) this.callback();
 }
 
 module.exports = Playback;
 
-},{}],13:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 var parser = require('./parser');
 var TileMap = require('./tilemap');
 var Direction = require('./direction');
@@ -1722,7 +2036,7 @@ Predictor.prototype.assembly = function() {
 
 module.exports = Predictor;
 
-},{"./direction":4,"./interpreter":7,"./parser":11,"./tilemap":18}],14:[function(require,module,exports){
+},{"./direction":4,"./interpreter":7,"./parser":13,"./tilemap":20}],16:[function(require,module,exports){
 var TileMap = require('./tilemap');
 var CanvasLayer = require('./canvaslayer');
 var Hangul = require('./hangul');
@@ -1826,8 +2140,9 @@ var Renderer = function(viewport, interpreter, width) {
   this.map = interpreter.map;
   this.width = width || 50;
 
-  this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text', 'path', 'arrow', 'command'],
-    this.width * interpreter.map.width, this.width * interpreter.map.height);
+  this.canvases = new CanvasLayer(viewport, ['background', 'highlight', 'text',
+    'path', 'arrow', 'command'],
+    this.width * (this.map.width + 1), this.width * (this.map.height + 1));
 
   this.sprites = new SpriteLoader(function() {
     self.reset();
@@ -1839,10 +2154,10 @@ var Renderer = function(viewport, interpreter, width) {
 };
 
 Renderer.prototype.reset = function() {
-  this.cacheMap = new TileMap(this.interpreter.map.width,
-    this.interpreter.map.height);
-  this.canvases.setSize(this.width * this.interpreter.map.width,
-    this.width * this.interpreter.map.height);
+  this.cacheMap = new TileMap(this.interpreter.map.width + 1,
+    this.interpreter.map.height + 1);
+  this.canvases.setSize(this.width * (this.interpreter.map.width + 1),
+    this.width * (this.interpreter.map.height + 1));
   this.canvases.forEach(function(ctx) {
     ctx.font = (this.width * 0.6) + "px sans-serif";
     ctx.textAlign = "center";
@@ -1853,8 +2168,8 @@ Renderer.prototype.reset = function() {
     this.canvases.width, this.canvases.height);
   this.canvases.get('text').fillStyle = "#555";
   // Redraw all tiles
-  for (var y = 0; y < this.interpreter.map.height; ++y) {
-    for (var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y <= this.interpreter.map.height; ++y) {
+    for (var x = 0; x <= this.interpreter.map.width; ++x) {
       this.cacheMap.set(x, y, {});
       this.updateTile(x, y);
     }
@@ -1863,8 +2178,8 @@ Renderer.prototype.reset = function() {
 
 Renderer.prototype.redraw = function() {
   // Redraw all tiles
-  for (var y = 0; y < this.interpreter.map.height; ++y) {
-    for (var x = 0; x < this.interpreter.map.width; ++x) {
+  for (var y = 0; y <= this.interpreter.map.height; ++y) {
+    for (var x = 0; x <= this.interpreter.map.width; ++x) {
       this.updateTile(x, y);
     }
   }
@@ -1874,25 +2189,26 @@ Renderer.prototype.updateTile = function(x, y) {
   var state = this.interpreter.state;
   var tile = this.interpreter.map.get(x, y);
   var cacheTile = this.cacheMap.get(x, y);
-  if (tile) {
-    this.canvases.forEach(function(ctx) {
-      ctx.save();
-      ctx.translate(x * this.width, y * this.width);
-    }, this);
+  
+  this.canvases.forEach(function(ctx) {
+    ctx.save();
+    ctx.translate(x * this.width, y * this.width);
+  }, this);
 
-    var highlighted = state && state.x == x && state.y == y;
-    if (cacheTile.highlighted != highlighted) {
-      cacheTile.highlighted = highlighted;
-      var highlightCtx = this.canvases.get('highlight');
-      highlightCtx.clearRect(0, 0, this.width, this.width);
-      if (highlighted) {
-        highlightCtx.fillStyle = "#666";
-      } else {
-        highlightCtx.fillStyle = "#222";
-      }
-      roundRect(highlightCtx, 1, 1, this.width - 2, this.width - 2, 4, true);
+  var highlighted = state && state.x == x && state.y == y;
+  if (cacheTile.highlighted != highlighted) {
+    cacheTile.highlighted = highlighted;
+    var highlightCtx = this.canvases.get('highlight');
+    highlightCtx.clearRect(0, 0, this.width, this.width);
+    if (highlighted) {
+      highlightCtx.fillStyle = "#666";
+    } else {
+      highlightCtx.fillStyle = "#222";
     }
-
+    roundRect(highlightCtx, 1, 1, this.width - 2, this.width - 2, 4, true);
+  }
+  
+  if (tile) {
     if (cacheTile.text != tile.original) {
       cacheTile.text = tile.original;
       var textCtx = this.canvases.get('text');
@@ -1957,11 +2273,10 @@ Renderer.prototype.updateTile = function(x, y) {
         commandCtx.fillText(text, this.width - 3, this.width - 3);
       }
     }
-
-    this.canvases.forEach(function(ctx) {
-      ctx.restore();
-    }, this);
   }
+  this.canvases.forEach(function(ctx) {
+    ctx.restore();
+  }, this);
 };
 
 Renderer.prototype.render = function() {
@@ -1975,7 +2290,7 @@ Renderer.prototype.render = function() {
 
 module.exports = Renderer;
 
-},{"./canvaslayer":2,"./hangul":5,"./spriteloader":16,"./tilemap":18}],15:[function(require,module,exports){
+},{"./canvaslayer":2,"./hangul":5,"./spriteloader":18,"./tilemap":20}],17:[function(require,module,exports){
 function ScrollPane(viewport, clickCallback) {
   this.viewport = viewport;
   this.clickCallback = clickCallback;
@@ -2022,7 +2337,7 @@ ScrollPane.prototype.registerEvents = function() {
 
 module.exports = ScrollPane;
 
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 function SpriteLoader(callback) {
   this.sprites = [];
   this.loadCount = 0;
@@ -2052,7 +2367,7 @@ SpriteLoader.prototype.handleDone = function() {
 
 module.exports = SpriteLoader;
 
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var TileMap = require('./tilemap');
 
 function Table(viewport, tilemap, updateCallback) {
@@ -2095,7 +2410,7 @@ Table.prototype.updateNode = function(x, y) {
 
 module.exports = Table;
 
-},{"./tilemap":18}],18:[function(require,module,exports){
+},{"./tilemap":20}],20:[function(require,module,exports){
 function TileMap(width, height) {
   this.width = width;
   this.height = height;
@@ -2147,6 +2462,16 @@ TileMap.prototype.set = function(x, y, data) {
   this.map[y][x] = data;
 };
 
+TileMap.prototype.transpose = function() {
+  var tileMap = new TileMap(this.height, this.width);
+  for(var y = 0; y < this.width; ++y) {
+    for(var x = 0; x < this.height; ++x) {
+      tileMap.set(x, y, this.get(y, x));
+    }
+  }
+  return tileMap;
+}
+
 TileMap.fromArray = function(arr) {
   var tileMap = new TileMap(0, arr.length);
   for(var y = 0; y < arr.length; ++y) {
@@ -2160,7 +2485,7 @@ TileMap.fromArray = function(arr) {
 
 module.exports = TileMap;
 
-},{}],19:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var Keyboard = require('./keyboard');
 var TileMap = require('./tilemap');
 var Table = require('./table');
@@ -2178,10 +2503,10 @@ function ToolBox(renderer) {
 
 ToolBox.prototype.generateTable = function() {
   var self = this;
-  var tilemap = new TileMap(Keyboard.KeyShiftLayout[0].length,
-    Keyboard.KeyShiftLayout.length);
+  var tilemap = new TileMap(0, Keyboard.KeyShiftLayout.length);
   for(var y = 0; y < tilemap.height; ++y) {
-    for(var x = 0; x < tilemap.width; ++x) {
+    tilemap.expand(Keyboard.KeyShiftLayout[y].length, 0);
+    for(var x = 0; x < Keyboard.KeyShiftLayout[y].length; ++x) {
       var key = Keyboard.KeyShiftLayout[y][x];
       tilemap.set(x, y, {
         value: Keyboard.EditorKeyMapping[key],
@@ -2219,11 +2544,12 @@ ToolBox.prototype.changeSelected = function(type, name) {
 
 module.exports = ToolBox;
 
-},{"./keyboard":8,"./table":17,"./tilemap":18}],20:[function(require,module,exports){
+},{"./keyboard":8,"./table":19,"./tilemap":20}],22:[function(require,module,exports){
 // Saves undo stack and preforms undo
-function UndoMachine() {
+function UndoMachine(callback) {
   this.undoStack = [];
   this.redoStack = [];
+  this.callback = callback;
 }
 
 UndoMachine.prototype.run = function(action) {
@@ -2232,6 +2558,7 @@ UndoMachine.prototype.run = function(action) {
   // Execute action...
   action.exec();
   this.undoStack.push(action);
+  if(this.callback) this.callback();
 }
 
 UndoMachine.prototype.canUndo = function() {
@@ -2244,6 +2571,7 @@ UndoMachine.prototype.undo = function() {
   var action = this.undoStack.pop();
   action.undo();
   this.redoStack.push(action);
+  if(this.callback) this.callback();
   return action;
 }
 
@@ -2257,17 +2585,19 @@ UndoMachine.prototype.redo = function() {
   var action = this.redoStack.pop();
   action.exec();
   this.undoStack.push(action);
+  if(this.callback) this.callback();
   return action;
 }
 
 UndoMachine.prototype.reset = function() {
   this.undoStack = [];
   this.redoStack = [];
+  if(this.callback) this.callback();
 }
 
 module.exports = UndoMachine;
 
-},{}],21:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var ScrollPane = require('./scrollpane');
 var TileAction = require('./action');
 var parser = require('./parser');
@@ -2311,6 +2641,11 @@ Viewport.prototype.handleMouseClick = function(e) {
   var tileX = canvasX / this.renderer.width | 0;
   var tileY = canvasY / this.renderer.width | 0;
   if (!this.checkCallback(tileX, tileY)) return false;
+  // Ignore if we have to expand too much
+  if(tileX < 0) return false;
+  if(tileY < 0) return false;
+  if(tileX > this.renderer.map.width) return false;
+  if(tileY > this.renderer.map.height) return false;
   // Expand the map if required
   this.renderer.map.expand(tileX + 1, tileY + 1);
   if (tileX + 1 >= this.renderer.map.width ||
@@ -2328,11 +2663,15 @@ Viewport.prototype.handleMouseClick = function(e) {
     // ... to avoid Ctrl+C, V.
     if(selected.type == 'arrow') {
       this.undomachine.run(new TileAction(tile, tileX, tileY,
-        'direction', selected.name, this.renderer,
+        {
+          direction: selected.name
+        }, this.renderer,
         this.clickCallback.bind(this, tileX, tileY, tile)));
     } else {
       this.undomachine.run(new TileAction(tile, tileX, tileY,
-        'command', selected.name, this.renderer,
+        {
+          command: selected.name
+        }, this.renderer,
         this.clickCallback.bind(this, tileX, tileY, tile)));
     }
   } else if(e.button == 2) {
@@ -2352,4 +2691,4 @@ Viewport.prototype.handleContext = function(e) {
 
 module.exports = Viewport;
 
-},{"./action":1,"./parser":11,"./scrollpane":15}]},{},[6]);
+},{"./action":1,"./parser":13,"./scrollpane":17}]},{},[6]);
