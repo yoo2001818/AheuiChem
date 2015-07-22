@@ -259,6 +259,7 @@ Interpreter.prototype.trim = function(checkUsed) {
       if(tile.direction == 'none' && tile.command == 'none') continue;
       // ... why is it here..
       if(checkUsed && tile.directions == null) continue;
+      if(checkUsed && tile.directions.length == 0) continue;
       currentWidth = x + 1;
     }
     if(currentWidth > 0) requestedHeight = y + 1;
