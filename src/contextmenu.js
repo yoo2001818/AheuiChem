@@ -10,23 +10,46 @@ var UtilityKeyBinding = [
     {
       name: "복사",
       exec: function() {
+        // TODO yes, yes. I know. This code is like a 30 days old spaghetti
+        // in the garbage can that smells like rotten ActiveX.
+        // Which means... it needs to be fixed.
+        this.clipboard = {
+          command: this.tile.command,
+          direction: this.tile.direction,
+          data: this.tile.data
+        }
       }
     },
     {
       name: "자르기",
       exec: function() {
+        this.clipboard = {
+          command: this.tile.command,
+          direction: this.tile.direction,
+          data: this.tile.data
+        }
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          {
+            command: 'none',
+            direction: 'none',
+            breakpoint: false
+          }, this.renderer));
       }
     },
     {
       name: "붙이기",
       exec: function() {
+        this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
+          this.clipboard, this.renderer));
       }
     },
     {
       name: "중단점",
       exec: function() {
         this.undomachine.run(new TileAction(this.tile, this.tileX, this.tileY,
-          'breakpoint', !this.tile.breakpoint, this.renderer));
+          {
+            breakpoint: !this.tile.breakpoint
+          }, this.renderer));
       }
     }
   ]
@@ -49,7 +72,7 @@ var UtilityBindingMap = Keyboard.createKeyMap(UtilityKeyBinding,
 var PushKeyBindingMap = Keyboard.createKeyMap(PushKeyBinding);
 var FinalKeyBindingMap = Keyboard.createKeyMap(FinalKeyBinding);
 
-function ContextMenu(container, element, pushElement, finalElement, 
+function ContextMenu(container, element, pushElement, finalElement,
   renderer, clickCallback,
   keyboard, undomachine) {
   this.container = container;
@@ -65,6 +88,7 @@ function ContextMenu(container, element, pushElement, finalElement,
   this.tileX = null;
   this.tileY = null;
   this.tile = null;
+  this.clipboard = {};
 }
 
 ContextMenu.prototype.update = function() {
@@ -90,7 +114,9 @@ ContextMenu.prototype.init = function() {
     node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-        'data', tile, self.renderer));
+        {
+          data: tile
+        }, self.renderer));
       self.update();
     });
   });
@@ -110,7 +136,9 @@ ContextMenu.prototype.init = function() {
     node.appendChild(divNode);
     node.addEventListener('click', function() {
       self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-        'data', Hangul.final.indexOf(tile), self.renderer));
+        {
+          data: Hangul.final.indexOf(tile)
+        }, self.renderer));
       self.update();
     });
   });
@@ -165,7 +193,9 @@ ContextMenu.prototype.show = function(x, y) {
       map: PushKeyBindingMap,
       callback: function(data) {
         self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-          'data', data, self.renderer));
+          {
+            data: data
+          }, self.renderer));
         self.update();
         self.hide();
       }
@@ -178,7 +208,9 @@ ContextMenu.prototype.show = function(x, y) {
       map: FinalKeyBindingMap,
       callback: function(data) {
         self.undomachine.run(new TileAction(self.tile, self.tileX, self.tileY,
-          'data', Hangul.final.indexOf(data), self.renderer));
+          {
+            data: Hangul.final.indexOf(data)
+          }, self.renderer));
         self.update();
         self.hide();
       }

@@ -63,11 +63,15 @@ Viewport.prototype.handleMouseClick = function(e) {
     // ... to avoid Ctrl+C, V.
     if(selected.type == 'arrow') {
       this.undomachine.run(new TileAction(tile, tileX, tileY,
-        'direction', selected.name, this.renderer,
+        {
+          direction: selected.name
+        }, this.renderer,
         this.clickCallback.bind(this, tileX, tileY, tile)));
     } else {
       this.undomachine.run(new TileAction(tile, tileX, tileY,
-        'command', selected.name, this.renderer,
+        {
+          command: selected.name
+        }, this.renderer,
         this.clickCallback.bind(this, tileX, tileY, tile)));
     }
   } else if(e.button == 2) {

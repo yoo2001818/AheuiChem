@@ -1,9 +1,8 @@
 var parser = require('./parser');
 var Interpreter = require('./interpreter');
 
-function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
+function TileAction(tile, tileX, tileY, data, renderer, callback) {
   this.tile = tile;
-  this.key = key;
   this.data = data;
   this.tileX = tileX;
   this.tileY = tileY;
@@ -12,13 +11,18 @@ function TileAction(tile, tileX, tileY, key, data, renderer, callback) {
 }
 
 TileAction.prototype.exec = function() {
-  this.before = this.tile[this.key];
-  this.tile[this.key] = this.data;
+  this.before = {};
+  for(var key in this.data) {
+    this.before[key] = this.tile[key];
+    this.tile[key] = this.data[key];
+  }
   this.update();
 }
 
 TileAction.prototype.undo = function() {
-  this.tile[this.key] = this.before;
+  for(var key in this.before) {
+    this.tile[key] = this.before[key];
+  }
   this.update();
 }
 
