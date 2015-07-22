@@ -236,7 +236,7 @@ textarea {
 /** This is so painful. **/
 
 #toolbox .arrow#arrow-none {
-  background-position: 0 0;
+  background-position: 0 -200%;
 }
 #toolbox .arrow#arrow-reverse {
   background-position: 0 -100%;
@@ -273,13 +273,13 @@ textarea {
 }
 #toolbox .command {
   background: url('img/command.png') #222;
-  background-size: 500% 400%;
+  background-size: 600% 400%;
 }
 
 /** Why **/
 
 #toolbox .command#command-none {
-  background-position: 0 0;
+  background-position: -500% 0;
 }
 #toolbox .command#command-end {
   background-position: -100% 0;
