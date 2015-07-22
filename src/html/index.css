@@ -157,8 +157,15 @@ textarea {
   background: url('img/arrow.png') #222;
   background-size: 400% 400%;
 }
-#toolbox .arrow.selected {
+#toolbox td.selected {
   background-color: #555;
+}
+#toolbox td.disabled {
+  background-color: #111;
+}
+
+#toolbox td.disabled:hover {
+  background-color: #111 !important;
 }
 
 /** This is so painful. **/
@@ -202,9 +209,6 @@ textarea {
 #toolbox .command {
   background: url('img/command.png') #222;
   background-size: 500% 400%;
-}
-#toolbox .command.selected {
-  background-color: #555;
 }
 
 /** Why **/
