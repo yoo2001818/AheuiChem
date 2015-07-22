@@ -9,26 +9,19 @@
 </head>
 
 <body>
-  <div class="container horizontal">
-    <div class="entry fill container vertical">
+  <div class="container vertical">
+    <div class="entry fill container horizontal">
       <div class="entry fill viewport" id="viewport">
         <div id="canvas-container">
           <div id="canvas">
           </div>
         </div>
       </div>
-      <div class="entry footer" id="toolbox">
-        <div class="category">
-          <table id="toolbox-table">
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="entry sidebar">
-      <form id="codeForm">
-        <div class="title">실행할 코드</div>
-        <div class="content">
-          <textarea id="codeForm-code">
+      <div class="entry sidebar">
+        <form id="codeForm">
+          <div class="title">실행할 코드</div>
+          <div class="content">
+            <textarea id="codeForm-code">
 삼반반타반빠빠빠빠빠빠우
 우어어번벋범벌벖벍벓벒석
 삭싿삳빠빠빠빠빠빠빠빠술
@@ -40,30 +33,37 @@
 ㅇㅇㅇㅇㅇㅇㅇㅇㅇㅇ볻뿌
 만든이ㅇㅇ밝밦발밤받본뿌
 최종찬ㅇㅇ봃벒선뻐뻐뻐뻐</textarea>
-        </div>
-        <div class="title">입력</div>
+          </div>
+          <div class="title">입력</div>
+          <div class="content">
+            <textarea id="codeForm-input">아직 미지원</textarea>
+          </div>
+          <div class="title">출력</div>
+          <div class="content">
+            <textarea id="codeForm-output" readonly="yes"></textarea>
+          </div>
+          <div class="content">
+            <input type="submit" value="불러오기">
+            <button type="button" id="codeForm-export">내보내기</button>
+          </div>
+        </form>
         <div class="content">
-          <textarea id="codeForm-input">아직 미지원</textarea>
+          <button id="codeForm-reset">초기화</button>
+          <button id="codeForm-pause">멈춤</button>
+          <button id="codeForm-resume">실행</button>
+          <button id="codeForm-step">한단계</button>
         </div>
-        <div class="title">출력</div>
+        <div class="title">상태</div>
         <div class="content">
-          <textarea id="codeForm-output" readonly="yes"></textarea>
+          <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
+          </textarea>
         </div>
-        <div class="content">
-          <input type="submit" value="불러오기">
-          <button type="button" id="codeForm-export">내보내기</button>
-        </div>
-      </form>
-      <div class="content">
-        <button id="codeForm-reset">초기화</button>
-        <button id="codeForm-pause">멈춤</button>
-        <button id="codeForm-resume">실행</button>
-        <button id="codeForm-step">한단계</button>
       </div>
-      <div class="title">상태</div>
-      <div class="content">
-        <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
-        </textarea>
+    </div>
+    <div class="entry footer" id="toolbox">
+      <div class="category">
+        <table id="toolbox-table">
+        </table>
       </div>
     </div>
   </div>
