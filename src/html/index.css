@@ -146,6 +146,10 @@ textarea {
   text-align: left;
   color: #fff;
 }
+#toolbox table.mini td {
+  width: 25px;
+  height: 25px;
+}
 #toolbox td:hover {
   background-color: #333 !important;
 }
@@ -261,4 +265,41 @@ textarea {
 }
 #toolbox .command#command-pop-unicode {
   background-position: -400% -300%;
+}
+
+#toolbox .icon {
+  background: url('img/icon.png') #222;
+  background-size: 600% 600%;
+}
+
+#toolbox .icon#icon-play1x {
+  background-position: 0 0;
+}
+
+#toolbox .icon#icon-play2x {
+  background-position: -100% 0;
+}
+
+#toolbox .icon#icon-play3x {
+  background-position: -200% 0;
+}
+
+#toolbox .icon#icon-play4x {
+  background-position: -300% 0;
+}
+
+#toolbox .icon#icon-pause {
+  background-position: -400% 0;
+}
+
+#toolbox .icon#icon-stop {
+  background-position: -500% 0;
+}
+
+#toolbox .icon#icon-undo {
+  background-position: 0 -100%;
+}
+
+#toolbox .icon#icon-redo {
+  background-position: 0 -200%;
 }

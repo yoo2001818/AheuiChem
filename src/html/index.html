@@ -36,7 +36,7 @@
           </div>
           <div class="title">입력</div>
           <div class="content">
-            <textarea id="codeForm-input">아직 미지원</textarea>
+            <textarea id="codeForm-input"></textarea>
           </div>
           <div class="title">출력</div>
           <div class="content">
@@ -47,12 +47,6 @@
             <button type="button" id="codeForm-export">내보내기</button>
           </div>
         </form>
-        <div class="content">
-          <button id="codeForm-reset">초기화</button>
-          <button id="codeForm-pause">멈춤</button>
-          <button id="codeForm-resume">실행</button>
-          <button id="codeForm-step">한단계</button>
-        </div>
         <div class="title">상태</div>
         <div class="content">
           <textarea id="codeForm-debug" readonly="yes" rows="30" cols="30">
@@ -61,6 +55,28 @@
       </div>
     </div>
     <div class="entry footer" id="toolbox">
+      <div class="category">
+        <table id="playback-table" class="mini">
+          <tr>
+            <td id="icon-stop" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-pause" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play1x" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play2x" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play3x" class="icon"></td>
+          </tr>
+          <tr>
+            <td id="icon-play4x" class="icon"></td>
+          </tr>
+        </table>
+      </div>
       <div class="category">
         <table id="toolbox-table">
         </table>
