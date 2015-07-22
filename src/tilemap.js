@@ -49,6 +49,16 @@ TileMap.prototype.set = function(x, y, data) {
   this.map[y][x] = data;
 };
 
+TileMap.prototype.transpose = function() {
+  var tileMap = new TileMap(this.height, this.width);
+  for(var y = 0; y < this.width; ++y) {
+    for(var x = 0; x < this.height; ++x) {
+      tileMap.set(x, y, this.get(y, x));
+    }
+  }
+  return tileMap;
+}
+
 TileMap.fromArray = function(arr) {
   var tileMap = new TileMap(0, arr.length);
   for(var y = 0; y < arr.length; ++y) {

@@ -11,6 +11,7 @@ var ContextMenu = require('./contextmenu');
 var Playback = require('./playback');
 var Keyboard = require('./keyboard');
 var UndoMachine = require('./undomachine');
+var LayerToggler = require('./layertoggler');
 
 var interpreter;
 var renderer;
@@ -22,6 +23,7 @@ var contextmenu;
 var playback;
 var keyboard;
 var undomachine;
+var layertoggler;
 var initialized = false;
 
 function repredict(initial) {
@@ -63,6 +65,7 @@ function reset(initial) {
 
 function initialize() {
   if(initialized) {
+    layertoggler.renderer = renderer;
     toolbox.renderer = renderer;
     viewport.renderer = renderer;
     contextmenu.renderer = renderer;
@@ -76,6 +79,8 @@ function initialize() {
     document.getElementById('codeForm-debug').value = monitor.getStatus();
   }, reset.bind(this, false));
   toolbox = new ToolBox(renderer);
+  layertoggler = new LayerToggler(renderer,
+    document.getElementById('view-table'));
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context'),
     document.getElementById('context-push'),

@@ -166,10 +166,12 @@ textarea {
 #toolbox td.selected {
   background-color: #555;
 }
+#toolbox td.selected:hover {
+  background-color: #666 !important;
+}
 #toolbox td.disabled {
   background-color: #111;
 }
-
 #toolbox td.disabled:hover {
   background-color: #111 !important;
 }
