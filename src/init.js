@@ -31,14 +31,18 @@ var initialized = false;
 function repredict(initial) {
   // Clear all paths and reset
   if (!initial && renderer) {
-    for (var y = 0; y < interpreter.map.height; ++y) {
-      for (var x = 0; x < interpreter.map.width; ++x) {
-        var tile = interpreter.map.get(x, y);
-        var cacheTile = renderer.cacheMap.get(x, y);
-        if (tile) {
-          tile.directions = [];
-          tile.segments = {};
-          cacheTile.directions = {};
+    if(interpreter.trim()) {
+      renderer.reset();
+    } else {
+      for (var y = 0; y < interpreter.map.height; ++y) {
+        for (var x = 0; x < interpreter.map.width; ++x) {
+          var tile = interpreter.map.get(x, y);
+          var cacheTile = renderer.cacheMap.get(x, y);
+          if (tile) {
+            tile.directions = [];
+            tile.segments = {};
+            cacheTile.directions = {};
+          }
         }
       }
     }
@@ -90,6 +94,12 @@ function initialize() {
   toolbox = new ToolBox(renderer);
   layertoggler = new LayerToggler(renderer,
     document.getElementById('view-table'));
+  // TODO should be changed. it's dirty.
+  layertoggler.trim = function() {
+    interpreter.trim(true);
+    renderer.reset();
+    repredict(false);
+  }
   contextmenu = new ContextMenu(document.getElementById('context-bg'),
     document.getElementById('context'),
     document.getElementById('context-push'),

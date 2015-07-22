@@ -4,6 +4,10 @@ var Table = require('./table');
 var LayerToggleBinding = [
   [
     {
+      name: '청소',
+      data: 'clean'
+    },
+    {
       name: '명령',
       data: 'command'
     },
@@ -45,6 +49,11 @@ LayerToggler.prototype.init = function() {
     node.className = 'view';
     node.appendChild(document.createTextNode(tile.name));
     node.addEventListener('click', function() {
+      // TODO move it somewhere else????
+      if(tile.data == 'clean') {
+        self.trim();
+        return;
+      }
       var style = self.renderer.canvases.getCanvas(tile.data).style;
       if(style.visibility == 'hidden') {
         style.visibility = 'visible';

@@ -246,6 +246,32 @@ Interpreter.prototype.next = function() {
   return this.state.running;
 };
 
+// TODO move it somewhere?
+// Trims the tilemap
+Interpreter.prototype.trim = function(checkUsed) {
+  var requestedWidth = 0;
+  var requestedHeight = 0;
+  for(var y = 0; y < this.map.height; ++y) {
+    var currentWidth = 0;
+    for(var x = 0; x < this.map.width; ++x) {
+      var tile = this.map.get(x, y);
+      if(tile == null) continue;
+      if(tile.direction == 'none' && tile.command == 'none') continue;
+      // ... why is it here..
+      if(checkUsed && tile.directions == null) continue;
+      currentWidth = x + 1;
+    }
+    if(currentWidth > 0) requestedHeight = y + 1;
+    if(currentWidth > requestedWidth) requestedWidth = currentWidth;
+  }
+  var hasChanged = false;
+  if(this.map.width != requestedWidth) hasChanged = true;
+  if(this.map.height != requestedHeight) hasChanged = true;
+  this.map.width = requestedWidth;
+  this.map.height = requestedHeight;
+  return hasChanged;
+}
+
 Interpreter.CommandMap = CommandMap;
 
 module.exports = Interpreter;
