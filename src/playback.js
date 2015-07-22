@@ -56,7 +56,7 @@ Playback.prototype.registerEvents = function() {
   document.getElementById('icon-step').onclick = function() {
     document.activeElement.blur();
     self.playing = true;
-    self.step();
+    self.step(true);
     self.running = false;
     self.update();
   };
@@ -101,7 +101,7 @@ Playback.prototype.update = function() {
   }
 }
 
-Playback.prototype.step = function() {
+Playback.prototype.step = function(once) {
   if(!this.interpreter || !this.renderer) return;
   for(var i = 0; i < this.times; ++i) {
     this.interpreter.next();
@@ -116,6 +116,7 @@ Playback.prototype.step = function() {
       this.update();
       break;
     }
+    if(once) break;
   }
   this.renderer.render();
   if(this.callback) this.callback();
