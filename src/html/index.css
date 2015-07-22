@@ -272,8 +272,12 @@ textarea {
   background-size: 600% 600%;
 }
 
-#toolbox .icon#icon-play1x {
+#toolbox .icon#icon-play {
   background-position: 0 0;
+}
+
+#toolbox .icon#icon-play1x {
+  background-position: -300% 0;
 }
 
 #toolbox .icon#icon-play2x {
@@ -282,10 +286,6 @@ textarea {
 
 #toolbox .icon#icon-play3x {
   background-position: -200% 0;
-}
-
-#toolbox .icon#icon-play4x {
-  background-position: -300% 0;
 }
 
 #toolbox .icon#icon-pause {
@@ -301,5 +301,9 @@ textarea {
 }
 
 #toolbox .icon#icon-redo {
-  background-position: 0 -200%;
+  background-position: -100% -100%;
+}
+
+#toolbox .icon#icon-step {
+  background-position: -200% -100%;
 }

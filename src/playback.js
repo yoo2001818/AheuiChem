@@ -10,20 +10,20 @@ function Playback(interpreter, renderer, callback, resetCallback) {
 Playback.prototype.registerEvents = function() {
   var self = this;
   // TODO let's not use getElementById in classes
-  document.getElementById('codeForm-resume').onclick = function() {
+  document.getElementById('icon-play').onclick = function() {
     document.activeElement.blur();
     self.running = true;
   };
-  document.getElementById('codeForm-pause').onclick = function() {
+  document.getElementById('icon-pause').onclick = function() {
     document.activeElement.blur();
     self.running = false;
   };
-  document.getElementById('codeForm-step').onclick = function() {
+  document.getElementById('icon-step').onclick = function() {
     document.activeElement.blur();
     self.step();
     self.running = false;
   };
-  document.getElementById('codeForm-reset').onclick = function() {
+  document.getElementById('icon-stop').onclick = function() {
     self.resetCallback();
   };
   setInterval(function() {
