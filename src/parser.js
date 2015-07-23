@@ -166,7 +166,14 @@ function encodeSyllable(data) {
 function encode(map) {
   var code = "";
   for (var y = 0; y < map.height; ++y) {
+    var currentWidth = 0;
     for (var x = 0; x < map.width; ++x) {
+      var tile = map.get(x, y);
+      if(tile == null) continue;
+      if(tile.direction == 'none' && tile.command == 'none') continue;;
+      currentWidth = x + 1;
+    }
+    for (var x = 0; x < currentWidth; ++x) {
       var tile = map.get(x, y);
       if (tile) code += tile.original;
       else code += 'ㅇ';

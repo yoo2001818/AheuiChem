@@ -262,6 +262,9 @@ Interpreter.prototype.trim = function(checkUsed) {
       if(checkUsed && tile.directions.length == 0) continue;
       currentWidth = x + 1;
     }
+    for(var x = currentWidth; x < this.map.width; ++x) {
+      this.map.set(x, y, null);
+    }
     if(currentWidth > 0) requestedHeight = y + 1;
     if(currentWidth > requestedWidth) requestedWidth = currentWidth;
   }
