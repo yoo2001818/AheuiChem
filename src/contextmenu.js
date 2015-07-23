@@ -4,6 +4,7 @@ var Keyboard = require('./keyboard');
 var Hangul = require('./hangul');
 var parser = require('./parser');
 var TileAction = require('./action');
+var Interpreter = require('./interpreter');
 
 var UtilityKeyBinding = [
   [
@@ -97,6 +98,10 @@ ContextMenu.prototype.update = function() {
 
 ContextMenu.prototype.init = function() {
   var self = this;
+  self.container.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
   var tilemap = TileMap.fromArray(PushKeyBinding);
   // TODO no getElementById in class
   // This is exactly same situation as toolbox
@@ -165,13 +170,14 @@ ContextMenu.prototype.init = function() {
 ContextMenu.prototype.show = function(x, y) {
   var self = this;
   this.container.style.display = 'block';
-  this.container.addEventListener('click', this.hideEvent);
-  this.container.addEventListener('contextmenu', this.hideEvent);
   this.element.style.display = 'block';
   setTimeout(function() {
     self.element.style.top = y+'px';
-    self.element.style.left = Math.max(0, x-self.element.offsetWidth/2+
-      self.renderer.width/2)+'px';
+    self.element.style.left = Math.max(0,
+      Math.min(window.innerWidth - self.element.offsetWidth,
+      x-self.element.offsetWidth/2+self.renderer.width/2))+'px';
+    self.container.addEventListener('click', self.hideEvent);
+    self.container.addEventListener('contextmenu', self.hideEvent);
   }, 0);
   var self = this;
   // Prevent going more
@@ -200,7 +206,8 @@ ContextMenu.prototype.show = function(x, y) {
         self.hide();
       }
     });
-  } else {
+  } else if(Interpreter.CommandMap[this.tile.command] &&
+    Interpreter.CommandMap[this.tile.command].argument){
     this.finalElement.style.display = 'block';
     this.pushElement.style.display = 'none';
     // Push keyboard state
@@ -215,6 +222,12 @@ ContextMenu.prototype.show = function(x, y) {
         self.hide();
       }
     });
+  } else {
+    // Hide all
+    this.finalElement.style.display = 'none';
+    this.pushElement.style.display = 'none';
+    // Push keyboard state
+    this.keyboard.push(null);
   }
 }
 

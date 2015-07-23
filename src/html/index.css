@@ -5,6 +5,12 @@ html, body {
   height: 100%;
   font-family: Noto Sans CJK KR, Noto Sans, 나눔바른고딕, 나눔고딕, sans-serif;
 }
+a {
+  color: #ccc;
+}
+a:visited {
+  color: #aaa;
+}
 .container.vertical, .container.horizontal {
   display: flex;
   width: 100%;
@@ -26,7 +32,7 @@ html, body {
 }
 .container.horizontal > .entry.sidebar {
   width: 220pt;
-  height: 100%;
+  position: relative;
   flex: 0 0 auto;
   overflow-y: auto;
 }
@@ -37,10 +43,20 @@ html, body {
   height: 150px;
   flex: 0 0 auto;
 }
+.relative {
+  position: relative;
+}
+.filler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
 .viewport {
   background-color: #000;
   overflow: hidden;
-  height: 100%;
+  max-height: 100%;
   width: 100%;
 }
 #canvas-container {
@@ -85,6 +101,7 @@ html, body {
   background: #222;
   border: #000 solid 1px;
   color: #fff;
+  text-align: center;
 }
 .menu {
   display: none;
@@ -109,6 +126,7 @@ input[type=submit]:hover, button:hover {
   background-color: #333;
 }
 textarea {
+  display: block;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -211,7 +229,7 @@ textarea {
 }
 #toolbox .arrow {
   background: url('img/arrow.png') #222;
-  background-size: 400% 400%;
+  background-size: 200px 200px;
 }
 #toolbox table td.selected {
   background-color: #555;
@@ -229,104 +247,104 @@ textarea {
 /** This is so painful. **/
 
 #toolbox .arrow#arrow-none {
-  background-position: 0 0;
+  background-position: 0 -100px;
 }
 #toolbox .arrow#arrow-reverse {
-  background-position: 0 -100%;
+  background-position: 0 -50px;
 }
 #toolbox .arrow#arrow-up {
-  background-position: -200% 0;
+  background-position: -100px 0;
 }
 #toolbox .arrow#arrow-left {
-  background-position: -200% -100%;
+  background-position: -100px -50px;
 }
 #toolbox .arrow#arrow-right {
-  background-position: -300% 0;
+  background-position: -150px 0;
 }
 #toolbox .arrow#arrow-down {
-  background-position: -300% -100%;
+  background-position: -150px -50px;
 }
 #toolbox .arrow#arrow-skip-up {
-  background-position: -200% -200%;
+  background-position: -100px -100px;
 }
 #toolbox .arrow#arrow-skip-left {
-  background-position: -200% -300%;
+  background-position: -100px -150px;
 }
 #toolbox .arrow#arrow-skip-right {
-  background-position: -300% -200%;
+  background-position: -150px -100px;
 }
 #toolbox .arrow#arrow-skip-down {
-  background-position: -300% -300%;
+  background-position: -150px -150px;
 }
 #toolbox .arrow#arrow-horizontal {
-  background-position: -100% 0;
+  background-position: -50px 0;
 }
 #toolbox .arrow#arrow-vertical {
-  background-position: -100% -100%;
+  background-position: -50px -50px;
 }
 #toolbox .command {
   background: url('img/command.png') #222;
-  background-size: 500% 400%;
+  background-size: 300px 200px;
 }
 
 /** Why **/
 
 #toolbox .command#command-none {
-  background-position: 0 0;
+  background-position: -250px 0;
 }
 #toolbox .command#command-end {
-  background-position: -100% 0;
+  background-position: -50px 0;
 }
 #toolbox .command#command-add {
-  background-position: -200% 0;
+  background-position: -100px 0;
 }
 #toolbox .command#command-multiply {
-  background-position: -300% 0;
+  background-position: -150px 0;
 }
 #toolbox .command#command-push-number {
-  background-position: -400% 0;
+  background-position: -200px 0;
 }
 #toolbox .command#command-push {
-  background-position: 0 -100%;
+  background-position: 0 -50px;
 }
 #toolbox .command#command-mod {
-  background-position: -100% -100%;
+  background-position: -50px -50px;
 }
 #toolbox .command#command-subtract {
-  background-position: -200% -100%;
+  background-position: -100px -50px;
 }
 #toolbox .command#command-divide {
-  background-position: -300% -100%;
+  background-position: -150px -50px;
 }
 #toolbox .command#command-push-unicode {
-  background-position: -400% -100%;
+  background-position: -200px -50px;
 }
 #toolbox .command#command-pop {
-  background-position: 0 -200%;
+  background-position: 0 -100px;
 }
 #toolbox .command#command-copy {
-  background-position: -100% -200%;
+  background-position: -50px -100px;
 }
 #toolbox .command#command-flip {
-  background-position: -200% -200%;
+  background-position: -100px -100px;
 }
 #toolbox .command#command-select {
-  background-position: -300% -200%;
+  background-position: -150px -100px;
 }
 #toolbox .command#command-pop-number {
-  background-position: -400% -200%;
+  background-position: -200px -100px;
 }
 #toolbox .command#command-move {
-  background-position: 0 -300%;
+  background-position: 0 -150px;
 }
 #toolbox .command#command-compare {
-  background-position: -100% -300%;
+  background-position: -50px -150px;
 }
 #toolbox .command#command-condition {
-  background-position: -200% -300%;
+  background-position: -100px -150px;
 }
 #toolbox .command#command-pop-unicode {
-  background-position: -400% -300%;
+  background-position: -200px -150px;
 }
 
 #toolbox .icon {

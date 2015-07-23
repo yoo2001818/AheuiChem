@@ -27,12 +27,26 @@ module.exports = function(grunt) {
         src: 'src/init.js',
         dest: 'build/<%= pkg.name %>.js'
       }
+    },
+    markdown: {
+      all: {
+        files: [
+          {
+            expand: true,
+            cwd: 'src/html',
+            src: ['**/*.md'],
+            dest: 'build/',
+            ext: '.html'
+          }
+        ]
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-markdown');
 
-  grunt.registerTask('default', ['copy', 'browserify', 'uglify']);
+  grunt.registerTask('default', ['copy', 'browserify', 'uglify', 'markdown']);
 };
