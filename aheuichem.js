@@ -1006,6 +1006,9 @@ Interpreter.prototype.trim = function(checkUsed) {
       if(checkUsed && tile.directions.length == 0) continue;
       currentWidth = x + 1;
     }
+    for(var x = currentWidth; x < this.map.width; ++x) {
+      this.map.set(x, y, null);
+    }
     if(currentWidth > 0) requestedHeight = y + 1;
     if(currentWidth > requestedWidth) requestedWidth = currentWidth;
   }
@@ -1272,14 +1275,15 @@ Queue.prototype.flip = function() {
   if (!this.canPull(2)) return false;
   var a = this.pull();
   var b = this.pull();
-  this.data.unshift(b);
   this.data.unshift(a);
+  this.data.unshift(b);
   return true;
 };
 
 module.exports.Memory = Memory;
 module.exports.Stack = Stack;
 module.exports.Queue = Queue;
+
 },{}],11:[function(require,module,exports){
 function MenuPane(panes, buttons) {
   this.panes = panes;
@@ -1523,7 +1527,14 @@ function encodeSyllable(data) {
 function encode(map) {
   var code = "";
   for (var y = 0; y < map.height; ++y) {
+    var currentWidth = 0;
     for (var x = 0; x < map.width; ++x) {
+      var tile = map.get(x, y);
+      if(tile == null) continue;
+      if(tile.direction == 'none' && tile.command == 'none') continue;;
+      currentWidth = x + 1;
+    }
+    for (var x = 0; x < currentWidth; ++x) {
       var tile = map.get(x, y);
       if (tile) code += tile.original;
       else code += 'ㅇ';
