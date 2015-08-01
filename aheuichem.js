@@ -454,8 +454,8 @@ function process(pos, map, direction, preDir, updated, segment) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
   if (isSkipping(direction.x, direction.y)) {
-    var skipX = move(pos.x, sign(direction.x), map.width);
     var skipY = move(pos.y, sign(direction.y), map.height);
+    var skipX = move(pos.x, sign(direction.x), map.getWidth(skipY));
     var skipTile = map.get(skipX, skipY);
     updated.push({
       x: skipX,
@@ -474,8 +474,8 @@ function process(pos, map, direction, preDir, updated, segment) {
   });
   var bitDir = preDir | convertToBits(direction.x, direction.y);
   write(tile, DirectionBitRevMap[bitDir], segment);
-  pos.x = move(pos.x, direction.x, map.width);
   pos.y = move(pos.y, direction.y, map.height);
+  pos.x = move(pos.x, direction.x, map.getWidth(pos.y));
 }
 
 function sign(a) {
@@ -495,6 +495,8 @@ function calculate(current, target) {
 }
 
 function move(pos, dir, size) {
+  // Quick fix to retain y value
+  if (dir == 0) return pos;
   pos += dir;
   if (pos < 0) pos = Math.max(0, size + pos);
   if (pos >= size) pos = Math.min(size - 1, pos - size);
@@ -986,7 +988,7 @@ Interpreter.prototype.next = function() {
   Direction.process(this.state, this.map, direction, preDir, this.updated,
     -1);
   var newTile = this.map.get(this.state.x, this.state.y);
-  this.state.breakpoint = newTile.breakpoint;
+  if(newTile) this.state.breakpoint = newTile.breakpoint;
   return this.state.running;
 };
 
@@ -997,7 +999,7 @@ Interpreter.prototype.trim = function(checkUsed) {
   var requestedHeight = 0;
   for(var y = 0; y < this.map.height; ++y) {
     var currentWidth = 0;
-    for(var x = 0; x < this.map.width; ++x) {
+    for(var x = 0; x < this.map.getWidth(y); ++x) {
       var tile = this.map.get(x, y);
       if(tile == null) continue;
       if(tile.direction == 'none' && tile.command == 'none') continue;
@@ -1006,9 +1008,10 @@ Interpreter.prototype.trim = function(checkUsed) {
       if(checkUsed && tile.directions.length == 0) continue;
       currentWidth = x + 1;
     }
-    for(var x = currentWidth; x < this.map.width; ++x) {
+    this.map.map[y] = this.map.map[y].slice(0, currentWidth);
+    /* for(var x = currentWidth; x < this.map.width; ++x) {
       this.map.set(x, y, null);
-    }
+    } */
     if(currentWidth > 0) requestedHeight = y + 1;
     if(currentWidth > requestedWidth) requestedWidth = currentWidth;
   }
@@ -1528,10 +1531,10 @@ function encode(map) {
   var code = "";
   for (var y = 0; y < map.height; ++y) {
     var currentWidth = 0;
-    for (var x = 0; x < map.width; ++x) {
+    for (var x = 0; x < map.getWidth(y); ++x) {
       var tile = map.get(x, y);
       if(tile == null) continue;
-      if(tile.direction == 'none' && tile.command == 'none') continue;;
+      if(tile.direction == 'none' && tile.command == 'none') continue;
       currentWidth = x + 1;
     }
     for (var x = 0; x < currentWidth; ++x) {
@@ -2438,9 +2441,9 @@ TileMap.prototype.clear = function() {
   this.map = [];
   for (var y = 0; y < this.height; ++y) {
     var row = [];
-    for (var x = 0; x < this.width; ++x) {
+    /* for (var x = 0; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
     this.map[y] = row;
   }
 };
@@ -2453,22 +2456,28 @@ TileMap.prototype.expand = function(width, height) {
   if (height > this.height) this.height = height;
   for (y = 0; y < prevHeight; ++y) {
     row = this.map[y];
-    for (x = prevWidth; x < this.width; ++x) {
+    /* for (x = prevWidth; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
   }
   for (y = prevHeight; y < this.height; ++y) {
     row = [];
-    for (x = 0; x < this.width; ++x) {
+    /* for (x = 0; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
     this.map[y] = row;
   }
 };
 
+TileMap.prototype.getWidth = function(y) {
+  if (y < 0 || y >= this.height) return 0;
+  return this.map[y].length;
+}
+
 TileMap.prototype.get = function(x, y) {
   if (y < 0 || y >= this.height) return null;
   if (x < 0 || x >= this.width) return null;
+  // TODO can be null or undefined
   return this.map[y][x];
 };
 
