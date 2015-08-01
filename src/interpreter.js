@@ -242,7 +242,7 @@ Interpreter.prototype.next = function() {
   Direction.process(this.state, this.map, direction, preDir, this.updated,
     -1);
   var newTile = this.map.get(this.state.x, this.state.y);
-  this.state.breakpoint = newTile.breakpoint;
+  if(newTile) this.state.breakpoint = newTile.breakpoint;
   return this.state.running;
 };
 
@@ -253,7 +253,7 @@ Interpreter.prototype.trim = function(checkUsed) {
   var requestedHeight = 0;
   for(var y = 0; y < this.map.height; ++y) {
     var currentWidth = 0;
-    for(var x = 0; x < this.map.width; ++x) {
+    for(var x = 0; x < this.map.getWidth(y); ++x) {
       var tile = this.map.get(x, y);
       if(tile == null) continue;
       if(tile.direction == 'none' && tile.command == 'none') continue;
@@ -262,9 +262,10 @@ Interpreter.prototype.trim = function(checkUsed) {
       if(checkUsed && tile.directions.length == 0) continue;
       currentWidth = x + 1;
     }
-    for(var x = currentWidth; x < this.map.width; ++x) {
+    this.map.map[y] = this.map.map[y].slice(0, currentWidth);
+    /* for(var x = currentWidth; x < this.map.width; ++x) {
       this.map.set(x, y, null);
-    }
+    } */
     if(currentWidth > 0) requestedHeight = y + 1;
     if(currentWidth > requestedWidth) requestedWidth = currentWidth;
   }
