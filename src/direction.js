@@ -89,8 +89,8 @@ function process(pos, map, direction, preDir, updated, segment) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
   if (isSkipping(direction.x, direction.y)) {
-    var skipX = move(pos.x, sign(direction.x), map.width);
     var skipY = move(pos.y, sign(direction.y), map.height);
+    var skipX = move(pos.x, sign(direction.x), map.getWidth(skipY));
     var skipTile = map.get(skipX, skipY);
     updated.push({
       x: skipX,
@@ -109,8 +109,8 @@ function process(pos, map, direction, preDir, updated, segment) {
   });
   var bitDir = preDir | convertToBits(direction.x, direction.y);
   write(tile, DirectionBitRevMap[bitDir], segment);
-  pos.x = move(pos.x, direction.x, map.width);
   pos.y = move(pos.y, direction.y, map.height);
+  pos.x = move(pos.x, direction.x, map.getWidth(pos.y));
 }
 
 function sign(a) {
@@ -130,6 +130,8 @@ function calculate(current, target) {
 }
 
 function move(pos, dir, size) {
+  // Quick fix to retain y value
+  if (dir == 0) return pos;
   pos += dir;
   if (pos < 0) pos = Math.max(0, size + pos);
   if (pos >= size) pos = Math.min(size - 1, pos - size);

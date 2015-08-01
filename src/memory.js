@@ -70,8 +70,8 @@ Queue.prototype.flip = function() {
   if (!this.canPull(2)) return false;
   var a = this.pull();
   var b = this.pull();
-  this.data.unshift(b);
   this.data.unshift(a);
+  this.data.unshift(b);
   return true;
 };
 

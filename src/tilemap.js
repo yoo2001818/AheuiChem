@@ -9,9 +9,9 @@ TileMap.prototype.clear = function() {
   this.map = [];
   for (var y = 0; y < this.height; ++y) {
     var row = [];
-    for (var x = 0; x < this.width; ++x) {
+    /* for (var x = 0; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
     this.map[y] = row;
   }
 };
@@ -24,22 +24,28 @@ TileMap.prototype.expand = function(width, height) {
   if (height > this.height) this.height = height;
   for (y = 0; y < prevHeight; ++y) {
     row = this.map[y];
-    for (x = prevWidth; x < this.width; ++x) {
+    /* for (x = prevWidth; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
   }
   for (y = prevHeight; y < this.height; ++y) {
     row = [];
-    for (x = 0; x < this.width; ++x) {
+    /* for (x = 0; x < this.width; ++x) {
       row[x] = null;
-    }
+    } */
     this.map[y] = row;
   }
 };
 
+TileMap.prototype.getWidth = function(y) {
+  if (y < 0 || y >= this.height) return 0;
+  return this.map[y].length;
+}
+
 TileMap.prototype.get = function(x, y) {
   if (y < 0 || y >= this.height) return null;
   if (x < 0 || x >= this.width) return null;
+  // TODO can be null or undefined
   return this.map[y][x];
 };
 
