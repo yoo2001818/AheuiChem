@@ -8,25 +8,25 @@ describe('TileMap', function() {
   describe('#clear()', function() {
     it('should set map size correctly', function() {
       tileMap.clear();
-      assert.equal(4, tileMap.map.length);
-      assert.equal(3, tileMap.map[0].length);
+      assert.equal(4, tileMap.height);
+      assert.equal(3, tileMap.width);
     });
     it('should clear the array', function() {
       tileMap.clear();
-      var empty = [null, null, null];
+      var empty = [];
       assert.deepEqual([empty, empty, empty, empty], tileMap.map);
     });
   });
   describe('#expand()', function() {
     it('should set map size correctly', function() {
       tileMap.expand(4, 5);
-      assert.equal(5, tileMap.map.length);
-      assert.equal(4, tileMap.map[0].length);
+      assert.equal(5, tileMap.height);
+      assert.equal(4, tileMap.width);
     });
     it('should not become smaller than its original size', function() {
       tileMap.expand(2, 5);
-      assert.equal(5, tileMap.map.length);
-      assert.equal(3, tileMap.map[0].length);
+      assert.equal(5, tileMap.height);
+      assert.equal(3, tileMap.width);
     });
     it('should retain its contents', function() {
       tileMap.map = [[1,1,1],[1,1,1],[1,1,1],[1,1,1]];
