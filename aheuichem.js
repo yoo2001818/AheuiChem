@@ -1807,7 +1807,7 @@ Predictor.prototype.postCheck = function() {
         preDir = Direction.convertToBits(-direction.x, -direction.y);
       }
     }
-    if(cursor.then) {
+    if(cursor && cursor.then) {
       Direction.process({
         x: cursor.x,
         y: cursor.y
