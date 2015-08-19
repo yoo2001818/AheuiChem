@@ -216,7 +216,7 @@ Interpreter.prototype.next = function() {
   var preDir = Direction.convertToBits(-direction.x, -direction.y);
   var tile = this.map.get(this.state.x, this.state.y);
   var error = false;
-  if (tile !== null) {
+  if (tile != null) {
     // Set the direction
     var tileDir = Direction.map[tile.direction];
     direction.x = Direction.calculate(direction.x, tileDir.x);
