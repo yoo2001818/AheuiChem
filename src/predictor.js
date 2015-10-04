@@ -217,11 +217,12 @@ Predictor.prototype.processCursor = function(cursor, segment, tile, headingTile,
     // Continue cursor in seek mode if memory has less data than before.
     var hasLess = !cursor.memory.every(function(value, key) {
       var diff = before.memory[key] - value;
-      // Maximum memory space
+      // This has been disabled for precision.
+      /*// Maximum memory space
       if(diff <= 0 && value >= 8) cursor.memory[key] = 8;
       // Check 16 times, then just check if it has less data.
-      if(before.visit > 16) return diff <= 0;
-      else return diff == 0;
+      if(before.visit > 16) return diff <= 0;*/
+      return diff <= 0;
     });
     before.memory = cursor.memory.slice();
     seek = hasLess;
