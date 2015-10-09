@@ -89,17 +89,19 @@ function process(pos, map, direction, preDir, updated, segment) {
   var tile = map.get(pos.x, pos.y);
   // Add 'skip' direction to skipping tile
   if (isSkipping(direction.x, direction.y)) {
-    var skipY = move(pos.y, sign(direction.y), map.height);
-    var skipX = move(pos.x, sign(direction.x), map.getWidth(skipY));
+    var skipY = pos.y + sign(direction.y);
+    var skipX = pos.x + sign(direction.x);
     var skipTile = map.get(skipX, skipY);
-    updated.push({
-      x: skipX,
-      y: skipY
-    });
-    if (direction.x) {
-      write(skipTile, 'skip-horizontal', segment);
-    } else {
-      write(skipTile, 'skip-vertical', segment);
+    if (skipTile) {
+      updated.push({
+        x: skipX,
+        y: skipY
+      });
+      if (direction.x) {
+        write(skipTile, 'skip-horizontal', segment);
+      } else {
+        write(skipTile, 'skip-vertical', segment);
+      }
     }
   }
   // Move to tile
@@ -133,8 +135,12 @@ function move(pos, dir, size) {
   // Quick fix to retain y value
   if (dir == 0) return pos;
   pos += dir;
-  if (pos < 0) pos = Math.max(0, size + pos);
-  if (pos >= size) pos = Math.min(size - 1, pos - size);
+  // Previously this 'wrapped' the map:
+  // https://github.com/aheui/snippets/blob/master/undefined/boundary.aheui
+  // This goes to '바' in the previous version, but most Aheui interpreters
+  // don't implement in that way, so I've changed it.
+  if (pos < 0) pos = size - 1;
+  if (pos >= size) pos = 0;
   return pos;
 }
 
